@@ -1,0 +1,20 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    numpy (0.4.0)
+      pycall (>= 1.2.0.beta1)
+    pycall (1.5.2)
+    rice (4.3.3)
+    torch-rb (0.18.0)
+      rice (>= 4.3.3)
+
+PLATFORMS
+  arm64-darwin-23
+
+DEPENDENCIES
+  numpy
+  pycall
+  torch-rb
+
+BUNDLED WITH
+   2.4.18

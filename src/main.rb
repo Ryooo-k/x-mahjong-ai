@@ -13,19 +13,16 @@ Tiles = {
 }
 
 def main
-  episode_count = 0
   sync_interval = 1000
   agent = DQNAgent.new
   syanten_list = load_shanten_list
 
   1000000.times do |time|
-    # binding.break
-    env = MahjongEnv.new(syanten_list)
+    total_loss = 0
+    done = false
+    env = MahjongEnv.new(syanten_list, time)
     start_hands = env.hands.dup
     state = env.state
-    total_loss = 0
-    count = 0
-    done = false
 
     while not done
       env.tumo
@@ -33,19 +30,16 @@ def main
       next_state, reward, done = env.step(action)
       loss = agent.update(state, action, reward, next_state, done)
       total_loss += loss
-      count += 1
       state = next_state
-      game_set_order = env.order if env.done
     end
 
-    agent.sync_qnet if episode_count != 0 && episode_count % sync_interval == 0
-    episode_count += 1
-    average_loss = total_loss / (count.nonzero? || 1)
+    agent.sync_qnet if time != 0 && time % sync_interval == 0
+    average_loss = total_loss / env.order
 
-    if episode_count % 10 == 0
+    if time % 10 == 0
       puts "開始時の向聴数：#{env.shanten(start_hands)}"
       puts "終了時の向聴数：#{env.shanten(env.hands)}"
-      puts "アベレージロス：#{average_loss}、終了順目：#{game_set_order}"
+      puts "アベレージロス：#{average_loss}、終了順目：#{env.order}"
       puts
     end
   end

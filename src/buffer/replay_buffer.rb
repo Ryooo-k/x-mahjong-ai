@@ -4,10 +4,11 @@ require 'torch'
 require 'numo/narray'
 
 class ReplayBuffer
-  def initialize(buffer_size, batch_size)
+  def initialize(buffer_size, batch_size, device)
     @buffer = []
     @buffer_size = buffer_size
     @batch_size = batch_size
+    @device = device
   end
 
   def add(state, action, reward, next_state, done)
@@ -28,11 +29,11 @@ class ReplayBuffer
     done = data.map {|d| d[4]}
 
     [
-      Torch.tensor(Numo::NArray.vstack(state), dtype: :float32),
-      Torch.tensor(Numo::NArray[*action]),
-      Torch.tensor(Numo::NArray[*reward]),
-      Torch.tensor(Numo::NArray.vstack(next_state), dtype: :float32),
-      Torch.tensor(Numo::NArray[*done], dtype: :float32)
+      Torch.tensor(Numo::NArray.vstack(state), dtype: :float32).to(@device),
+      Torch.tensor(Numo::NArray[*action]).to(@device),
+      Torch.tensor(Numo::NArray[*reward]).to(@device),
+      Torch.tensor(Numo::NArray.vstack(next_state), dtype: :float32).to(@device),
+      Torch.tensor(Numo::NArray[*done], dtype: :float32).to(@device)
     ]
   end
 end

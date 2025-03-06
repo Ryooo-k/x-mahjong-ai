@@ -14,9 +14,11 @@ class DQNAgent
     @batch_size = 32
     @action_size = 14
 
-    @replay_buffer = ReplayBuffer.new(@buffer_size, @batch_size)
-    @q_net = QNet.new(@action_size)
-    @q_net_target = QNet.new(@action_size)
+    @device = Torch.device(Torch::Backends::MPS.available? ? "mps" : "cpu")
+
+    @replay_buffer = ReplayBuffer.new(@buffer_size, @batch_size, @device)
+    @q_net = QNet.new(@action_size).to(@device)
+    @q_net_target = QNet.new(@action_size).to(@device)
     @optimizer = Torch::Optim::Adam.new(@q_net.parameters, lr: @lr)
   end
 
@@ -25,13 +27,14 @@ class DQNAgent
       rand(@action_size)
     else
       state_tensor = Torch.tensor(state, dtype: :float32).unsqueeze(0)
-      qs = @q_net.call(state_tensor).detach
+      state_gpu = state_tensor.to(@device)
+      qs = @q_net.call(state_gpu).detach
       qs.numo.argmax
     end
   end
 
   def update(state, action, reward, next_state, done)
-    @replay_buffer.add(state, action, reward, next_state, done)
+    @replay_buffer.add(state.cpu, action, reward, next_state.cpu, done)
     return Torch.tensor(0) if @replay_buffer.buffer_size < @batch_size
 
     states, actions, rewards, next_states, donee = @replay_buffer.get_batch

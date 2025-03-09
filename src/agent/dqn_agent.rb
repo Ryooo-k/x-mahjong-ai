@@ -57,4 +57,10 @@ class DQNAgent
   def sync_qnet
     @q_net_target.load_state_dict(@q_net.state_dict)
   end
+
+  def updata_epsilon
+    min_epsilon = 0.01
+    decay_rate = 0.99999
+    @epsilon = [min_epsilon, @epsilon * decay_rate].max
+  end
 end

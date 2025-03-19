@@ -23,33 +23,23 @@ class MahjongEnv
   def step(action)
     return nil if @done
     @order += 1
-
-    if win?
-      @done = true
-      [state, 10000, @done]
-    elsif game_over?
-      @discarded << @hands.delete_at(action)
-      @done = true
-      [state, -50000, @done]
-    else
-      @discarded << @hands.delete_at(action)
-      reward = cal_reward
-      [state, reward, @done]
-    end
+    @done = true if win? || game_over?
+    play_tile(action) unless win?
+    reward = cal_reward
+    [state, reward, @done]
   end
 
   def state(hands = @hands)
     states = convert_hands_to_states(hands)
-    # discarded = @discarded.last.nil? ? -1 : @discarded.last
 
     states << cal_shanten(hands) / 8
     states << cal_diff_shanten
     states << @wall_tiles.size / 136.0
-    # states << discarded
+    states << count_outs(hands) / 34.0
     Torch.tensor(states, dtype: :float32)
   end
 
-  def shanten(hands)
+  def shanten(hands = @hands)
     cal_shanten(hands)
   end
 
@@ -66,12 +56,14 @@ class MahjongEnv
     tiles.shuffle
   end
 
-  #和了時の萬子、筒子、索子、字牌をそれぞれ何枚使用するかを指定するテーブル
+  # 向聴数を計算するのに使用するテーブル
+  # 和了時に萬子、筒子、索子、字牌をそれぞれ何枚使用するか選定する
   def build_agari_number_table
     number_table = [0, 2, 3, 5, 6, 8, 9, 11, 12, 14].repeated_permutation(4).filter { |n| n.sum == 14 }
-    # 使用する各種牌数の合計が14であるかのチェックのみの場合、
-    # [5, 2, 2, 5]などのあり得ないアガリ形が残るため、
-    # 3で割った余りの合計が2以外の配列を除外する
+    # 和了に使用される牌はカンを除いた場合、合計で14個のみ。
+    # ただし使用する牌の合計が14個かのチェックのみの場合、
+    # [5, 2, 2, 5]などのあり得ない和了形が残ってしまう。
+    # そのため和了形として正しい配列のみが残るように、3で割った余りの合計が2個（雀頭が一つ）かのチェックを行う。（国士無双、七対子は別のメソッドで確認する）
     number_table.delete_if { |numbers| numbers.map { |number| number % 3 }.sum != 2 }
   end
 
@@ -107,20 +99,46 @@ class MahjongEnv
   end
 
   def cal_reward
-    diff_shanten = cal_diff_shanten
+    return 100 if win?
+    return -100 if game_over?
 
-    if diff_shanten > 0
-    100
-    elsif diff_shanten == 0
-      -100
-    else
-      -200
-    end
+    old_shanten = cal_shanten(@old_hands)
+    new_shanten = cal_shanten(@hands)
+    diff_shanten = new_shanten - old_shanten
+    diff_outs = count_outs(@hands) - count_outs(@old_hands)
+
+    return 50 if diff_shanten < 0
+    return 50 if new_shanten == 0 && diff_outs > 0
+    return 30 if new_shanten == 0 && diff_outs == 0
+    return -10 if new_shanten == 0 && diff_outs < 0
+    return 10 if diff_shanten == 0 && diff_outs > 0
+    return -10 if diff_shanten == 0 && diff_outs == 0
+    return -30 if diff_shanten == 0 && diff_outs < 0
+
+    -50
   end
 
   def cal_diff_shanten
     old_shanten = cal_shanten(@old_hands)
     new_shanten = cal_shanten(@hands)
     old_shanten - new_shanten
+  end
+
+  def count_outs(hands)
+    return -1 if win?
+    outs = 0
+
+    (0..33).each do |tile|
+      test_hands = hands.dup << tile
+      next unless test_hands.tally.all? { |_, tile_count| tile_count < 5 }
+      outs += 1 if cal_shanten(test_hands) < cal_shanten(hands)
+    end
+    outs
+  end
+
+  def play_tile(action)
+    played_tile = @hands.sort[action]
+    index = @hands.index(played_tile)
+    @discarded << @hands.delete_at(index)
   end
 end

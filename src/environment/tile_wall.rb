@@ -50,8 +50,8 @@ class TileWall
   def build_tiles(red_dora_ids)
     Array.new(136) do |id|
       red_dora = red_dora_ids.include?(id)
-      number = id / 4
-      Tile.new(id, number, red_dora)
+      code = id / 4
+      Tile.new(id, code, red_dora)
     end
   end
 

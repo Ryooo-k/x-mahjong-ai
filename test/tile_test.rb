@@ -18,8 +18,8 @@ class TileTest < Test::Unit::TestCase
 
   def test_validate_tile_id
     manzu_1_id = 0
-    manzu_9_number= 8
-    assert_raise(ArgumentError) { Tile.new(manzu_1_id, manzu_9_number, false) }
+    manzu_9_code= 8
+    assert_raise(ArgumentError) { Tile.new(manzu_1_id, manzu_9_code, false) }
   end
 
   def test_red_dora

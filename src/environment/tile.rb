@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Tile
-  attr_reader :id, :code, :name
+  attr_reader :id, :code, :name, :position, :action, :dora
 
   TILE_DEFINITIONS = {
     0 => { code: 0, ids: (0..3).to_a, name: '1萬' },
@@ -38,27 +38,76 @@ class Tile
     28 => { code: 28, ids: (112..115).to_a, name: '南' },
     29 => { code: 29, ids: (116..119).to_a, name: '西' },
     30 => { code: 30, ids: (120..123).to_a, name: '北' },
+
     31 => { code: 31, ids: (124..127).to_a, name: '白' },
     32 => { code: 32, ids: (128..131).to_a, name: '發' },
     33 => { code: 33, ids: (132..135).to_a, name: '中' }
   }.freeze
 
-  def initialize(id, code, red_dora)
-    raise ArgumentError, '無効なIDもしくはcodeです。' unless validate_tile_id?(id, code)
+  POSITIONS = {
+    live_wall: { code: 0, name: '牌山' },
+    dead_wall: { code: 1, name: '王牌' },
+    hand: { code: 2, name: '手牌' },
+    called: { code: 3, name: '鳴き牌' },
+    river: { code: 4, name: '捨て牌' }
+  }.freeze
+
+  ACTIONS = {
+    pong: { code: 0, name: 'ポン' },
+    chow: { code: 1, name: 'チー' },
+    open_kong: { code: 2, name: '大明カン' },
+    added_kong: { code: 3, name: '加カン' },
+    close_kong: { code: 4, name: '暗カン' }
+  }.freeze
+
+  def initialize(id, tile_code, is_red_dora = false)
+    raise ArgumentError, '無効なIDもしくはcodeです。' unless validate_id?(id, tile_code)
 
     @id = id
-    @code = code
-    @name = TILE_DEFINITIONS[code][:name]
-    @red_dora = red_dora
+    @code = tile_code
+    @name = TILE_DEFINITIONS[tile_code][:name]
+    @position = {}
+    @action = { type: nil, from: nil, to: nil, order: nil }
+    red_dora_count = is_red_dora ? 1 : 0
+    @dora = {
+      open: { code: 0, name: 'ドラ', count: 0 },
+      blind: { code: 1, name: '裏ドラ', count: 0 },
+      red: { code: 2, name: '赤ドラ', count: red_dora_count }
+    }
+  end
+
+  def increase_open_dora_count
+    @dora[:open][:count] += 1
+  end
+
+  def increase_blind_dora_count
+    @dora[:blind][:count] += 1
   end
 
   def red_dora?
-    @red_dora
+    @dora[:red][:count] != 0
+  end
+
+  def change_position(name)
+    raise ArgumentError, '不明なポジションです。' unless POSITIONS.keys.include?(name)
+    @position = POSITIONS[name]
+  end
+
+  def record_action(type:, from:, to:, order:)
+    raise RuntimeError, 'アクションの変更はできません。' if @action[:code]
+
+    @action = {
+      code: ACTIONS[type][:code],
+      name: ACTIONS[type][:name],
+      from:,
+      to:,
+      order:
+    }
   end
 
   private
 
-  def validate_tile_id?(id, code)
+  def validate_id?(id, code)
     target_ids = TILE_DEFINITIONS[code][:ids]
     target_ids.include?(id)
   end

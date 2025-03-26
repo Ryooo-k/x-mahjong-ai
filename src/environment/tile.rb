@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 class Tile
-  attr_reader :id, :code, :name, :position, :action, :dora
+  attr_reader :id, :code, :name, :dora
+  attr_accessor :holder
 
   TILE_DEFINITIONS = {
     0 => { code: 0, ids: (0..3).to_a, name: '1萬' },
@@ -44,30 +45,13 @@ class Tile
     33 => { code: 33, ids: (132..135).to_a, name: '中' }
   }.freeze
 
-  POSITIONS = {
-    live_wall: { code: 0, name: '牌山' },
-    dead_wall: { code: 1, name: '王牌' },
-    hand: { code: 2, name: '手牌' },
-    called: { code: 3, name: '鳴き牌' },
-    river: { code: 4, name: '捨て牌' }
-  }.freeze
-
-  ACTIONS = {
-    pong: { code: 0, name: 'ポン' },
-    chow: { code: 1, name: 'チー' },
-    open_kong: { code: 2, name: '大明カン' },
-    added_kong: { code: 3, name: '加カン' },
-    close_kong: { code: 4, name: '暗カン' }
-  }.freeze
-
   def initialize(id, tile_code, is_red_dora = false)
     raise ArgumentError, '無効なIDもしくはcodeです。' unless validate_id?(id, tile_code)
 
     @id = id
     @code = tile_code
     @name = TILE_DEFINITIONS[tile_code][:name]
-    @position = {}
-    @action = { type: nil, from: nil, to: nil, order: nil }
+    @holder = nil
     red_dora_count = is_red_dora ? 1 : 0
     @dora = {
       open: { code: 0, name: 'ドラ', count: 0 },
@@ -86,23 +70,6 @@ class Tile
 
   def red_dora?
     @dora[:red][:count] != 0
-  end
-
-  def change_position(name)
-    raise ArgumentError, '不明なポジションです。' unless POSITIONS.keys.include?(name)
-    @position = POSITIONS[name]
-  end
-
-  def record_action(type:, from:, to:, order:)
-    raise RuntimeError, 'アクションの変更はできません。' if @action[:code]
-
-    @action = {
-      code: ACTIONS[type][:code],
-      name: ACTIONS[type][:name],
-      from:,
-      to:,
-      order:
-    }
   end
 
   private

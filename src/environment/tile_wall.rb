@@ -8,11 +8,11 @@ class TileWall
   MAX_KONG_COUNT = 4
 
   SPECIAL_DORA_RULES = {
-  8 => 0, # 9萬がドラ表示牌の時、1萬がドラとなる
-  17 => 9, # 9筒がドラ表示牌の時、1筒がドラとなる
-  26 => 18, # 9索がドラ表示牌の時、1索がドラとなる
-  30 => 27, # 北がドラ表示牌の時、東がドラとなる
-  33 => 31 # 中がドラ表示牌の時、白がドラとなる
+    9 => 1, # 9萬がドラ表示牌の時、1萬がドラとなるcode変換
+    19 => 11, # 9筒がドラ表示牌の時、1筒がドラとなるcode変換
+    29 => 21, # 9索がドラ表示牌の時、1索がドラとなるcode変換
+    34 => 31, # 北がドラ表示牌の時、東がドラとなるcode変換
+    37 => 35 # 中がドラ表示牌の時、白がドラとなるcode変換
   }.freeze
 
   def initialize(red_dora_ids = [])
@@ -56,8 +56,7 @@ class TileWall
   def build_tiles(red_dora_ids)
     Array.new(136) do |id|
       is_red_dora = red_dora_ids.include?(id)
-      code = id / 4
-      Tile.new(id, code, is_red_dora)
+      Tile.new(id, is_red_dora:)
     end
   end
 

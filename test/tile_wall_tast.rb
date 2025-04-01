@@ -57,7 +57,7 @@ class TileWallTest < Test::Unit::TestCase
     assert_equal(live_walls_count, tile_wall.live_walls.size)
     assert_equal(dead_walls_count, tile_wall.dead_walls.size)
 
-    tile_class = Tile.new(0, 0, false).class
+    tile_class = Tile.new(0).class
     tile_wall.live_walls.each { |tile| assert_instance_of(tile_class, tile) }
     tile_wall.dead_walls.each { |tile| assert_instance_of(tile_class, tile) }
 
@@ -72,15 +72,13 @@ class TileWallTest < Test::Unit::TestCase
     assert_equal(replacement_tiles, tile_wall.replacement_tiles)
 
     # initialize_open_dora_code
-    open_dora_indicator = tile_wall.open_dora_indicators.first
-    open_dora_checker = DORA_CHECKERS[open_dora_indicator.name]
+    open_dora_checker = DORA_CHECKERS[tile_wall.open_dora_indicators.first.name]
     open_dora_code = tile_wall.open_dora_codes.first
     open_dora_tiles = tile_wall.tiles.select { |tile| tile.code == open_dora_code }
     open_dora_tiles.each { |tile| assert_equal(open_dora_checker, tile.name) }
 
     # initialize_blind_dora_code
-    blind_dora_indicator = tile_wall.blind_dora_indicators.first
-    blind_dora_checker = DORA_CHECKERS[blind_dora_indicator.name]
+    blind_dora_checker = DORA_CHECKERS[tile_wall.blind_dora_indicators.first.name]
     blind_dora_code = tile_wall.blind_dora_codes.first
     blind_dora_tiles = tile_wall.tiles.select { |tile| tile.code == blind_dora_code }
     blind_dora_tiles.each { |tile| assert_equal(blind_dora_checker, tile.name) }
@@ -105,7 +103,7 @@ class TileWallTest < Test::Unit::TestCase
     assert_tile_wall_initialization(reset_tile_wall)
   end
 
-  def test_increase_kong_count_when_add_dora
+  def test_increase_kong_count_when_new_dora_tile_added
     first_kong_count = 0
     second_kong_count = 1
     third_kong_count = 2
@@ -118,7 +116,7 @@ class TileWallTest < Test::Unit::TestCase
     assert_equal(third_kong_count, @tile_wall.kong_count)
   end
 
-  def test_add_open_dora_code_when_add_dora
+  def test_add_open_dora_code_when_new_dora_tile_added
     before_open_dora_codes_size = @tile_wall.open_dora_codes.size
     @tile_wall.add_dora
     after_open_dora_codes_size = @tile_wall.open_dora_codes.size
@@ -134,7 +132,7 @@ class TileWallTest < Test::Unit::TestCase
     second_open_dora_tiles.each { |tile| assert_equal(second_open_dora_checker, tile.name) }
   end
 
-  def test_add_blind_dora_code_when_add_dora
+  def test_add_blind_dora_code_when_new_dora_tile_added
     before_blind_dora_codes_size = @tile_wall.blind_dora_codes.size
     @tile_wall.add_dora
     after_blind_dora_codes_size = @tile_wall.blind_dora_codes.size
@@ -150,9 +148,7 @@ class TileWallTest < Test::Unit::TestCase
     second_blind_dora_tiles.each { |tile| assert_equal(second_blind_dora_checker, tile.name) }
   end
 
-  def test_increase_open_dora_count_when_add_dora
-    @tile_wall.add_dora
-
+  def test_increase_open_dora_count_when_new_dora_tile_added
     @tile_wall.tiles.each do |tile|
       dora_count = tile.dora[:open][:count]
 
@@ -164,9 +160,7 @@ class TileWallTest < Test::Unit::TestCase
     end
   end
 
-  def test_increase_blind_dora_count_when_add_dora
-    @tile_wall.add_dora
-
+  def test_increase_blind_dora_count_when_new_dora_tile_added
     @tile_wall.tiles.each do |tile|
       dora_count = tile.dora[:blind][:count]
 

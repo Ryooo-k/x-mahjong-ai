@@ -5,52 +5,23 @@ class Tile
   attr_accessor :holder
 
   TILE_DEFINITIONS = {
-    0 => { code: 0, ids: (0..3).to_a, name: '1萬' },
-    1 => { code: 1, ids: (4..7).to_a, name: '2萬' },
-    2 => { code: 2, ids: (8..11).to_a, name: '3萬' },
-    3 => { code: 3, ids: (12..15).to_a, name: '4萬' },
-    4 => { code: 4, ids: (16..19).to_a, name: '5萬' },
-    5 => { code: 5, ids: (20..23).to_a, name: '6萬' },
-    6 => { code: 6, ids: (24..27).to_a, name: '7萬' },
-    7 => { code: 7, ids: (28..31).to_a, name: '8萬' },
-    8 => { code: 8, ids: (32..35).to_a, name: '9萬' },
-  
-    9 => { code: 9, ids: (36..39).to_a, name: '1筒' },
-    10 => { code: 10, ids: (40..43).to_a, name: '2筒' },
-    11 => { code: 11, ids: (44..47).to_a, name: '3筒' },
-    12 => { code: 12, ids: (48..51).to_a, name: '4筒' },
-    13 => { code: 13, ids: (52..55).to_a, name: '5筒' },
-    14 => { code: 14, ids: (56..59).to_a, name: '6筒' },
-    15 => { code: 15, ids: (60..63).to_a, name: '7筒' },
-    16 => { code: 16, ids: (64..67).to_a, name: '8筒' },
-    17 => { code: 17, ids: (68..71).to_a, name: '9筒' },
-  
-    18 => { code: 18, ids: (72..75).to_a, name: '1索' },
-    19 => { code: 19, ids: (76..79).to_a, name: '2索' },
-    20 => { code: 20, ids: (80..83).to_a, name: '3索' },
-    21 => { code: 21, ids: (84..87).to_a, name: '4索' },
-    22 => { code: 22, ids: (88..91).to_a, name: '5索' },
-    23 => { code: 23, ids: (92..95).to_a, name: '6索' },
-    24 => { code: 24, ids: (96..99).to_a, name: '7索' },
-    25 => { code: 25, ids: (100..103).to_a, name: '8索' },
-    26 => { code: 26, ids: (104..107).to_a, name: '9索' },
-  
-    27 => { code: 27, ids: (108..111).to_a, name: '東' },
-    28 => { code: 28, ids: (112..115).to_a, name: '南' },
-    29 => { code: 29, ids: (116..119).to_a, name: '西' },
-    30 => { code: 30, ids: (120..123).to_a, name: '北' },
+    # id：各牌毎にそれぞれ0〜135の一意な値で設定。1萬から順に0,1,3,...,135と設定。
+    # suit：萬子は0、筒子は1、索子は2、字牌は3で設定
+    # number：数牌はそれぞれの数字と同じ値（1〜9）で設定、字牌は東から順に1,2,3...と設定
+    # code：suit * 10 + numberで設定。　
+    # name：それぞれの牌の表示名を設定。
+    # 萬子→筒子→索子→字牌の順番とする。
+  }
 
-    31 => { code: 31, ids: (124..127).to_a, name: '白' },
-    32 => { code: 32, ids: (128..131).to_a, name: '發' },
-    33 => { code: 33, ids: (132..135).to_a, name: '中' }
-  }.freeze
+  def initialize(id, is_red_dora: false)
+    raise ArgumentError, '無効なIDです。' unless (0..135).to_a.include?(id)
 
-  def initialize(id, tile_code, is_red_dora = false)
-    raise ArgumentError, '無効なIDもしくはcodeです。' unless validate_id?(id, tile_code)
-
+    build_tile_definitions
     @id = id
-    @code = tile_code
-    @name = TILE_DEFINITIONS[tile_code][:name]
+    @suit = TILE_DEFINITIONS[id][:suit]
+    @number = TILE_DEFINITIONS[id][:number]
+    @code = TILE_DEFINITIONS[id][:code]
+    @name = TILE_DEFINITIONS[id][:name]
     @holder = nil
     red_dora_count = is_red_dora ? 1 : 0
     @dora = {
@@ -74,8 +45,34 @@ class Tile
 
   private
 
-  def validate_id?(id, code)
-    target_ids = TILE_DEFINITIONS[code][:ids]
-    target_ids.include?(id)
+  def build_tile_definitions
+      # 萬子（1萬〜9萬）
+    (1..9).each_with_index do |num, i|
+      define_tile(start_id: i * 4, suit: 0, number: num, name: "#{num}萬")
+    end
+
+      # 筒子（1筒〜9筒）
+    (1..9).each_with_index do |num, i|
+     define_tile(start_id: 36 + i * 4, suit: 1, number: num, name: "#{num}筒")
+    end
+  
+    # 索子（1索〜9索）
+    (1..9).each_with_index do |num, i|
+      define_tile(start_id: 72 + i * 4, suit: 2, number: num, name: "#{num}索")
+    end
+  
+    # 字牌
+    %w[東 南 西 北 白 發 中].each_with_index do |name, i|
+      define_tile(start_id: 108 + i * 4, suit: 3, number: i + 1, name:)
+    end
+  end
+
+  def define_tile(start_id:, suit:, number:, name:)
+    same_tile_count = 4
+    same_tile_count.times do |i|
+      id = start_id + i
+      code = suit * 10 + number
+      TILE_DEFINITIONS[id] = { id:, suit:, number:, code:, name: }
+    end
   end
 end

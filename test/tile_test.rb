@@ -5,11 +5,11 @@ require_relative '../src/environment/tile'
 
 class TileTest < Test::Unit::TestCase
   def setup
-    @manzu_1 = { code: 0, ids: (0..3).to_a, name: '1萬'}
-    @manzu_5 = { code: 4, ids: (16..19).to_a, name: '5萬'}
-    @east = { code: 27, ids: (108..111).to_a, name: '東' }
-    @manzu_1_tile = Tile.new(@manzu_1[:ids][0], @manzu_1[:code])
-    @red_tile = Tile.new(@manzu_5[:ids][0], @manzu_5[:code], true)
+    @manzu_1 = { code: 1, ids: (0..3).to_a, name: '1萬'}
+    @manzu_5 = { code: 5, ids: (16..19).to_a, name: '5萬'}
+    @east = { code: 31, ids: (108..111).to_a, name: '東' }
+    @manzu_1_tile = Tile.new(@manzu_1[:ids][0])
+    @red_tile = Tile.new(@manzu_5[:ids][0], is_red_dora: true)
   end
 
   def test_initialize_normal_tile
@@ -24,7 +24,7 @@ class TileTest < Test::Unit::TestCase
     assert_equal(initial_dora_count, @manzu_1_tile.dora[:blind][:count])
     assert_equal(initial_dora_count, @manzu_1_tile.dora[:red][:count])
 
-    east_tile = Tile.new(@east[:ids][0], @east[:code])
+    east_tile = Tile.new(@east[:ids][0])
     assert_include(@east[:ids], east_tile.id)
     assert_equal(@east[:code], east_tile.code)
     assert_equal('東', east_tile.name)
@@ -45,10 +45,9 @@ class TileTest < Test::Unit::TestCase
     assert_equal(expected[:red_dora_count], @red_tile.dora[:red][:count])
   end
 
-  def test_can_not_generate_tile_when_id_does_not_match_code
-    manzu_1_id = @manzu_1[:ids].sample
-    manzu_5_code = @manzu_5[:code]
-    assert_raise(ArgumentError) { Tile.new(manzu_1_id, manzu_5_code) }
+  def test_can_not_generate_tile_when_id_does_not_match
+    noting_id = 1000
+    assert_raise(ArgumentError) { Tile.new(noting_id) }
   end
 
   def test_red_dora_returns_true_for_red_tile

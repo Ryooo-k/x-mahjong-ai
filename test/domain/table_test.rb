@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'test/unit'
-require_relative '../src/environment/table'
+require_relative '../../src/domain/table'
 
 class TableTest < Test::Unit::TestCase
   def setup

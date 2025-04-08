@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'test/unit'
-require_relative '../src/environment/tile'
+require_relative '../../src/domain/tile'
 
 class TileTest < Test::Unit::TestCase
   def setup

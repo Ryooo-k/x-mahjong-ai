@@ -1,4 +1,5 @@
-require 'debug'
+# frozen_string_literal: true
+
 require 'json'
 
 class MahjongEnv
@@ -41,6 +42,10 @@ class MahjongEnv
 
   def shanten(hands = @hands)
     cal_shanten(hands)
+  end
+
+  def render
+    # 後で実装する
   end
 
   private

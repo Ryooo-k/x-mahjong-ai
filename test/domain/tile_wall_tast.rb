@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'test/unit'
-require_relative '../src/environment/tile_wall'
-require_relative '../src/environment/player'
+require_relative '../../src/domain/tile_wall'
+require_relative '../../src/domain/player'
 
 class TileWallTest < Test::Unit::TestCase
   DORA_CHECKERS = {

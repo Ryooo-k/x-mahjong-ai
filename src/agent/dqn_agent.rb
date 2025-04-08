@@ -1,9 +1,8 @@
-require 'debug'
+# frozen_string_literal: true
 
 require 'torch'
 require 'numo/narray'
-
-require_relative '../buffer/replay_buffer'
+require_relative '../util/replay_buffer'
 
 class DQNAgent
   def initialize

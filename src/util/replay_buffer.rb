@@ -1,4 +1,4 @@
-require 'debug'
+# frozen_string_literal: true
 
 require 'torch'
 require 'numo/narray'

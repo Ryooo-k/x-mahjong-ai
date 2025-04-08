@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Tile
-  attr_reader :id, :code, :name, :dora
+  attr_reader :id, :suit, :number, :code, :name, :dora
   attr_accessor :holder
 
   TILE_DEFINITIONS = {

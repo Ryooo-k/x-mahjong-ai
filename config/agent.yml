@@ -1,4 +1,4 @@
-experiment_001:
+tile_discard_agent_config_1:
   gamma: 0.98
   learning_rate: 0.0001
   epsilon: 0.1

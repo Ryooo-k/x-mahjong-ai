@@ -4,7 +4,7 @@ require 'torch'
 require 'numo/narray'
 require_relative '../util/replay_buffer'
 
-class DQNAgent
+class OneselfAgent
   def initialize
     @gamma = 0.98
     @lr = 0.0001

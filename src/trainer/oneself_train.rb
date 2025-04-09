@@ -1,9 +1,9 @@
 require 'json'
 require 'benchmark'
 
-require_relative '../environment/env'
-require_relative '../agent/qnet'
-require_relative '../agent/dqn_agent'
+require_relative '../environment/oneself_env'
+require_relative '../agent/oneself_qnet'
+require_relative '../agent/oneself_agent'
 
 Tiles = {
   0=> '1萬', 1=> '2萬', 2=> '3萬', 3=> '4萬', 4=> '5萬', 5=> '6萬', 6=> '7萬', 7=> '8萬', 8=> '9萬',
@@ -14,7 +14,7 @@ Tiles = {
 
 def main
   sync_interval = 500
-  agent = DQNAgent.new
+  agent = OneselfAgent.new
   syanten_list = load_shanten_list
 
   result = Benchmark.realtime do
@@ -39,7 +39,7 @@ def main
       agent.sync_qnet if time != 0 && time % sync_interval == 0
       average_loss = total_loss / env.order
 
-      if time != 0 && time % 1000 == 0
+      if time % 10 == 0
         puts "配牌：#{to_tiles(start_hands)}、向聴数：#{start_shanten}"
         puts "最終：#{to_tiles(env.hands.sort)}、向聴数：#{env.shanten}"
         puts "アベレージロス：#{average_loss}"

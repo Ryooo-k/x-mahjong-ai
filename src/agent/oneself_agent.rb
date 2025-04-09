@@ -34,7 +34,7 @@ class OneselfAgent
 
   def update(state, action, reward, next_state, done)
     @replay_buffer.add(state.cpu, action, reward, next_state.cpu, done)
-    return Torch.tensor(0) if @replay_buffer.buffer_size < @batch_size
+    return Torch.tensor(0) if @replay_buffer.buffers.size < @batch_size
 
     states, actions, rewards, next_states, donee = @replay_buffer.get_batch
     indices = Torch.arange(@batch_size, dtype: :long)

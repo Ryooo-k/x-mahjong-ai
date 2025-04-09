@@ -26,12 +26,12 @@ class ReplayBuffer
     next_states = data.map { |d| d[:next_state] }
     donee = data.map { |d| d[:done] }
 
-    {
-      states: Torch.tensor(Numo::NArray.vstack(states), dtype: :float32).to(@device),
-      actions: Torch.tensor(Numo::NArray[*actions]).to(@device),
-      rewards: Torch.tensor(Numo::NArray[*rewards]).to(@device),
-      next_states: Torch.tensor(Numo::NArray.vstack(next_states), dtype: :float32).to(@device),
-      donee: Torch.tensor(Numo::NArray[*donee], dtype: :float32).to(@device)
-    }
+    [
+      Torch.tensor(Numo::NArray.vstack(states), dtype: :float32).to(@device),
+      Torch.tensor(Numo::NArray[*actions]).to(@device),
+      Torch.tensor(Numo::NArray[*rewards]).to(@device),
+      Torch.tensor(Numo::NArray.vstack(next_states), dtype: :float32).to(@device),
+      Torch.tensor(Numo::NArray[*donee], dtype: :float32).to(@device)
+    ]
   end
 end

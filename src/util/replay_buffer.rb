@@ -4,36 +4,34 @@ require 'torch'
 require 'numo/narray'
 
 class ReplayBuffer
-  def initialize(buffer_size, batch_size, device)
-    @buffer = []
-    @buffer_size = buffer_size
+  attr_reader :buffers
+
+  def initialize(max_buffer_size, batch_size, device)
+    @buffers = []
+    @max_buffer_size = max_buffer_size
     @batch_size = batch_size
     @device = device
   end
 
   def add(state, action, reward, next_state, done)
-    @buffer.shift if @buffer.size >= @buffer_size
-    @buffer << [state, action, reward, next_state, done]
-  end
-
-  def buffer_size
-    @buffer.size
+    @buffers.shift if @buffers.size >= @max_buffer_size
+    @buffers << { state:, action:, reward:, next_state:, done: }
   end
 
   def get_batch
-    data = @buffer.sample(@batch_size)
-    state = data.map {|d| d[0]}
-    action = data.map {|d| d[1]}
-    reward = data.map {|d| d[2]}
-    next_state = data.map {|d| d[3]}
-    done = data.map {|d| d[4]}
+    data = @buffers.sample(@batch_size)
+    states = data.map { |d| d[:state] }
+    actions = data.map { |d| d[:action] }
+    rewards = data.map { |d| d[:reward] }
+    next_states = data.map { |d| d[:next_state] }
+    donee = data.map { |d| d[:done] }
 
-    [
-      Torch.tensor(Numo::NArray.vstack(state), dtype: :float32).to(@device),
-      Torch.tensor(Numo::NArray[*action]).to(@device),
-      Torch.tensor(Numo::NArray[*reward]).to(@device),
-      Torch.tensor(Numo::NArray.vstack(next_state), dtype: :float32).to(@device),
-      Torch.tensor(Numo::NArray[*done], dtype: :float32).to(@device)
-    ]
+    {
+      states: Torch.tensor(Numo::NArray.vstack(states), dtype: :float32).to(@device),
+      actions: Torch.tensor(Numo::NArray[*actions]).to(@device),
+      rewards: Torch.tensor(Numo::NArray[*rewards]).to(@device),
+      next_states: Torch.tensor(Numo::NArray.vstack(next_states), dtype: :float32).to(@device),
+      donee: Torch.tensor(Numo::NArray[*donee], dtype: :float32).to(@device)
+    }
   end
 end

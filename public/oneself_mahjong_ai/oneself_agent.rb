@@ -2,7 +2,7 @@
 
 require 'torch'
 require 'numo/narray'
-require_relative '../util/replay_buffer'
+require_relative '../../src/util/replay_buffer'
 
 class OneselfAgent
   def initialize

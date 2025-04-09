@@ -1,9 +1,9 @@
 require 'json'
 require 'benchmark'
 
-require_relative '../environment/oneself_env'
-require_relative '../agent/oneself_qnet'
-require_relative '../agent/oneself_agent'
+require_relative 'oneself_env'
+require_relative 'oneself_qnet'
+require_relative 'oneself_agent'
 
 Tiles = {
   0=> '1萬', 1=> '2萬', 2=> '3萬', 3=> '4萬', 4=> '5萬', 5=> '6萬', 6=> '7萬', 7=> '8萬', 8=> '9萬',

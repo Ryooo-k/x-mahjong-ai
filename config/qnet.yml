@@ -1,0 +1,5 @@
+experiment_001:
+  layer1: 38
+  layer2: 256
+  layer3: 128
+  layer4: 64

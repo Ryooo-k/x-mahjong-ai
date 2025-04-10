@@ -88,7 +88,7 @@ class Table
 
     player_order.each do |player|
       STARTING_HAND_COUNT.times do |_|
-        player.draw(@tile_wall.live_tiles[count])
+        player.draw(@tile_wall.live_walls[count])
         count += 1
       end
     end

@@ -4,7 +4,7 @@ require 'test/unit'
 require_relative '../../src/domain/player'
 require_relative '../../src/domain/tile'
 
-class TileTest < Test::Unit::TestCase
+class PlayerTest < Test::Unit::TestCase
   def setup
     @player = Player.new(0)
     @other_player = Player.new(1)

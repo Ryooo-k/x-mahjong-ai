@@ -109,11 +109,11 @@ class TableTest < Test::Unit::TestCase
   end
 
   def test_deal_starting_hand
-    live_tiles = @table.tile_wall.live_tiles
-    first_player_hands = live_tiles[0..12]
-    second_player_hands = live_tiles[13..25]
-    third_player_hands = live_tiles[26..38]
-    fourth_player_hands = live_tiles[39..51]
+    live_walls = @table.tile_wall.live_walls
+    first_player_hands = live_walls[0..12]
+    second_player_hands = live_walls[13..25]
+    third_player_hands = live_walls[26..38]
+    fourth_player_hands = live_walls[39..51]
     @table.deal_starting_hand
     players = @table.player_order
 

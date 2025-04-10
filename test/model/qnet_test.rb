@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'test/unit'
-require_relative '../../src/agent/qnet'
+require_relative '../../src/model/qnet'
 
 class QNetTest < Test::Unit::TestCase
   def setup

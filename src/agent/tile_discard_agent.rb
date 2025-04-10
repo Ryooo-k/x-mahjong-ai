@@ -2,7 +2,7 @@
 
 require 'torch'
 require 'numo/narray'
-require_relative 'qnet'
+require_relative '../model/qnet'
 require_relative '../util/replay_buffer'
 
 class TileDiscardAgent

@@ -91,6 +91,7 @@ class Table
         player.draw(@tile_wall.live_walls[count])
         count += 1
       end
+      player.record_hands
     end
   end
 

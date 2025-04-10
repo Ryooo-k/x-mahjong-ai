@@ -45,10 +45,11 @@ class Player
 
   def add_point(point)
     @score += point
+    @point_histories << point
   end
 
-  def record_point(point)
-    @point_histories << point
+  def record_hands
+    @hand_histories << @hands.dup
   end
 
   def draw(tile)
@@ -61,7 +62,7 @@ class Player
 
     @hands.delete(tile)
     @rivers << tile
-    @hand_histories << @hands.dup
+    record_hands
   end
 
   def pong(combinations, target_tile)

@@ -77,17 +77,21 @@ class PlayerTest < Test::Unit::TestCase
   
     @player.add_point(8_000)
     assert_equal(33_000, @player.score)
+    assert_equal([8_000], @player.point_histories)
   
     @player.add_point(-12_000)
     assert_equal(21_000, @player.score)
+    assert_equal([8_000, -12_000], @player.point_histories)
   end
 
-  def test_add_point_to_history_on_score_increase
-    @player.record_point(8_000)
-    assert_equal([8_000], @player.point_histories)
+  def test_record_hands
+    @player.draw(@manzu_1_tile)
+    @player.draw(@manzu_2_tile)
+    @player.record_hands
+    assert_equal([[@manzu_1_tile, @manzu_2_tile]], @player.hand_histories)
 
-    @player.record_point(-12_000)
-    assert_equal([8_000, -12_000], @player.point_histories)
+    @player.play(@manzu_2_tile)
+    assert_equal([[@manzu_1_tile, @manzu_2_tile], [@manzu_1_tile]], @player.hand_histories)
   end
 
   # playメソッドのテスト
@@ -224,12 +228,21 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal('有効な牌が無いため加カンできません。', error.message)
   end
 
-  # def test_reset
-  #   point = 8_000
-  #   tiles = Array.new(13) { |id| Tile.new(id, id / 4, false) }
-  #   @player.add_score(point)
-  #   tiles.each { |tile| @player.draw(tile) } 
-  
-  # end
+  def test_reset
+    @player.draw(@manzu_1_tile)
+    @player.draw(@manzu_2_tile)
+    @player.draw(@east_tile)
+    @player.record_hands
+    @player.play(@east_tile)
+    @player.add_point(8_000)
+    @player.chow([@manzu_1_tile, @manzu_2_tile], @manzu_3_tile_id10)
 
+    @player.reset
+    assert_equal(25_000, @player.score)
+    assert_equal([], @player.point_histories)
+    assert_equal([], @player.hands[:tiles])
+    assert_equal([], @player.hand_histories)
+    assert_equal([], @player.called_tile_table)
+    assert_equal([], @player.rivers)
+  end
 end

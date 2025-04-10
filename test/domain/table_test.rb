@@ -124,7 +124,14 @@ class TableTest < Test::Unit::TestCase
   end
 
   def test_reset
-    ## あとで実装する。忘れないために必ずエラー
-    assert_equal(1, 2)
+    @table.increase_honba
+    @table.advance_round
+    old_honba = @table.honba.dup
+    old_round = @table.round.dup
+    old_host = @table.host.dup
+    @table.reset
+    assert_not_equal(old_host, @table.host) # 一定の確率でテストが落ちる
+    assert_not_equal(old_honba, @table.honba)
+    assert_not_equal(old_round, @table.round)
   end
 end

@@ -83,8 +83,7 @@ class Table
   end
 
   def host
-    host_number = @round_count % 4
-    @seat_orders[host_number]
+    wind_orders.first
   end
 
   def children

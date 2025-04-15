@@ -73,14 +73,18 @@ class Table
     @honba_count = 0
   end
 
+  def wind_orders
+    host_number = @round_count % 4
+    @seat_orders.rotate(host_number)
+  end
+
   def host
     host_number = @round_count % 4
     @seat_orders[host_number]
   end
 
-  def wind_orders
-    host_number = @round_count % 4
-    @seat_orders.rotate(host_number)
+  def children
+    wind_orders[1..]
   end
 
   def deal_starting_hand

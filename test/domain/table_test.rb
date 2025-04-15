@@ -119,6 +119,10 @@ class TableTest < Test::Unit::TestCase
     assert_equal(@table.host, @table.wind_orders.first)
   end
 
+  def test_children_return_non_host
+    assert_not_include(@table.children, @table.host)
+  end
+
   def test_deal_starting_hand
     live_walls = @table.tile_wall.live_walls
     first_player_hands = live_walls[0..12]

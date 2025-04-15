@@ -1,18 +1,39 @@
 experiment_1:
+  table:
+    game_mode_id: 1 # 東南戦
+    attendance: 4
+    red_dora_mode_id: 1 # 5萬、5筒、5策
+
   train:
     count: 100000 # 10万
     qnet_sync_interval: 500
-  tile_discard_agent:
-    gamma: 0.98
-    learning_rate: 0.0001
-    epsilon: 0.1
-    buffer_size: 1000
-    batch_size: 32
-    action_size: 14
-    min_epsilon: 0.01
-    decay_rate: 0.99999
-  qnet:
-    layer1: 38
-    layer2: 256
-    layer3: 128
-    layer4: 64
+
+  player:
+    discard_agent:
+      gamma: 0.98
+      learning_rate: 0.0001
+      epsilon: 0.1
+      buffer_size: 1000
+      batch_size: 32
+      action_size: 14
+      min_epsilon: 0.01
+      decay_rate: 0.99999
+      qnet:
+        layer1: 38
+        layer2: 256
+        layer3: 128
+        layer4: 64
+    call_agent:
+      gamma: 0.98
+      learning_rate: 0.0001
+      epsilon: 0.1
+      buffer_size: 1000
+      batch_size: 32
+      action_size: 4
+      min_epsilon: 0.01
+      decay_rate: 0.99999
+      qnet:
+        layer1: 38
+        layer2: 256
+        layer3: 128
+        layer4: 64

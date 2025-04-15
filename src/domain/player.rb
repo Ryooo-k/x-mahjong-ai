@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
+require_relative '../agent/agent'
+
 class Player
   attr_reader :score, :point_histories, :hand_histories, :called_tile_table, :rivers
 
-  def initialize(id)
+  def initialize(id, config)
     @id = id
+    @discard_agent = Agent.new(config[:discard_agent])
+    @call_agent = Agent.new(config[:call_agent])
     reset
   end
 
@@ -100,6 +104,9 @@ class Player
 
   def can_pong_or_open_kong?(target)
     can_call_pong?(target) || can_call_open_kong?(target)
+  end
+
+  def get_call_action
   end
 
   # def ron(target)

@@ -30,12 +30,12 @@ class Table
 
   STARTING_HAND_COUNT = 13
 
-  def initialize(game_mode_id = 1, attendance = 4, red_dora_mode_id = 1)
-    @game_mode = GAME_MODES[game_mode_id]
-    @attendance = attendance
-    @red_dora = RED_DORA_MODES[red_dora_mode_id]
+  def initialize(table_config, player_config)
+    @game_mode = GAME_MODES[table_config[:game_mode_id]]
+    @attendance = table_config[:attendance]
+    @red_dora = RED_DORA_MODES[table_config[:red_dora_mode_id]]
     @tile_wall = TileWall.new(@red_dora[:ids])
-    @players = Array.new(attendance) { |id| Player.new(id) }
+    @players = Array.new(attendance) { |id| Player.new(id, player_config) }
     reset_game_state
   end
 

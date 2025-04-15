@@ -5,7 +5,7 @@ require_relative 'player'
 
 ## 3人麻雀の実装は保留
 class Table
-  attr_reader :game_mode, :attendance, :red_dora, :tile_wall, :players, :seat_orders
+  attr_reader :game_mode, :attendance, :red_dora, :tile_wall, :players, :seat_orders, :draw_count
 
   GAME_MODES = {
   0 => { name: '東風戦', end_round: 4 },
@@ -65,6 +65,10 @@ class Table
     @honba_count += 1
   end
 
+  def increase_draw_count
+    @draw_count += 1
+  end
+
   def restart_round_count
     @round_count = 0
   end
@@ -87,13 +91,15 @@ class Table
     wind_orders[1..]
   end
 
-  def deal_starting_hand
-    count = 0
+  def top_tile
+    @tile_wall.live_walls[@draw_count]
+  end
 
+  def deal_starting_hand
     wind_orders.each do |player|
       STARTING_HAND_COUNT.times do |_|
-        player.draw(@tile_wall.live_walls[count])
-        count += 1
+        player.draw(@tile_wall.live_walls[@draw_count])
+        @draw_count += 1
       end
       player.record_hands
     end
@@ -103,6 +109,7 @@ class Table
 
   def reset_game_state
     @seat_orders = @players.shuffle
+    @draw_count = 0
     restart_round_count
     restart_honba_count
   end

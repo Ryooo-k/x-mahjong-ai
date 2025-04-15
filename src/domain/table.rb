@@ -36,19 +36,13 @@ class Table
     @red_dora = RED_DORA_MODES[red_dora_mode_id]
     @tile_wall = TileWall.new(@red_dora[:ids])
     @players = Array.new(attendance) { |id| Player.new(id) }
-    @seat_orders = @players.shuffle
-    @host = determine_host
-    @round_count = 0
-    @honba_count = 0
+    reset_game_state
   end
 
   def reset
     @tile_wall.reset
-    @players.each { |player| player.reset }
-    @seat_orders = @players.shuffle
-    @host = determine_host
-    restart_round_count
-    restart_honba_count
+    @players.each(&:reset)
+    reset_game_state
     self
   end
 
@@ -97,7 +91,14 @@ class Table
 
   private
 
-  def determine_host
+  def reset_game_state
+    @seat_orders = @players.shuffle
+    @host = determine_first_host
+    restart_round_count
+    restart_honba_count
+  end
+
+  def determine_first_host
     player, seat_number = @seat_orders.each_with_index.to_a.sample
     { player:, seat_number: }
   end

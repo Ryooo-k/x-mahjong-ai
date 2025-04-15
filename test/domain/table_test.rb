@@ -43,13 +43,6 @@ class TableTest < Test::Unit::TestCase
     @table.players.each { |player| assert_instance_of(test_player.class, player) }
   end
 
-  def test_initialize_host
-    host_player = @table.host[:player]
-    host_seat_number = @table.host[:seat_number]
-
-    assert_equal(host_player, @table.seat_orders[host_seat_number])
-  end
-
   def test_initialize_round
     round_counter = 0
     round_name = '東一局'
@@ -103,9 +96,27 @@ class TableTest < Test::Unit::TestCase
     assert_equal(honba_name, @table.honba[:name])
   end
 
-  def test_player_order
-    host_player = @table.host[:player]
-    assert_equal(host_player, @table.wind_orders.first)
+  def test_host_rotate_every_four_rounds
+    assert_equal(@table.host, @table.seat_orders[0])
+
+    @table.advance_round
+    assert_equal(@table.host, @table.seat_orders[1])
+
+    @table.advance_round
+    assert_equal(@table.host, @table.seat_orders[2])
+
+    @table.advance_round
+    assert_equal(@table.host, @table.seat_orders[3])
+
+    @table.advance_round
+    assert_equal(@table.host, @table.seat_orders[0])
+  end
+
+  def test_wind_orders_return_players_in_east_to_north_order
+    assert_equal(@table.host, @table.wind_orders.first)
+
+    @table.advance_round
+    assert_equal(@table.host, @table.wind_orders.first)
   end
 
   def test_deal_starting_hand
@@ -130,7 +141,7 @@ class TableTest < Test::Unit::TestCase
     old_round = @table.round.dup
     old_host = @table.host.dup
     @table.reset
-    assert_not_equal(old_host, @table.host) # 一定の確率でテストが落ちる
+    assert_not_equal(old_host, @table.host) # 前回と同じhostになる可能性もあるため一定確率でテストが落ちる
     assert_not_equal(old_honba, @table.honba)
     assert_not_equal(old_round, @table.round)
   end

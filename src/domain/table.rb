@@ -5,7 +5,7 @@ require_relative 'player'
 
 ## 3人麻雀の実装は保留
 class Table
-  attr_reader :game_mode, :attendance, :red_dora, :tile_wall, :players, :seat_orders, :host
+  attr_reader :game_mode, :attendance, :red_dora, :tile_wall, :players, :seat_orders
 
   GAME_MODES = {
   0 => { name: '東風戦', end_round: 4 },
@@ -73,8 +73,14 @@ class Table
     @honba_count = 0
   end
 
+  def host
+    host_number = @round_count % 4
+    @seat_orders[host_number]
+  end
+
   def wind_orders
-    @seat_orders.rotate(@host[:seat_number])
+    host_number = @round_count % 4
+    @seat_orders.rotate(host_number)
   end
 
   def deal_starting_hand
@@ -93,14 +99,8 @@ class Table
 
   def reset_game_state
     @seat_orders = @players.shuffle
-    @host = determine_first_host
     restart_round_count
     restart_honba_count
-  end
-
-  def determine_first_host
-    player, seat_number = @seat_orders.each_with_index.to_a.sample
-    { player:, seat_number: }
   end
 
   def convert_number_to_kanji(num)

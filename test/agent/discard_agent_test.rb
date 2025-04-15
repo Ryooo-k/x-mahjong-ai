@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 require 'test/unit'
-require_relative '../../src/agent/tile_discard_agent'
+require_relative '../../src/agent/discard_agent'
 
-class TileDiscardAgentTest < Test::Unit::TestCase
+class DiscardAgentTest < Test::Unit::TestCase
   class DummyBuffer
     attr_reader :buffers
 
@@ -44,7 +44,7 @@ class TileDiscardAgentTest < Test::Unit::TestCase
 
   def setup
     layer_config = { layer1: 38, layer2: 64 }
-    @agent = TileDiscardAgent.new(
+    @agent = DiscardAgent.new(
       gamma: 0.98,
       lr: 0.0001,
       epsilon: 0.0,
@@ -107,7 +107,7 @@ class TileDiscardAgentTest < Test::Unit::TestCase
     layer_config = { layer1: 38, layer: 68 }
     epsilon = 1.0
     decay_rate = 0.9
-    agent = TileDiscardAgent.new(
+    agent = DiscardAgent.new(
       gamma: 0.9,
       lr: 0.001,
       epsilon:,
@@ -126,7 +126,7 @@ class TileDiscardAgentTest < Test::Unit::TestCase
   def test_update_epsilon_does_not_go_below_min
     layer_config = { layer1: 38, layer: 68 }
     min_epsilon = 0.5
-    agent = TileDiscardAgent.new(
+    agent = DiscardAgent.new(
       gamma: 0.9,
       lr: 0.001,
       epsilon: 0.01,

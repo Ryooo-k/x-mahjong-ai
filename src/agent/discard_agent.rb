@@ -17,8 +17,8 @@ class DiscardAgent
     @decay_rate = decay_rate
     @device = Torch.device(Torch::Backends::MPS.available? ? "mps" : "cpu")
     @replay_buffer = ReplayBuffer.new(@buffer_size, @batch_size, @device)
-    @discard_q_net = QNet.new(layer_config, @action_size).to(@device)
-    @discard_q_net_target = QNet.new(layer_config, @action_size).to(@device)
+    @q_net = QNet.new(layer_config, @action_size).to(@device)
+    @q_net_target = QNet.new(layer_config, @action_size).to(@device)
     @criterion = Torch::NN::MSELoss.new #平均２乗誤差
     @optimizer = Torch::Optim::Adam.new(@q_net.parameters, lr: @lr)
   end
@@ -28,7 +28,7 @@ class DiscardAgent
       rand(@action_size)
     else
       tensor_states = Torch.tensor(states, dtype: :float32).unsqueeze(0).to(@device)
-      qualities = @discard_q_net.call(tensor_states).detach
+      qualities = @q_net.call(tensor_states).detach
       qualities.numo.argmax
     end
   end

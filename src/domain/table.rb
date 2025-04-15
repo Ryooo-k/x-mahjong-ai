@@ -5,7 +5,7 @@ require_relative 'player'
 
 ## 3人麻雀の実装は保留
 class Table
-  attr_reader :game_mode, :attendance, :red_dora, :tile_wall, :players, :seat_order, :host
+  attr_reader :game_mode, :attendance, :red_dora, :tile_wall, :players, :seat_orders, :host
 
   GAME_MODES = {
   0 => { name: '東風戦', end_round: 4 },
@@ -36,7 +36,7 @@ class Table
     @red_dora = RED_DORA_MODES[red_dora_mode_id]
     @tile_wall = TileWall.new(@red_dora[:ids])
     @players = Array.new(attendance) { |id| Player.new(id) }
-    @seat_order = @players.shuffle
+    @seat_orders = @players.shuffle
     @host = determine_host
     @round_count = 0
     @honba_count = 0
@@ -45,7 +45,7 @@ class Table
   def reset
     @tile_wall.reset
     @players.each { |player| player.reset }
-    @seat_order = @players.shuffle
+    @seat_orders = @players.shuffle
     @host = determine_host
     restart_round_count
     restart_honba_count
@@ -79,14 +79,14 @@ class Table
     @honba_count = 0
   end
 
-  def player_order
-    @seat_order.rotate(@host[:seat_number])
+  def wind_orders
+    @seat_orders.rotate(@host[:seat_number])
   end
 
   def deal_starting_hand
     count = 0
 
-    player_order.each do |player|
+    wind_orders.each do |player|
       STARTING_HAND_COUNT.times do |_|
         player.draw(@tile_wall.live_walls[count])
         count += 1
@@ -98,7 +98,7 @@ class Table
   private
 
   def determine_host
-    player, seat_number = @seat_order.each_with_index.to_a.sample
+    player, seat_number = @seat_orders.each_with_index.to_a.sample
     { player:, seat_number: }
   end
 

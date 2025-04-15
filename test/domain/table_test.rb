@@ -47,7 +47,7 @@ class TableTest < Test::Unit::TestCase
     host_player = @table.host[:player]
     host_seat_number = @table.host[:seat_number]
 
-    assert_equal(host_player, @table.seat_order[host_seat_number])
+    assert_equal(host_player, @table.seat_orders[host_seat_number])
   end
 
   def test_initialize_round
@@ -105,7 +105,7 @@ class TableTest < Test::Unit::TestCase
 
   def test_player_order
     host_player = @table.host[:player]
-    assert_equal(host_player, @table.player_order.first)
+    assert_equal(host_player, @table.wind_orders.first)
   end
 
   def test_deal_starting_hand
@@ -115,7 +115,7 @@ class TableTest < Test::Unit::TestCase
     third_player_hands = live_walls[26..38]
     fourth_player_hands = live_walls[39..51]
     @table.deal_starting_hand
-    players = @table.player_order
+    players = @table.wind_orders
 
     assert_equal(first_player_hands, players[0].hands[:tiles])
     assert_equal(second_player_hands, players[1].hands[:tiles])

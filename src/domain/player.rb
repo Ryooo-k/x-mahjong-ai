@@ -94,6 +94,14 @@ class Player
     end
   end
 
+  def can_call?(target)
+    can_call_pong?(target) || can_call_chow?(target) || can_call_open_kong?(target)
+  end
+
+  def can_pong_or_open_kong?(target)
+    can_call_pong?(target) || can_call_open_kong?(target)
+  end
+
   # def ron(target)
   # end
 

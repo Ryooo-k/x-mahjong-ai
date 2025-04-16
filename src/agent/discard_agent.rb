@@ -8,7 +8,7 @@ require_relative '../util/replay_buffer'
 class DiscardAgent
   def initialize(config)
     @gamma = config['gamma']
-    @lr = config['lr']
+    @lr = config['learning_rate']
     @epsilon = config['epsilon']
     @buffer_size = config['buffer_size']
     @batch_size = config['batch_size']

@@ -5,14 +5,14 @@ require 'numo/narray'
 require_relative '../model/qnet'
 require_relative '../util/replay_buffer'
 
-class Agent
+class CallAgent
   def initialize(config)
     @gamma = config['gamma']
     @lr = config['lr']
     @epsilon = config['epsilon']
     @buffer_size = config['buffer_size']
     @batch_size = config['batch_size']
-    @action_size = config['action_size']
+    @action_size = 5  # ポン、チー、カン、ロン、鳴き無しの５アクション
     @min_epsilon = config['min_epsilon']
     @decay_rate = config['decay_rate']
     @device = Torch.device(Torch::Backends::MPS.available? ? "mps" : "cpu")
@@ -28,10 +28,18 @@ class Agent
       rand(@action_size)
     else
       tensor_states = Torch.tensor(states, dtype: :float32).unsqueeze(0).to(@device)
-      qualities = @q_net.call(tensor_states).detach
+      qualities = @discard_q_net.call(tensor_states).detach
       qualities.numo.argmax
     end
   end
+
+  # def get_call_action(player, tile)
+  #   return nil unless player.can_call?(tile)
+  #   should_call?(tile) ? { type: :pon, tiles: [...], target_tile: tile } : nil
+  # end
+
+  # def should_call?
+  # end
 
   def update(state, action, reward, next_state, done)
     @replay_buffer.add(state.cpu, action, reward, next_state.cpu, done)

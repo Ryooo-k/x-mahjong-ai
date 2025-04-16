@@ -5,10 +5,10 @@ require_relative '../agent/agent'
 class Player
   attr_reader :score, :point_histories, :hand_histories, :called_tile_table, :rivers
 
-  def initialize(id, config)
+  def initialize(id, discard_agent_config, call_agent_config)
     @id = id
-    @discard_agent = Agent.new(config[:discard_agent])
-    @call_agent = Agent.new(config[:call_agent])
+    @discard_agent = Agent.new(discard_agent_config)
+    @call_agent = Agent.new(call_agent_config)
     reset
   end
 

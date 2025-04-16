@@ -6,19 +6,19 @@ require_relative '../model/qnet'
 require_relative '../util/replay_buffer'
 
 class DiscardAgent
-  def initialize(gamma:, lr:, epsilon:, buffer_size:, batch_size:, min_epsilon:, decay_rate:, layer_config:)
-    @gamma = gamma
-    @lr = lr
-    @epsilon = epsilon
-    @buffer_size = buffer_size
-    @batch_size = batch_size
+  def initialize(config)
+    @gamma = config['gamma']
+    @lr = config['lr']
+    @epsilon = config['epsilon']
+    @buffer_size = config['buffer_size']
+    @batch_size = config['batch_size']
     @action_size = 14
-    @min_epsilon = min_epsilon
-    @decay_rate = decay_rate
+    @min_epsilon = config['min_epsilon']
+    @decay_rate = config['decay_rate']
     @device = Torch.device(Torch::Backends::MPS.available? ? "mps" : "cpu")
     @replay_buffer = ReplayBuffer.new(@buffer_size, @batch_size, @device)
-    @q_net = QNet.new(layer_config, @action_size).to(@device)
-    @q_net_target = QNet.new(layer_config, @action_size).to(@device)
+    @q_net = QNet.new(config['qnet'], @action_size).to(@device)
+    @q_net_target = QNet.new(config['qnet'], @action_size).to(@device)
     @criterion = Torch::NN::MSELoss.new #平均２乗誤差
     @optimizer = Torch::Optim::Adam.new(@q_net.parameters, lr: @lr)
   end

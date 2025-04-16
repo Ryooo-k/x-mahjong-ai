@@ -43,6 +43,7 @@ class Table
     @tile_wall.reset
     @players.each(&:reset)
     reset_game_state
+    deal_starting_hand
     self
   end
 
@@ -98,7 +99,7 @@ class Table
     wind_orders.each do |player|
       STARTING_HAND_COUNT.times do |_|
         player.draw(@tile_wall.live_walls[@draw_count])
-        @draw_count += 1
+        increase_draw_count
       end
       player.record_hands
     end

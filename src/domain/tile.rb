@@ -8,7 +8,7 @@ class Tile
     # id：各牌毎にそれぞれ0〜135の一意な値で設定。1萬から順に0,1,3,...,135と設定。
     # suit：萬子は0、筒子は1、索子は2、字牌は3で設定
     # number：数牌はそれぞれの数字と同じ値（1〜9）で設定、字牌は東から順に1,2,3...と設定
-    # code：suit * 10 + numberで設定。　
+    # code：34種類の牌を0〜33の数字で設定。
     # name：それぞれの牌の表示名を設定。
     # 萬子→筒子→索子→字牌の順番とする。
   }
@@ -71,7 +71,7 @@ class Tile
     same_tile_count = 4
     same_tile_count.times do |i|
       id = start_id + i
-      code = suit * 10 + number
+      code = suit * 9 + number -  1
       TILE_DEFINITIONS[id] = { id:, suit:, number:, code:, name: }
     end
   end

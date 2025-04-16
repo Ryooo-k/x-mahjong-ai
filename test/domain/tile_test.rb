@@ -5,9 +5,9 @@ require_relative '../../src/domain/tile'
 
 class TileTest < Test::Unit::TestCase
   def setup
-    @manzu_1 = { code: 1, ids: (0..3).to_a, name: '1萬'}
-    @manzu_5 = { code: 5, ids: (16..19).to_a, name: '5萬'}
-    @east = { code: 31, ids: (108..111).to_a, name: '東' }
+    @manzu_1 = { code: 0, ids: (0..3).to_a, name: '1萬'}
+    @manzu_5 = { code: 4, ids: (16..19).to_a, name: '5萬'}
+    @east = { code: 27, ids: (108..111).to_a, name: '東' }
     @manzu_1_tile = Tile.new(@manzu_1[:ids][0])
     @red_tile = Tile.new(@manzu_5[:ids][0], is_red_dora: true)
   end

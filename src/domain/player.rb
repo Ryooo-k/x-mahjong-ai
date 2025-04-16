@@ -15,12 +15,17 @@ class Player
   def reset
     @score = 25_000
     @point_histories = []
-    reset_hand_state
+    @total_discard_loss = 0
+    @total_call_loss = 0
+    restart
     self
   end
 
   def restart
-    reset_hand_state
+    @hands = []
+    @hand_histories = []
+    @called_tile_table = []
+    @rivers = []
   end
 
   def hands
@@ -115,21 +120,16 @@ class Player
   end
 
   def update_discard_agent(state, action, reward, next_state, done)
-    @discard_agent.update(state, action, reward, next_state, done)
+    loss = @discard_agent.update(state, action, reward, next_state, done)
+    @total_discard_loss += loss
   end
 
   def update_call_agent(state, action, reward, next_state, done)
-    @call_agent.update(state, action, reward, next_state, done)
+    loss = @call_agent.update(state, action, reward, next_state, done)
+    @total_call_loss += loss
   end
 
   private
-
-  def reset_hand_state
-    @hands = []
-    @hand_histories = []
-    @called_tile_table = []
-    @rivers = []
-  end
 
   def can_call_pong?(target)
     hand_codes = @hands.map(&:code)

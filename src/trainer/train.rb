@@ -5,15 +5,15 @@ require_relative '../util/file_loader'
 require_relative '../environment/env'
 require_relative '../agent/player_agent'
 
-def main
+def run_training
   config = FileLoader.load_parameter('experiment_1')
   shanten_list = FileLoader.load_shanten_list
   env = MahjongEnv.new(config['table'], config['player'], shanten_list)
-  time_taken = Benchmark.realtime { train(config['train'], env) }
+  time_taken = Benchmark.realtime { run_training_loop(config['train'], env) }
   puts time_taken
 end
 
-def train(train_config, env)
+def run_training_loop(train_config, env)
   # binding.break
   train_config['count'].times do |count|
     done = false
@@ -46,5 +46,3 @@ def output(start_info, end_info)
   puts "学習回数：#{count}"
   puts ''
 end
-
-main

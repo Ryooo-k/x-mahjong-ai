@@ -106,11 +106,21 @@ class Player
     can_call_pong?(target) || can_call_open_kong?(target)
   end
 
-  def get_call_action
+  def get_discard_action(states)
+    @discard_agent.get_action(states)
   end
 
-  # def ron(target)
-  # end
+  def get_call_action(states)
+    @call_agent.get_action(states)
+  end
+
+  def update_discard_agent(state, action, reward, next_state, done)
+    @discard_agent.update(state, action, reward, next_state, done)
+  end
+
+  def update_call_agent(state, action, reward, next_state, done)
+    @call_agent.update(state, action, reward, next_state, done)
+  end
 
   private
 

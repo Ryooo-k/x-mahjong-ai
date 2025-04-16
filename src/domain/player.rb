@@ -3,7 +3,9 @@
 require_relative '../agent/agent'
 
 class Player
-  attr_reader :score, :point_histories, :hand_histories, :called_tile_table, :rivers
+  attr_reader :score, :point_histories, :hand_histories, :rivers
+
+  MAX_CALL_COUNT = 4
 
   def initialize(id, discard_agent_config, call_agent_config)
     @id = id
@@ -49,6 +51,33 @@ class Player
       numbers: sorted_hands.map(&:number),
       codes: sorted_hands.map(&:code),
       names: sorted_hands.map(&:name)
+    }
+  end
+
+  def called_tile_table
+    tile_table = Array.new(MAX_CALL_COUNT) { [] }
+    id_table = Array.new(MAX_CALL_COUNT) { [] }
+    suit_table = Array.new(MAX_CALL_COUNT) { [] }
+    number_table = Array.new(MAX_CALL_COUNT) { [] }
+    code_table = Array.new(MAX_CALL_COUNT) { [] }
+    name_table = Array.new(MAX_CALL_COUNT) { [] }
+
+    @called_tile_table.each_with_index do |tiles, index|
+      tile_table[index] = tiles
+      id_table[index] = tiles.map { |tile| tile.id }
+      suit_table[index] = tiles.map { |tile| tile.suit }
+      number_table[index] =tiles.map { |tile| tile.number }
+      code_table[index] = tiles.map { |tile| tile.code }
+      name_table[index] = tiles.map { |tile| tile.name }
+    end
+
+    {
+      tiles: tile_table,
+      ids: id_table,
+      suits: suit_table,
+      numbers: number_table,
+      codes: code_table,
+      names: name_table
     }
   end
 

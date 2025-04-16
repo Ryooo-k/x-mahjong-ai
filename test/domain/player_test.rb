@@ -22,9 +22,16 @@ class PlayerTest < Test::Unit::TestCase
     expected = {
       score: 25_000,
       point_histories: [],
-      hands: { tiles: [], ids: [], suits: [], numbers: [], codes: [], names: []},
+      hands: { tiles: [], ids: [], suits: [], numbers: [], codes: [], names: [] },
       hand_histories: [],
-      called_tile_table: [],
+      called_tile_table: {
+        tiles: [[], [], [], []],
+        ids: [[], [], [], []],
+        suits: [[], [], [], []],
+        numbers: [[], [], [], []],
+        codes: [[], [], [], []],
+        names: [[], [], [], []]
+      },
       rivers: []
     }
 
@@ -147,8 +154,8 @@ class PlayerTest < Test::Unit::TestCase
     @player.draw(@manzu_3_tile_id10)
     @player.pong(combinations, target)
 
-    called_tile_table = combinations << target
-    @player.hands[:tiles].each { |tile| assert_not_include(called_tile_table, tile) }
+    called_tiles = combinations << target
+    @player.hands[:tiles].each { |tile| assert_not_include(called_tiles, tile) }
   end
 
   def test_called_tile_table_add_target_tiles_when_player_called_pong
@@ -158,8 +165,14 @@ class PlayerTest < Test::Unit::TestCase
     @player.draw(@manzu_3_tile_id10)
     @player.pong(combinations, target)
 
-    called_tile_table = combinations << target
-    assert_equal([called_tile_table], @player.called_tile_table)
+    called_tiles = combinations << target
+    assert_equal([called_tiles, [], [], []], @player.called_tile_table[:tiles])
+
+    combinations = [@manzu_3_tile_id9, @manzu_3_tile_id10]
+    @player.draw(@manzu_3_tile_id9)
+    @player.draw(@manzu_3_tile_id10)
+    @player.pong(combinations, target)
+    assert_equal([called_tiles, called_tiles, [], []], @player.called_tile_table[:tiles])
   end
 
   def test_can_not_call_pong_when_combinations_not_in_hand
@@ -195,7 +208,7 @@ class PlayerTest < Test::Unit::TestCase
     @player.draw(@east_tile)
     combinations = [@manzu_3_tile_id8, @manzu_3_tile_id9, @manzu_3_tile_id10, @manzu_3_tile_id11]
     @player.concealed_kong(combinations)
-    assert_equal([combinations], @player.called_tile_table)
+    assert_equal([combinations, [], [], []], @player.called_tile_table[:tiles])
   end
 
   def test_can_not_call_concealed_kong_when_combinations_not_in_hand
@@ -220,8 +233,8 @@ class PlayerTest < Test::Unit::TestCase
     @player.pong(combinations, @manzu_3_tile_id10)
     @player.extended_kong(@manzu_3_tile_id11)
 
-    expected = [[@manzu_3_tile_id8, @manzu_3_tile_id9, @manzu_3_tile_id10, @manzu_3_tile_id11]]
-    assert_equal(expected, @player.called_tile_table)
+    expected = [[@manzu_3_tile_id8, @manzu_3_tile_id9, @manzu_3_tile_id10, @manzu_3_tile_id11], [], [], []]
+    assert_equal(expected, @player.called_tile_table[:tiles])
   end
 
   def test_can_not_call_extended_kong_when_no_existing_pong
@@ -239,11 +252,28 @@ class PlayerTest < Test::Unit::TestCase
     @player.chow([@manzu_1_tile, @manzu_2_tile], @manzu_3_tile_id10)
 
     @player.reset
-    assert_equal(25_000, @player.score)
-    assert_equal([], @player.point_histories)
-    assert_equal([], @player.hands[:tiles])
-    assert_equal([], @player.hand_histories)
-    assert_equal([], @player.called_tile_table)
-    assert_equal([], @player.rivers)
+
+    expected = {
+      score: 25_000,
+      point_histories: [],
+      hands: { tiles: [], ids: [], suits: [], numbers: [], codes: [], names: [] },
+      hand_histories: [],
+      called_tile_table: {
+        tiles: [[], [], [], []],
+        ids: [[], [], [], []],
+        suits: [[], [], [], []],
+        numbers: [[], [], [], []],
+        codes: [[], [], [], []],
+        names: [[], [], [], []]
+      },
+      rivers: []
+    }
+
+    assert_equal(expected[:score], @player.score)
+    assert_equal(expected[:point_histories], @player.point_histories)
+    assert_equal(expected[:hands], @player.hands)
+    assert_equal(expected[:hand_histories], @player.hand_histories)
+    assert_equal(expected[:called_tile_table], @player.called_tile_table)
+    assert_equal(expected[:rivers], @player.rivers)
   end
 end

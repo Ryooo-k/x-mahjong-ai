@@ -6,8 +6,9 @@ require_relative '../../src/domain/tile'
 
 class PlayerTest < Test::Unit::TestCase
   def setup
-    @player = Player.new(0)
-    @other_player = Player.new(1)
+    @config = FileLoader.load_parameter
+    @player = Player.new(0, @config['player']['discard_agent'], @config['player']['call_agent'])
+    @other_player = Player.new(1, @config['player']['discard_agent'], @config['player']['call_agent'])
     @manzu_1_tile = Tile.new(0)
     @manzu_2_tile = Tile.new(4)
     @manzu_3_tile_id8 = Tile.new(8)

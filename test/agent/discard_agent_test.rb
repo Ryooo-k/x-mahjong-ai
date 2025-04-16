@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 require 'test/unit'
+require 'yaml'
 require_relative '../../src/agent/discard_agent'
+require_relative '../util/file_loader'
 
 class DiscardAgentTest < Test::Unit::TestCase
   class DummyBuffer
@@ -43,18 +45,8 @@ class DiscardAgentTest < Test::Unit::TestCase
   end
 
   def setup
-    layer_config = { layer1: 38, layer2: 64 }
-    @agent = DiscardAgent.new(
-      gamma: 0.98,
-      lr: 0.0001,
-      epsilon: 0.0,
-      buffer_size: 2,
-      batch_size: 2,
-      min_epsilon: 0.01,
-      decay_rate: 0.99999,
-      layer_config:
-    )
-
+    config = FileLoader.load_parameter
+    @agent = DiscardAgent.new(config['player']['discard_agent'])
     @agent.instance_variable_set(:@replay_buffer, DummyBuffer.new)
     @agent.instance_variable_set(:@q_net, DummyQNet.new)
     @agent.instance_variable_set(:@q_net_target, DummyQNet.new)
@@ -104,39 +96,41 @@ class DiscardAgentTest < Test::Unit::TestCase
   end
 
   def test_update_epsilon_decreases_properly
-    layer_config = { layer1: 38, layer: 68 }
+    qnet = { layer1: 38, layer: 68 }
     epsilon = 1.0
     decay_rate = 0.9
-    agent = DiscardAgent.new(
-      gamma: 0.9,
-      lr: 0.001,
-      epsilon:,
-      buffer_size: 1,
-      batch_size: 1,
-      min_epsilon: 0.1,
-      decay_rate:,
-      layer_config:
-    )
+    config = {
+      'gamma' => 0.9,
+      'learning_rate' => 0.001,
+      'epsilon' => epsilon,
+      'buffer_size' => 1,
+      'batch_size' => 1,
+      'min_epsilon' => 0.1,
+      'decay_rate' => decay_rate,
+      'qnet' => qnet
+    }
 
+    agent = DiscardAgent.new(config)
     agent.update_epsilon
     expected = epsilon * decay_rate
     assert_equal(expected, agent.instance_variable_get(:@epsilon))
   end
 
   def test_update_epsilon_does_not_go_below_min
-    layer_config = { layer1: 38, layer: 68 }
+    qnet = { layer1: 38, layer: 68 }
     min_epsilon = 0.5
-    agent = DiscardAgent.new(
-      gamma: 0.9,
-      lr: 0.001,
-      epsilon: 0.01,
-      buffer_size: 1,
-      batch_size: 1,
-      min_epsilon:,
-      decay_rate: 0.1,
-      layer_config:
-    )
-  
+    config = {
+      'gamma' => 0.9,
+      'learning_rate' => 0.001,
+      'epsilon' => 0.01,
+      'buffer_size' => 1,
+      'batch_size' => 1,
+      'min_epsilon' => min_epsilon,
+      'decay_rate' => 0.1,
+      'qnet' => qnet
+    }
+
+    agent = DiscardAgent.new(config)
     agent.update_epsilon
     assert_equal(min_epsilon, agent.instance_variable_get(:@epsilon))
   end  

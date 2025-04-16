@@ -2,13 +2,12 @@
 
 require 'test/unit'
 require_relative '../../src/domain/table'
+require_relative '../util/file_loader'
 
 class TableTest < Test::Unit::TestCase
   def setup
-    @mode_id = 1
-    @attendance = 4
-    @red_dora_mode_id = 1
-    @table = Table.new(@mode_id, @attendance, @red_dora_mode_id)
+    @config = FileLoader.load_parameter
+    @table = Table.new(@config['table'], @config['player'])
   end
 
   def test_initialize_game_mode
@@ -17,7 +16,7 @@ class TableTest < Test::Unit::TestCase
   end
 
   def test_initialize_attendance
-    assert_equal(@attendance, @table.attendance)
+    assert_equal(@config['table']['attendance'], @table.attendance)
   end
 
   def test_initialize_red_dora_tiles
@@ -37,9 +36,9 @@ class TableTest < Test::Unit::TestCase
 
   def test_initialize_players
     id = 0
-    test_player = Player.new(id)
+    test_player = Player.new(id, @config['player']['discard_agent'], @config['player']['call_agent'])
 
-    assert_equal(@attendance, @table.players.size)
+    assert_equal(@config['table']['attendance'], @table.players.size)
     @table.players.each { |player| assert_instance_of(test_player.class, player) }
   end
 
@@ -125,17 +124,17 @@ class TableTest < Test::Unit::TestCase
 
   def test_deal_starting_hand
     live_walls = @table.tile_wall.live_walls
-    first_player_hands = live_walls[0..12]
-    second_player_hands = live_walls[13..25]
-    third_player_hands = live_walls[26..38]
-    fourth_player_hands = live_walls[39..51]
+    east_player_hands = live_walls[0..12]
+    south_player_hands = live_walls[13..25]
+    west_player_hands = live_walls[26..38]
+    north_player_hands = live_walls[39..51]
     @table.deal_starting_hand
     players = @table.wind_orders
 
-    assert_equal(first_player_hands, players[0].hands[:tiles])
-    assert_equal(second_player_hands, players[1].hands[:tiles])
-    assert_equal(third_player_hands, players[2].hands[:tiles])
-    assert_equal(fourth_player_hands, players[3].hands[:tiles])
+    assert_equal(east_player_hands, players[0].hands[:tiles])
+    assert_equal(south_player_hands, players[1].hands[:tiles])
+    assert_equal(west_player_hands, players[2].hands[:tiles])
+    assert_equal(north_player_hands, players[3].hands[:tiles])
   end
 
   def test_reset

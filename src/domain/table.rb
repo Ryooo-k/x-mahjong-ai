@@ -41,7 +41,7 @@ class Table
     @game_mode = GAME_MODES[table_config['game_mode_id']]
     @attendance = table_config['attendance']
     @red_dora = RED_DORA_MODES[table_config['red_dora_mode_id']]
-    @tile_wall = TileWall.new(@red_dora[:ids])
+    @tile_wall = TileWall.new
     @players = Array.new(attendance) { |id| Player.new(id, player_config['discard_agent'], player_config['call_agent']) }
     reset_game_state
   end

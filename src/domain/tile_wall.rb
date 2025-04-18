@@ -5,9 +5,8 @@ require_relative 'tile'
 class TileWall
   attr_reader :tiles, :live_walls, :dead_walls, :open_dora_indicators, :blind_dora_indicators, :replacement_tiles
 
-  def initialize(red_dora_ids = [])
-    @red_dora_ids = red_dora_ids
-    @tiles = build_tiles(@red_dora_ids)
+  def initialize
+    @tiles = build_tiles
     reset
   end
 
@@ -19,11 +18,8 @@ class TileWall
 
   private
 
-  def build_tiles(red_dora_ids)
-    Array.new(136) do |id|
-      is_red_dora = red_dora_ids.include?(id)
-      Tile.new(id, is_red_dora:)
-    end
+  def build_tiles
+    Array.new(136) { |id| Tile.new(id) }
   end
 
   def setup(tiles)

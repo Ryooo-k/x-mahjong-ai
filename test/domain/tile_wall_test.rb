@@ -26,14 +26,6 @@ class TileWallTest < Test::Unit::TestCase
 
     replacement_tiles = tile_wall.dead_walls[10..13]
     assert_equal(replacement_tiles, tile_wall.replacement_tiles)
-
-    red_dora_ids = [19, 55, 91] # 5萬、5筒、5索のid
-    tile_wall_with_red = TileWall.new(red_dora_ids)
-
-    tile_wall_with_red.tiles.each do |tile|
-      is_red_dora = red_dora_ids.include?(tile.id)
-      assert_equal(is_red_dora, tile.red_dora?)
-    end
   end
 
   def test_tile_wall_initialization

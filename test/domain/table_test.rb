@@ -205,10 +205,10 @@ class TableTest < Test::Unit::TestCase
     @table.deal_starting_hand
     players = @table.wind_orders
 
-    assert_equal(east_player_hands, players[0].hands[:tiles])
-    assert_equal(south_player_hands, players[1].hands[:tiles])
-    assert_equal(west_player_hands, players[2].hands[:tiles])
-    assert_equal(north_player_hands, players[3].hands[:tiles])
+    assert_equal(east_player_hands, players[0].hands)
+    assert_equal(south_player_hands, players[1].hands)
+    assert_equal(west_player_hands, players[2].hands)
+    assert_equal(north_player_hands, players[3].hands)
   end
 
   def test_reset

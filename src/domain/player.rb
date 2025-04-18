@@ -3,7 +3,7 @@
 require_relative '../agent/agent_manager'
 
 class Player
-  attr_reader :score, :point_histories, :hand_histories, :rivers
+  attr_reader :hands, :score, :point_histories, :hand_histories, :rivers
 
   MAX_CALL_COUNT = 4
 
@@ -27,55 +27,16 @@ class Player
     @rivers = []
   end
 
-  def hands
-    {
-      tiles: @hands,
-      ids: @hands.map(&:id),
-      suits: @hands.map(&:suit),
-      numbers: @hands.map(&:number),
-      codes: @hands.map(&:code),
-      names: @hands.map(&:name)
-    }
-  end
-
   def sorted_hands
-    sorted_hands = @hands.sort_by(&:id)
-
-    {
-      tiles: sorted_hands,
-      ids: sorted_hands.map(&:id),
-      suits: sorted_hands.map(&:suit),
-      numbers: sorted_hands.map(&:number),
-      codes: sorted_hands.map(&:code),
-      names: sorted_hands.map(&:name)
-    }
+    @hands.sort_by(&:id)
   end
 
   def called_tile_table
     tile_table = Array.new(MAX_CALL_COUNT) { [] }
-    id_table = Array.new(MAX_CALL_COUNT) { [] }
-    suit_table = Array.new(MAX_CALL_COUNT) { [] }
-    number_table = Array.new(MAX_CALL_COUNT) { [] }
-    code_table = Array.new(MAX_CALL_COUNT) { [] }
-    name_table = Array.new(MAX_CALL_COUNT) { [] }
-
-    @called_tile_table.each_with_index do |tiles, index|
-      tile_table[index] = tiles
-      id_table[index] = tiles.map { |tile| tile.id }
-      suit_table[index] = tiles.map { |tile| tile.suit }
-      number_table[index] =tiles.map { |tile| tile.number }
-      code_table[index] = tiles.map { |tile| tile.code }
-      name_table[index] = tiles.map { |tile| tile.name }
+    @called_tile_table.each_with_index do |tiles, order|
+      tile_table[order] = tiles
     end
-
-    {
-      tiles: tile_table,
-      ids: id_table,
-      suits: suit_table,
-      numbers: number_table,
-      codes: code_table,
-      names: name_table
-    }
+    tile_table
   end
 
   def add_point(point)
@@ -92,7 +53,7 @@ class Player
     @hands << tile
   end
 
-  def play(tile)
+  def discard(tile)
     raise ArgumentError, '手牌に無い牌は選択できません。' unless @hands.include?(tile)
 
     @hands.delete(tile)

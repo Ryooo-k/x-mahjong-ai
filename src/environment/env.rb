@@ -2,6 +2,7 @@
 
 require 'json'
 require_relative '../domain/table'
+require_relative 'state_builder'
 
 class MahjongEnv
   attr_reader :current_player, :other_players
@@ -58,7 +59,7 @@ class MahjongEnv
   # end
 
   def states
-    build_states
+    StateBuilder.build(@current_player, @other_players, @table)
   end
 
   def info
@@ -92,75 +93,6 @@ class MahjongEnv
     number_table.delete_if { |numbers| numbers.map { |number| number % 3 }.sum != 2 }
   end
 
-  def build_states
-    current_plyer_states = build_current_player_states
-    other_player_states = build_other_players_states
-    table_states = build_table_states
-    tile_wall_states = build_tile_wall_states
-
-    states = [
-      current_plyer_states,
-      other_player_states,
-      table_states,
-      tile_wall_states
-    ]
-
-    Torch.tensor(states.flatten, dtype: :float32)
-  end
-
-  def build_current_player_states
-    player = @current_player
-    hand_codes = count_codes(player.hands[:tiles])
-    called_tile_codes = count_codes(player.called_tile_table.flatten)
-    river_codes = player.rivers.map { |tile| tile.code / 34 }  # 牌の種類数で正規化
-    score = player.score / 100_000.0 # 4人の合計スコアで正規化
-    shanten = cal_shanten(player.hands[:tiles]) / 8.0 # 最大の聴向数で正規化
-    outs = count_outs(player.hands[:tiles]) / 13.0 # 最大の受け入れ枚数で正規化
-
-    [
-      hand_codes,
-      called_tile_codes,
-      river_codes,
-      score,
-      shanten,
-      outs
-    ]
-  end
-
-  def build_other_players_states
-    players = @other_players
-    players.map do |player|
-      called_tile_codes = player.called_tile_table.flatten.map { |tile| tile.code / 34.0 } # 牌の種類数で正規化
-      river_codes = player.rivers.map { |tile| tile.code / 34.0 } # 牌の種類数で正規化
-      score = player.score / 100_000.0 # 4人の合計スコアで正規化
-  
-      [
-        called_tile_codes,
-        river_codes,
-        score
-      ]
-    end
-  end
-
-  def build_table_states
-    [
-      @table.round[:count],
-      @table.honba[:count]
-    ]
-  end
-
-  def build_tile_wall_states
-    open_dora_codes = @table.tile_wall.open_dora_codes.map { |code| code / 34.0 } # 牌の種類数で正規化
-    blind_dora_codes = @table.tile_wall.blind_dora_codes.map { |code| code / 34.0 } # 牌の種類数で正規化
-    kong_count = @table.tile_wall.kong_count
-
-    [
-      open_dora_codes,
-      blind_dora_codes,
-      kong_count
-    ]
-  end
-
   def build_player_hand_names
     @table.seat_orders.map { |player| player.sorted_hands[:tiles] }
   end
@@ -191,13 +123,6 @@ class MahjongEnv
       manzu_shanten + pinzu_shanten + souzu_shanten + zihai_shanten
     end.min
     min_shanten - 1
-  end
-
-  # codeの数を数えるため、順序の情報は失われる。
-  def count_codes(tiles)
-    code_counters = Array.new(34, 0)
-    tiles.each { |tile| code_counters[tile.code] += 1 }
-    code_counters
   end
 
   def count_outs(hand_tiles)

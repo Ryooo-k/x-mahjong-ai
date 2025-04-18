@@ -102,7 +102,6 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal([[@manzu_1_tile, @manzu_2_tile], [@manzu_1_tile]], @player.hand_histories)
   end
 
-  # playメソッドのテスト
   def test_remove_tile_from_hand_when_player_played_tile
     @player.draw(@manzu_1_tile)
     @player.draw(@manzu_2_tile)
@@ -134,7 +133,6 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal('手牌に無い牌は選択できません。', error.message)
   end
 
-  # pongメソッドのテスト
   def test_tile_holder_change_to_pong_player
     @other_player.draw(@manzu_3_tile_id8)
     assert_equal(@other_player, @manzu_3_tile_id8.holder)
@@ -181,14 +179,12 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal('有効な牌が無いためポンできません。', error.message)
   end
 
-  # chowメソッドのテスト
   def test_can_not_call_chow_when_combinations_not_in_hand
     combinations = [@manzu_1_tile, @manzu_2_tile]
     error = assert_raise(ArgumentError) { @player.chow(combinations, @manzu_3_tile_id8) }
     assert_equal('有効な牌が無いためチーできません。', error.message)
   end
 
-  # concealed_kongメソッドのテスト
   def test_hands_delete_target_tiles_when_player_called_concealed_kong
     @player.draw(@manzu_3_tile_id8)
     @player.draw(@manzu_3_tile_id9)
@@ -217,7 +213,6 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal('有効な牌が無いため暗カンできません。', error.message)
   end
 
-  # open_kongメソッドのテスト
   def test_can_not_call_open_kong_when_combinations_not_in_hand
     target = @manzu_3_tile_id11
     combinations = [@manzu_3_tile_id8, @manzu_3_tile_id9, @manzu_3_tile_id10]
@@ -225,7 +220,6 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal('有効な牌が無いため大明カンできません。', error.message)
   end
 
-  # extended_kongメソッドのテスト
   def test_called_tile_table_add_target_tile_when_player_called_extended_kong
     combinations = [@manzu_3_tile_id8, @manzu_3_tile_id9]
     @player.draw(@manzu_3_tile_id8)
@@ -240,6 +234,23 @@ class PlayerTest < Test::Unit::TestCase
   def test_can_not_call_extended_kong_when_no_existing_pong
     error = assert_raise(ArgumentError) { @player.extended_kong(@manzu_3_tile_id8) }
     assert_equal('有効な牌が無いため加カンできません。', error.message)
+  end
+
+  def test_called_tile_table_return_called_tile_table_state
+    combinations = [@manzu_3_tile_id8, @manzu_3_tile_id9]
+    @player.draw(@manzu_3_tile_id8)
+    @player.draw(@manzu_3_tile_id9)
+    @player.pong(combinations, @manzu_3_tile_id10)
+
+    expected = {
+      tiles: [[@manzu_3_tile_id8, @manzu_3_tile_id9, @manzu_3_tile_id10], [], [], []],
+      ids: [[@manzu_3_tile_id8.id, @manzu_3_tile_id9.id, @manzu_3_tile_id10.id], [], [], []],
+      suits: [[@manzu_3_tile_id8.suit, @manzu_3_tile_id9.suit, @manzu_3_tile_id10.suit], [], [], []],
+      numbers: [[@manzu_3_tile_id8.number, @manzu_3_tile_id9.number, @manzu_3_tile_id10.number], [], [], []],
+      codes: [[@manzu_3_tile_id8.code, @manzu_3_tile_id9.code, @manzu_3_tile_id10.code], [], [], []],
+      names: [[@manzu_3_tile_id8.name, @manzu_3_tile_id9.name, @manzu_3_tile_id10.name], [], [], []],
+    }
+    assert_equal(expected, @player.called_tile_table)
   end
 
   def test_reset

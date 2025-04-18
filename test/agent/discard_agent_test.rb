@@ -57,7 +57,7 @@ class DiscardAgentTest < Test::Unit::TestCase
   def test_get_action_return_argmax_when_epsilon_is_zero
     input = [0.1] * 38
     action = @agent.get_action(input)
-    assert_equal 2, action  # 期待値: mock_qnetのargmax_index の 2 を期待する
+    assert_equal(2, action)  # 期待値: mock_qnetのargmax_index の 2 を期待する
   end
 
   def test_get_action_return_random_when_epsilon_is_high
@@ -71,7 +71,7 @@ class DiscardAgentTest < Test::Unit::TestCase
   def test_update_return_zero_when_buffer_is_small
     dummy_state = Torch.tensor(1.0)
     loss = @agent.update(dummy_state, nil, nil, dummy_state, nil)
-    assert_equal 0, loss.item
+    assert_equal(0, loss.item)
   end
 
   def test_update_return_loss_tensor

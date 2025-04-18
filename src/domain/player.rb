@@ -106,7 +106,7 @@ class Player
   end
 
   def can_call_chow?(target)
-    return false if target.code >= 31 # 字牌はチーできないので早期return
+    return false if target.code >= 27 # 字牌はチーできないので早期return
 
     hand_codes = @hands.map(&:code)
     possible_chow_table = build_possible_chow_table(target)

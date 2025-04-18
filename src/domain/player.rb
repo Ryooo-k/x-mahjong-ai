@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../agent/agent'
+require_relative '../agent/agent_manager'
 
 class Player
   attr_reader :score, :point_histories, :hand_histories, :rivers
@@ -9,16 +9,13 @@ class Player
 
   def initialize(id, discard_agent_config, call_agent_config)
     @id = id
-    @discard_agent = Agent.new(discard_agent_config)
-    @call_agent = Agent.new(call_agent_config)
+    @agent = AgentManager.new(discard_agent_config, call_agent_config)
     reset
   end
 
   def reset
     @score = 25_000
     @point_histories = []
-    @total_discard_loss = 0
-    @total_call_loss = 0
     restart
     self
   end
@@ -132,31 +129,13 @@ class Player
     end
   end
 
-  def can_call?(target)
-    can_call_pong?(target) || can_call_chow?(target) || can_call_open_kong?(target)
-  end
+  # def can_call?(target)
+  #   can_call_pong?(target) || can_call_chow?(target) || can_call_open_kong?(target)
+  # end
 
-  def can_pong_or_open_kong?(target)
-    can_call_pong?(target) || can_call_open_kong?(target)
-  end
-
-  def get_discard_action(states)
-    @discard_agent.get_action(states)
-  end
-
-  def get_call_action(states)
-    @call_agent.get_action(states)
-  end
-
-  def update_discard_agent(state, action, reward, next_state, done)
-    loss = @discard_agent.update(state, action, reward, next_state, done)
-    @total_discard_loss += loss
-  end
-
-  def update_call_agent(state, action, reward, next_state, done)
-    loss = @call_agent.update(state, action, reward, next_state, done)
-    @total_call_loss += loss
-  end
+  # def can_pong_or_open_kong?(target)
+  #   can_call_pong?(target) || can_call_open_kong?(target)
+  # end
 
   private
 

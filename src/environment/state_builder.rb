@@ -60,8 +60,8 @@ module StateBuilder
   end
 
   def build_table_states(table)
-    remaining_tiles = table.remaining_tiles
-    open_dora_codes = to_normalized_dora_codes(table.open_dora_codes)
+    remaining_tiles = table.remaining_tile_count
+    open_dora_codes = to_normalized_dora_codes(table.open_dora_tiles)
     kong_count = table.kong_count
     round = table.round[:count]
     honba = table.honba[:count]
@@ -101,10 +101,10 @@ module StateBuilder
     end
   end
 
-  def to_normalized_dora_codes(dora_coeds)
+  def to_normalized_dora_codes(dora_tiles)
     normalized_codes = Array.new(MAX_OPEN_DORA_COUNT, -1)
-    dora_codes.each_with_index do |code, order|
-      normalized_codes[order] = code / TILE_COUNT
+    dora_tiles.each_with_index do |tile, order|
+      normalized_codes[order] = tile.code / TILE_COUNT
     end
   end
 end

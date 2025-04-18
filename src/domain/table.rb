@@ -3,9 +3,8 @@
 require_relative 'tile_wall'
 require_relative 'player'
 
-## 3人麻雀の実装は保留
 class Table
-  attr_reader :game_mode, :attendance, :red_dora, :tile_wall, :players, :seat_orders, :draw_count
+  attr_reader :game_mode, :attendance, :red_dora, :tile_wall, :players, :seat_orders, :draw_count, :kong_count
 
   GAME_MODES = {
   0 => { name: '東風戦', end_round: 4 },
@@ -13,8 +12,8 @@ class Table
   }.freeze
 
   RED_DORA_MODES = {
-    0 => { ids: [], name: [] },
-    1 => { ids: [19, 55, 91], name: ['5萬', '5筒', '5索'] }
+    0 => { ids: [], names: [] },
+    1 => { ids: [19, 55, 91], names: ['5萬', '5筒', '5索'] }
   }.freeze
 
   ROUNDS = { 
@@ -26,6 +25,14 @@ class Table
     5 => '南二局',
     6 => '南三局',
     7 => '南四局'
+  }.freeze
+
+  SPECIAL_DORA_RULES = {
+    8 => 0, # 9萬がドラ表示牌の時、1萬がドラとなるcode変換
+    17 => 9, # 9筒がドラ表示牌の時、1筒がドラとなるcode変換
+    26 => 18, # 9索がドラ表示牌の時、1索がドラとなるcode変換
+    30 => 27, # 北がドラ表示牌の時、東がドラとなるcode変換
+    33 => 31 # 中がドラ表示牌の時、白がドラとなるcode変換
   }.freeze
 
   STARTING_HAND_COUNT = 13
@@ -70,8 +77,8 @@ class Table
     @draw_count += 1
   end
 
-  def restart_round_count
-    @round_count = 0
+  def increase_kong_count
+    @kong_count += 1
   end
 
   def restart_honba_count
@@ -95,6 +102,20 @@ class Table
     @tile_wall.live_walls[@draw_count]
   end
 
+  def remaining_tile_count
+    @tile_wall.live_walls[@draw_count..].size
+  end
+
+  def open_dora_tiles
+    open_dora_indicators = @tile_wall.open_dora_indicators[0..@kong_count]
+    fetch_dora_tiles(open_dora_indicators)
+  end
+
+  def blind_dora_tiles
+    blind_dora_indicators = @tile_wall.blind_dora_indicators[0..@kong_count]
+    fetch_dora_tiles(blind_dora_indicators)
+  end
+
   def deal_starting_hand
     wind_orders.each do |player|
       STARTING_HAND_COUNT.times do |_|
@@ -110,8 +131,17 @@ class Table
   def reset_game_state
     @seat_orders = @players.shuffle
     @draw_count = 0
-    restart_round_count
+    @kong_count = 0
+    @round_count = 0
     restart_honba_count
+  end
+
+  def fetch_dora_tiles(indicators)
+    indicators = indicators[0..@kong_count]
+    indicators.map do |indicator|
+      dora_code = SPECIAL_DORA_RULES.fetch(indicator.code, indicator.code + 1)
+      @tile_wall.tiles.select { |tile| tile.code == dora_code }
+    end.flatten
   end
 
   def convert_number_to_kanji(num)

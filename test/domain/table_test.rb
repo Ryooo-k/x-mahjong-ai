@@ -1,114 +1,141 @@
 # frozen_string_literal: true
-
+require 'debug'
 require 'test/unit'
 require_relative '../../src/domain/table'
 require_relative '../util/file_loader'
 
 class TableTest < Test::Unit::TestCase
+  DORA_CHECKERS = {
+    '1萬' => '2萬',
+    '2萬' => '3萬',
+    '3萬' => '4萬',
+    '4萬' => '5萬',
+    '5萬' => '6萬',
+    '6萬' => '7萬',
+    '7萬' => '8萬',
+    '8萬' => '9萬',
+    '9萬' => '1萬',
+  
+    '1筒' => '2筒',
+    '2筒' => '3筒',
+    '3筒' => '4筒',
+    '4筒' => '5筒',
+    '5筒' => '6筒',
+    '6筒' => '7筒',
+    '7筒' => '8筒',
+    '8筒' => '9筒',
+    '9筒' => '1筒',
+  
+    '1索' => '2索',
+    '2索' => '3索',
+    '3索' => '4索',
+    '4索' => '5索',
+    '5索' => '6索',
+    '6索' => '7索',
+    '7索' => '8索',
+    '8索' => '9索',
+    '9索' => '1索',
+  
+    '東' => '南',
+    '南' => '西',
+    '西' => '北',
+    '北' => '東',
+  
+    '白' => '發',
+    '發' => '中',
+    '中' => '白'
+  }.freeze
+
   def setup
     @config = FileLoader.load_parameter
     @table = Table.new(@config['table'], @config['player'])
   end
 
-  def test_initialize_game_mode
-    game_mode = { name: '東南戦', end_round: 8 }
-    assert_equal(game_mode, @table.game_mode)
+  def test_table_initialize_game_mode_with_expected_name_and_end_round
+    assert_equal('東南戦', @table.game_mode[:name])
+    assert_equal(8, @table.game_mode[:end_round])
   end
 
-  def test_initialize_attendance
+  def test_table_initialize_attendance_with_expected_number
     assert_equal(@config['table']['attendance'], @table.attendance)
   end
 
-  def test_initialize_red_dora_tiles
-    red_dora_tile_names = ['5萬', '5筒', '5索']
-    assert_equal(red_dora_tile_names, @table.red_dora[:name])
+  def test_red_dora_return_tile_names_and_ids
+    assert_equal(['5萬', '5筒', '5索'], @table.red_dora[:names])
+    assert_equal([19, 55, 91], @table.red_dora[:ids])
   end
 
-  def test_initialize_red_dora_tile_ids
-    red_dora_tile_ids = [19, 55, 91]
-    assert_equal(red_dora_tile_ids, @table.red_dora[:ids])
-  end
-
-  def test_initialize_tile_wall
+  def test_table_initialize_tile_wall_with_expected_class
     tile_wall = TileWall.new
     assert_instance_of(tile_wall.class, @table.tile_wall)
   end
 
-  def test_initialize_players
-    id = 0
-    test_player = Player.new(id, @config['player']['discard_agent'], @config['player']['call_agent'])
-
+  def test_table_initialize_players_with_expected_class_and_number
+    player_class = Player.new(0, @config['player']['discard_agent'], @config['player']['call_agent']).class
+    @table.players.each { |player| assert_instance_of(player_class, player) }
     assert_equal(@config['table']['attendance'], @table.players.size)
-    @table.players.each { |player| assert_instance_of(test_player.class, player) }
   end
 
-  def test_initialize_round
-    round_counter = 0
-    round_name = '東一局'
-
-    assert_equal(round_counter, @table.round[:count])
-    assert_equal(round_name, @table.round[:name])
+  def test_table_initialize_round_with_expected_count_and_name
+    assert_equal(0, @table.round[:count])
+    assert_equal('東一局', @table.round[:name])
   end
 
-  def test_initialize_honba
-    honba_counter = 0
-    assert_equal(honba_counter, @table.honba[:count])
+  def test_table_initialize_honba_with_expected_count_and_name
+    assert_equal(0, @table.honba[:count])
+    assert_equal('〇本場', @table.honba[:name])
   end
 
   def test_advance_round_and_restart_round_counter
-    next_round_counter = 1
-    next_round_name = '東二局'
     @table.advance_round
-    assert_equal(next_round_counter, @table.round[:count])
-    assert_equal(next_round_name, @table.round[:name])
+    assert_equal(1, @table.round[:count])
+    assert_equal('東二局', @table.round[:name])
 
-    next_next_round_counter = 2
-    next_next_round_name = '東三局'
     @table.advance_round
-    assert_equal(next_next_round_counter, @table.round[:count])
-    assert_equal(next_next_round_name, @table.round[:name])
+    assert_equal(2, @table.round[:count])
+    assert_equal('東三局', @table.round[:name])
 
-    round_counter = 0
-    round_name = '東一局'
-    @table.restart_round_count
-    assert_equal(round_counter, @table.round[:count])
-    assert_equal(round_name, @table.round[:name])
+    @table.advance_round
+    assert_equal(3, @table.round[:count])
+    assert_equal('東四局', @table.round[:name])
+
+    @table.advance_round
+    assert_equal(4, @table.round[:count])
+    assert_equal('南一局', @table.round[:name])
+
+    @table.reset
+    assert_equal(0, @table.round[:count])
+    assert_equal('東一局', @table.round[:name])
   end
 
   def test_increase_honba_and_restart_honba_counter
-    next_honba_counter = 1
-    next_honba_name = '一本場'
     @table.increase_honba
-    assert_equal(next_honba_counter, @table.honba[:count])
-    assert_equal(next_honba_name, @table.honba[:name])
+    assert_equal(1, @table.honba[:count])
+    assert_equal('一本場', @table.honba[:name])
 
-    next_next_honba_counter = 2
-    next_next_honba_name = '二本場'
     @table.increase_honba
-    assert_equal(next_next_honba_counter, @table.honba[:count])
-    assert_equal(next_next_honba_name, @table.honba[:name])
+    assert_equal(2, @table.honba[:count])
+    assert_equal('二本場', @table.honba[:name])
 
-    honba_counter = 0
-    honba_name = '〇本場'
     @table.restart_honba_count
-    assert_equal(honba_counter, @table.honba[:count])
-    assert_equal(honba_name, @table.honba[:name])
+    assert_equal(0, @table.honba[:count])
+    assert_equal('〇本場', @table.honba[:name])
   end
 
   def test_host_rotate_every_four_rounds
-    assert_equal(@table.host, @table.seat_orders[0])
+    assert_equal(@table.seat_orders[0], @table.host)
 
     @table.advance_round
-    assert_equal(@table.host, @table.seat_orders[1])
+    assert_equal(@table.seat_orders[1], @table.host)
 
     @table.advance_round
-    assert_equal(@table.host, @table.seat_orders[2])
+    assert_equal(@table.seat_orders[2], @table.host)
 
     @table.advance_round
-    assert_equal(@table.host, @table.seat_orders[3])
+    assert_equal(@table.seat_orders[3], @table.host)
 
     @table.advance_round
-    assert_equal(@table.host, @table.seat_orders[0])
+    assert_equal(@table.seat_orders[0], @table.host)
   end
 
   def test_wind_orders_return_players_in_east_to_north_order
@@ -120,6 +147,53 @@ class TableTest < Test::Unit::TestCase
 
   def test_children_return_non_host
     assert_not_include(@table.children, @table.host)
+  end
+
+  def test_top_tile_return_tile_at_current_draw_count_position
+    current_draw_count = @table.draw_count
+    top_tile = @table.tile_wall.live_walls[current_draw_count]
+    assert_equal(top_tile, @table.top_tile)
+  end
+
+  def test_remaining_tile_count
+    expected = @table.tile_wall.live_walls.size
+    assert_equal(expected, @table.remaining_tile_count)
+  end
+
+  def test_open_dora_tile_return_expected_dora_tile
+    open_dora_indicators = @table.tile_wall.open_dora_indicators
+    dora_names = open_dora_indicators.map { |indicator| DORA_CHECKERS[indicator.name] }
+    assert_equal(dora_names[0], @table.open_dora_tiles.first.name)
+
+    @table.increase_kong_count
+    assert_equal(dora_names[1], @table.open_dora_tiles.last.name)
+
+    @table.increase_kong_count
+    assert_equal(dora_names[2], @table.open_dora_tiles.last.name)
+
+    @table.increase_kong_count
+    assert_equal(dora_names[3], @table.open_dora_tiles.last.name)
+
+    @table.increase_kong_count
+    assert_equal(dora_names[4], @table.open_dora_tiles.last.name)
+  end
+
+  def test_blind_dora_tile_return_expected_dora_tile
+    blind_dora_indicators = @table.tile_wall.blind_dora_indicators
+    dora_names = blind_dora_indicators.map { |indicator| DORA_CHECKERS[indicator.name] }
+    assert_equal(dora_names[0], @table.blind_dora_tiles.first.name)
+
+    @table.increase_kong_count
+    assert_equal(dora_names[1], @table.blind_dora_tiles.last.name)
+
+    @table.increase_kong_count
+    assert_equal(dora_names[2], @table.blind_dora_tiles.last.name)
+
+    @table.increase_kong_count
+    assert_equal(dora_names[3], @table.blind_dora_tiles.last.name)
+
+    @table.increase_kong_count
+    assert_equal(dora_names[4], @table.blind_dora_tiles.last.name)
   end
 
   def test_deal_starting_hand
@@ -138,14 +212,17 @@ class TableTest < Test::Unit::TestCase
   end
 
   def test_reset
-    @table.increase_honba
     @table.advance_round
-    old_honba = @table.honba.dup
-    old_round = @table.round.dup
+    @table.increase_honba
     old_host = @table.host.dup
+    old_round = @table.round.dup
+    old_honba = @table.honba.dup
+    old_draw_count = @table.draw_count.dup
+
     @table.reset
-    assert_not_equal(old_host, @table.host) # 前回と同じhostになる可能性もあるため一定確率でテストが落ちる
-    assert_not_equal(old_honba, @table.honba)
+    assert_not_equal(old_host, @table.host)
     assert_not_equal(old_round, @table.round)
+    assert_not_equal(old_honba, @table.honba)
+    assert_not_equal(old_draw_count, @table.draw_count)
   end
 end

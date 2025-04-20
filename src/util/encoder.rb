@@ -3,34 +3,35 @@
 module Util
   module Encoder
     TILE_COUNT = 34.0
+    MAX_CALL_COUNT = 4
     MAX_RIVER_COUNT = 24
-    MAX_OPEN_DORA_COUNT = 5
+    MAX_DORA_COUNT = 5
 
-    def to_codes_count(tiles)
-      counters = Array.new(TILE_COUNT, 0)
-      tiles.each { |tile| counters[tile.code] += 1 }
-      counters
+    def encode_hands(hands)
+      codes = Array.new(TILE_COUNT, 0)
+      hands.each { |tile| codes[tile.code] += 1 }
+      codes
     end
 
-    def to_nested_codes_count(nested_tiles, outer_count)
-      nested_counters = Array.new(outer_count) { Array.new(TILE_COUNT, 0) }
-      nested_tiles.each_with_index do |tiles, order|
-        tiles.each { |tile| nested_counters[order][tile.code] += 1 }
+    def encode_called_tile_table(called_tile_table)
+      code_table = Array.new(MAX_CALL_COUNT) { Array.new(TILE_COUNT, 0) }
+      called_tile_table.each_with_index do |called_tiles, order|
+        called_tiles.each { |tile| code_table[order][tile.code] += 1 }
       end
-      nested_counters
+      code_table
     end
 
-    def to_normalized_river_codes(rivers)
-      normalized_codes = Array.new(MAX_RIVER_COUNT, -1)
+    def encode_rivers(rivers)
+      normalized_river_codes = Array.new(MAX_RIVER_COUNT, -1)
       rivers.each_with_index do |tile, order|
-        normalized_codes[order] = tile.code / TILE_COUNT
+        normalized_river_codes[order] = tile.code / TILE_COUNT
       end
     end
 
-    def to_normalized_dora_codes(dora_tiles)
-      normalized_codes = Array.new(MAX_OPEN_DORA_COUNT, -1)
+    def encode_dora(dora_tiles)
+      normalized_dora_codes = Array.new(MAX_DORA_COUNT, -1)
       dora_tiles.each_with_index do |tile, order|
-        normalized_codes[order] = tile.code / TILE_COUNT
+        normalized_dora_codes[order] = tile.code / TILE_COUNT
       end
     end
   end

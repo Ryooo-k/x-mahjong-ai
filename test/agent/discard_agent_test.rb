@@ -3,7 +3,7 @@
 require 'test/unit'
 require 'yaml'
 require_relative '../../src/agent/discard_agent'
-require_relative '../util/file_loader'
+require_relative '../../src/util/file_loader'
 
 class DiscardAgentTest < Test::Unit::TestCase
   class DummyBuffer

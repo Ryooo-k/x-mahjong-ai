@@ -7,8 +7,7 @@ require_relative '../agent/player_agent'
 
 def run_training
   config = FileLoader.load_parameter('experiment_1')
-  shanten_list = FileLoader.load_shanten_list
-  env = MahjongEnv.new(config['table'], config['player'], shanten_list)
+  env = MahjongEnv.new(config['table'], config['player'])
   time_taken = Benchmark.realtime { run_training_loop(config['train'], env) }
   puts time_taken
 end

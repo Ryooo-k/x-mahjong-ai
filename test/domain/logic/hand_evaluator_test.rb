@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-require 'debug'
+
 require 'test/unit'
 require_relative '../../../src/domain/logic/hand_evaluator'
 require_relative '../../../src/domain/tile'

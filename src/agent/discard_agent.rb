@@ -24,13 +24,11 @@ class DiscardAgent
   end
 
   def get_action(states)
-    if rand < @epsilon
-      rand(@action_size)
-    else
-      tensor_states = Torch.tensor(states, dtype: :float32).unsqueeze(0).to(@device)
-      qualities = @q_net.call(tensor_states).detach
-      qualities.numo.argmax
-    end
+    return rand(@action_size) if rand < @epsilon
+
+    tensor_states = Torch.tensor(states, dtype: :float32).unsqueeze(0).to(@device)
+    qualities = @q_net.call(tensor_states).detach
+    qualities.argmax(1)[0].item
   end
 
   def update(state, action, reward, next_state, done)

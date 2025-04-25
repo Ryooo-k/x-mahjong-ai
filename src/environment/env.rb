@@ -33,8 +33,9 @@ class Env
 
   def step(action)
     @done = true if agari? || game_over?
-    old_hands = @current_player.hands.dup
-    target_tile = old_hands[action]
+    old_hands = @current_player.hand_histories.last
+    current_hands = @current_player.hands
+    target_tile = current_hands[action]
     @current_player.discard(target_tile) unless agari?
 
     new_hands = @current_player.hands

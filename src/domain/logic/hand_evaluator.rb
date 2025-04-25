@@ -13,6 +13,13 @@ module Domain
       KOKUSHI_TILES = ALL_TILES.select { |tile| KOKUSHI_TILE_CODES.include?(tile.code) }
       SHANTEN_LIST = Util::FileLoader.load_shanten_list
 
+      def self.count_minimum_outs(hands)
+        normal_outs = count_normal_outs(hands)
+        chiitoitsu_outs = count_chiitoitsu_outs(hands)
+        kokushi_outs = count_kokushi_outs(hands)
+        [normal_outs.size, chiitoitsu_outs.size, kokushi_outs.size].min
+      end
+
       def self.count_outs(hands)
         normal_outs = count_normal_outs(hands)
         chiitoitsu_outs = count_chiitoitsu_outs(hands)

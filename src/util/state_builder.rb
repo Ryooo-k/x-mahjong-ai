@@ -9,7 +9,7 @@ module Util
     MAX_SHANTEN_COUNT = 13.0
     MAX_OUTS_COUNT = 13.0
 
-    def self.build(current_player, other_players, table)
+    def self.build_states(current_player, other_players, table)
       current_plyer_states = build_current_player_states(current_player)
       other_players_states = build_other_players_states(other_players)
       table_states = build_table_states(table)
@@ -21,6 +21,22 @@ module Util
       ].flatten
 
       Torch.tensor(states, dtype: :float32)
+    end
+
+    def self.build_log_training_info(table)
+      info = []
+      table.players.each do |player|
+        start_hand = player.hand_histories.first
+        start_hand_shanten = Domain::Logic::HandEvaluator.calculate_minimum_shanten(start_hand)
+        end_hand = player.hand_histories.last
+        end_hand_shanten = Domain::Logic::HandEvaluator.calculate_minimum_shanten(end_hand)
+
+        info << "プレイヤー#{player.id}"
+        info << "配　　牌：#{start_hand.map(&:name).sort.join(' ')} 、向聴数：#{start_hand_shanten}"
+        info << "最終手牌：#{end_hand.map(&:name).sort.join(' ')} 、向聴数：#{end_hand_shanten}"
+        info << ''
+      end
+      info << '------------------------------------------------------------------------------'
     end
 
     private

@@ -15,11 +15,9 @@ def run_training_loop(train_config, env)
   train_config['count'].times do |count|
     done = false
     env.reset
-    start_info = env.info
 
     while not done
       current_player = env.current_player
-      other_players = env.other_players
       env.player_draw
       states = env.states
       action = current_player.get_discard_action(states)
@@ -29,18 +27,9 @@ def run_training_loop(train_config, env)
     end
 
     env.sync_qnet_for_all_players if count % train_config['qnet_sync_interval'] == 0
-    output(start_info, env.info) if count % 10 == 0
+    puts "学習回数：#{count}"
+    puts env.log_training_info if count % 10 == 0
   end
-end
-
-def output(start_info, current_info)
-  puts start_info
-  # puts "配牌：#{to_tiles(start_hands)}、向聴数：#{start_shanten}"
-  # puts "最終：#{to_tiles(env.hands.sort)}、向聴数：#{env.shanten}"
-  # puts "アベレージロス：#{average_loss}"
-  # puts "終了順目：#{env.order}"
-  # puts "学習回数：#{count}"
-  # puts ''
 end
 
 def format_second(second)

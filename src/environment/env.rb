@@ -27,7 +27,7 @@ class MahjongEnv
   end
 
   def states
-    Util::StateBuilder.build(@current_player, @other_players, @table)
+    Util::StateBuilder.build_states(@current_player, @other_players, @table)
   end
 
   def step(action)
@@ -44,28 +44,6 @@ class MahjongEnv
     [states, reward, @done, target_tile]
   end
 
-  # def process_call_phase(target)
-  #   @other_players.each do |player|
-  #     next unless player.can_pong_or_open_kong?(target)
-
-  #     call_action = player.get_call_action(states, target)
-  #     if call_action == 0
-  #       next
-  #     elsif is_call == 1 # ポン
-  #       player.pong(action)
-  #     end
-  #   end
-
-  #   @other_players.first.can_call?(target)
-
-  # end
-
-  def info
-    shantens = cal_shantens
-    sorted_hands = build_player_hand_names
-    shantens.zip(sorted_hands)
-  end
-
   def rotate_turn
     seat_orders = @table.seat_orders
     current_number = seat_orders.find_index(@current_player)
@@ -78,21 +56,12 @@ class MahjongEnv
     @table.players.each { |player| player.sync_qnet }
   end
 
-  def render
-    # 学習結果を表示するためのメソッド
+  def log_training_info
+    info = Util::StateBuilder.build_log_training_info(@table)
+    info.join("\n")
   end
 
   private
-
-  def build_player_hand_names
-    @table.seat_orders.map { |player| player.sorted_hands }
-  end
-
-  def cal_shantens
-    @table.seat_orders.map do |player|
-      Domain::Logic::HandEvaluator.calculate_minimum_shanten(player.hands)
-    end
-  end
 
   def game_over?
     @table.draw_count >= 122

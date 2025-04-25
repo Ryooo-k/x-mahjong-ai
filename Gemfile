@@ -3,5 +3,5 @@
 source "https://rubygems.org"
 
 gem "torch-rb"
-gem "numpy"
+gem 'numo-narray'
 gem 'pycall'

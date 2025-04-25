@@ -28,4 +28,9 @@ class AgentManager
     loss = @call_agent.update(state, action, reward, next_state, done)
     @total_call_loss += loss
   end
+
+  def sync_qnet
+    @discard.sync_qnet
+    @call.sync_qnet
+  end
 end

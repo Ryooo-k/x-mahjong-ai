@@ -3,7 +3,7 @@
 require_relative '../agent/agent_manager'
 
 class Player
-  attr_reader :hands, :score, :point_histories, :hand_histories, :rivers
+  attr_reader :id, :hands, :score, :point_histories, :hand_histories, :rivers
 
   MAX_CALL_COUNT = 4
 
@@ -88,6 +88,18 @@ class Player
       called_codes = called_tiles.map(&:code)
       called_tiles << target_tile if called_codes.uniq.size == 1 && called_codes.first == target_tile.code
     end
+  end
+
+  def get_discard_action(states)
+    @agent.get_discard_action(states)
+  end
+
+  def update_discard_agent(states, action, reward, next_states, done)
+    @agent.update_discard_agent(states, action, reward, next_states, done)
+  end
+
+  def sync_qnet
+    @agent.sync_qnet
   end
 
   # def can_call?(target)

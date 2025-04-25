@@ -17,6 +17,7 @@ class MahjongEnv
 
   def reset
     @table.reset
+    @done = false
   end
 
   def player_draw
@@ -31,15 +32,15 @@ class MahjongEnv
 
   def step(action)
     return nil if @done
-    current_hands = @current_player.sorted_hands.dup
-    is_agari = Domain::Logic::HandEvaluator.agari?(current_hands)
+    old_hands = @current_player.hands.dup
+    is_agari = Domain::Logic::HandEvaluator.agari?(old_hands)
     @done = true if is_agari || game_over?
 
-    target_tile = current_hands[action]
+    target_tile = old_hands[action]
     @current_player.discard(target_tile) unless is_agari
 
-    new_hands = @current_player.sorted_hands
-    reward = cal_reward(current_hands, new_hands)
+    new_hands = @current_player.hands
+    reward = cal_reward(old_hands, new_hands)
     [states, reward, @done, target_tile]
   end
 

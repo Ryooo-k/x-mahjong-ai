@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'torch'
-require 'numo/narray'
 
 include Torch::NN
 

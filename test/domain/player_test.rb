@@ -98,7 +98,7 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal([[@manzu_1, @manzu_2], [@manzu_2]], @player.hand_histories)
   end
 
-  def test_can_not_play_when_tile_not_in_hand
+  def test_can_not_discard_when_tile_not_in_hand
     error = assert_raise(ArgumentError) { @player.discard(@manzu_1) }
     assert_equal('手牌に無い牌は選択できません。', error.message)
   end

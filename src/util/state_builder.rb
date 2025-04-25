@@ -36,7 +36,7 @@ module Util
         info << "最終手牌：#{end_hand.map(&:name).sort.join(' ')} 、向聴数：#{end_hand_shanten}"
         info << ''
       end
-      info << '------------------------------------------------------------------------------'
+      info << '-' * 50
     end
 
     private

@@ -15,7 +15,7 @@ class DiscardAgent
     @action_size = 14
     @min_epsilon = config['min_epsilon']
     @decay_rate = config['decay_rate']
-    @device = Torch.device(Torch::Backends::MPS.available? ? "mps" : "cpu")
+    @device = Torch::Backends::MPS.available? ? "mps" : "cpu"
     @replay_buffer = ReplayBuffer.new(@buffer_size, @batch_size, @device)
     @q_net = QNet.new(config['qnet'], @action_size).to(@device)
     @q_net_target = QNet.new(config['qnet'], @action_size).to(@device)
@@ -32,7 +32,7 @@ class DiscardAgent
   end
 
   def update(state, action, reward, next_state, done)
-    @replay_buffer.add(state.cpu, action, reward, next_state.cpu, done)
+    @replay_buffer.add(state, action, reward, next_state, done)
     return Torch.tensor(0) if @replay_buffer.buffers.size < @batch_size
 
     states, actions, rewards, next_states, donee = @replay_buffer.get_batch
@@ -48,7 +48,7 @@ class DiscardAgent
     @optimizer.zero_grad
     loss.backward
     @optimizer.step
-    loss.data
+    loss.item
   end
 
   def observe

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'torch'
-require 'numo/narray'
 
 class ReplayBuffer
   attr_reader :buffers
@@ -15,7 +14,7 @@ class ReplayBuffer
 
   def add(state, action, reward, next_state, done)
     @buffers.shift if @buffers.size >= @max_buffer_size
-    @buffers << { state:, action:, reward:, next_state:, done: }
+    @buffers << { state: state.cpu, action:, reward:, next_state: next_state.cpu, done: }
   end
 
   def get_batch
@@ -24,14 +23,14 @@ class ReplayBuffer
     actions = data.map { |d| d[:action] }
     rewards = data.map { |d| d[:reward] }
     next_states = data.map { |d| d[:next_state] }
-    donee = data.map { |d| d[:done] }
+    donee = data.map { |d| d[:done] ? 1.0 : 0.0 }
 
     [
-      Torch.tensor(Numo::NArray.vstack(states), dtype: :float32).to(@device),
-      Torch.tensor(Numo::NArray[*actions]).to(@device),
-      Torch.tensor(Numo::NArray[*rewards]).to(@device),
-      Torch.tensor(Numo::NArray.vstack(next_states), dtype: :float32).to(@device),
-      Torch.tensor(Numo::NArray[*donee], dtype: :float32).to(@device)
+      Torch.stack(states).to(@device),
+      Torch.tensor(actions, dtype: :int32, device: @device),
+      Torch.tensor(rewards, dtype: :int32, device: @device),
+      Torch.stack(next_states).to(@device),
+      Torch.tensor(donee, dtype: :float32, device: @device)
     ]
   end
 end

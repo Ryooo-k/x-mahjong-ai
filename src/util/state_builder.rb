@@ -6,7 +6,7 @@ require_relative '../domain/logic/hand_evaluator'
 module Util
   module StateBuilder
     ALL_SCORE = 100_000.0
-    MAX_SHANTEN_COUNT = 8.0
+    MAX_SHANTEN_COUNT = 13.0
     MAX_OUTS_COUNT = 13.0
 
     def self.build(current_player, other_players, table)
@@ -25,13 +25,13 @@ module Util
 
     private
 
-    def build_current_player_states(player)
-      hand_codes = Encoder.encode_hands(player.hands)
-      called_tile_codes = Encoder.encode_called_tile_table(player.called_tile_table, MAX_CALL_COUNT)
-      river_codes = Encoder.encode_river(player.rivers)
+    def self.build_current_player_states(player)
+      hand_codes = Util::Encoder.encode_hands(player.hands)
+      called_tile_codes = Util::Encoder.encode_called_tile_table(player.called_tile_table)
+      river_codes = Util::Encoder.encode_rivers(player.rivers)
       score = player.score / ALL_SCORE
-      shanten = HandEvaluator.calculate_minimum_shanten(player.hands) / MAX_SHANTEN_COUNT
-      outs = HandEvaluator.count_outs(player.hands) / MAX_OUTS_COUNT
+      shanten = Domain::Logic::HandEvaluator.calculate_minimum_shanten(player.hands) / MAX_SHANTEN_COUNT
+      outs = Domain::Logic::HandEvaluator.count_minimum_outs(player.hands) / MAX_OUTS_COUNT
 
       [
         player.id,
@@ -44,12 +44,12 @@ module Util
       ]
     end
 
-    def build_other_players_states(players)
+    def self.build_other_players_states(players)
       players.map do |player|
-        called_tile_codes = Encoder.encode_called_tile_table(player.called_tile_table, MAX_CALL_COUNT)
-        river_codes = Encoder.encode_river(player.rivers)
+        called_tile_codes = Util::Encoder.encode_called_tile_table(player.called_tile_table)
+        river_codes = Util::Encoder.encode_rivers(player.rivers)
         score = player.score / ALL_SCORE
-    
+
         [
           player.id,
           called_tile_codes,
@@ -59,9 +59,9 @@ module Util
       end
     end
 
-    def build_table_states(table)
+    def self.build_table_states(table)
       remaining_tiles = table.remaining_tile_count
-      open_dora_codes = Encoder.encode_dora(table.open_dora_tiles)
+      open_dora_codes = Util::Encoder.encode_dora(table.open_dora_tiles)
       kong_count = table.kong_count
       round = table.round[:count]
       honba = table.honba[:count]

@@ -13,13 +13,7 @@ module Util
       current_plyer_states = build_current_player_states(current_player)
       other_players_states = build_other_players_states(other_players)
       table_states = build_table_states(table)
-
-      states = [
-        current_plyer_states,
-        other_players_states,
-        table_states
-      ].flatten
-
+      states = current_plyer_states + other_players_states + table_states
       Torch.tensor(states, dtype: :float32)
     end
 
@@ -43,16 +37,16 @@ module Util
 
     def self.build_current_player_states(player)
       hand_codes = Util::Encoder.encode_hands(player.hands)
-      called_tile_codes = Util::Encoder.encode_called_tile_table(player.called_tile_table)
+      called_tile_codes = Util::Encoder.encode_called_tile_table(player.called_tile_table).flatten
       river_codes = Util::Encoder.encode_rivers(player.rivers)
       score = player.score / ALL_SCORE
       shanten = Domain::Logic::HandEvaluator.calculate_minimum_shanten(player.hands)
       outs = Domain::Logic::HandEvaluator.count_minimum_outs(player.hands)
 
       [
-        hand_codes,
-        called_tile_codes,
-        river_codes,
+        *hand_codes,
+        *called_tile_codes,
+        *river_codes,
         score,
         shanten,
         outs
@@ -60,14 +54,14 @@ module Util
     end
 
     def self.build_other_players_states(players)
-      players.map do |player|
-        called_tile_codes = Util::Encoder.encode_called_tile_table(player.called_tile_table)
+      players.flat_map do |player|
+        called_tile_codes = Util::Encoder.encode_called_tile_table(player.called_tile_table).flatten
         river_codes = Util::Encoder.encode_rivers(player.rivers)
         score = player.score / ALL_SCORE
 
         [
-          called_tile_codes,
-          river_codes,
+          *called_tile_codes,
+          *river_codes,
           score
         ]
       end
@@ -83,13 +77,13 @@ module Util
       children_ids = table.children.map { |player| player.id }
 
       [
-        remaining_tiles,
-        open_dora_codes,
+        *remaining_tiles,
+        *open_dora_codes,
         kong_count,
         round,
         honba,
         host_id,
-        children_ids
+        *children_ids
       ]
     end
   end

@@ -5,7 +5,7 @@ require_relative '../domain/table'
 require_relative '../domain/logic/hand_evaluator'
 require_relative '../util/state_builder'
 
-class MahjongEnv
+class Env
   attr_reader :current_player, :other_players
 
   def initialize(table_config, player_config)

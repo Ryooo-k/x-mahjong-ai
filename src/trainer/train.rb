@@ -6,7 +6,7 @@ require_relative '../environment/env'
 
 def run_training
   config = Util::FileLoader.load_parameter('experiment_1')
-  env = MahjongEnv.new(config['table'], config['player'])
+  env = Env.new(config['table'], config['player'])
   second = Benchmark.realtime { run_training_loop(config['train'], env) }
   puts format_second(second)
 end

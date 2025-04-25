@@ -12,11 +12,11 @@ class StateBuilderTest < Test::Unit::TestCase
     @env = Env.new(parameter['table'], parameter['player'])
   end
 
-  def test_build_states_return_697_values
+  def test_build_states_return_693_values
     current_player = @env.current_player
     other_players = @env.other_players
     states = @builder.build_states(current_player, other_players, @env.table)
-    assert_equal 697, states.length
+    assert_equal 693, states.length
   end
 
   def test_build_states_return_tensor_data

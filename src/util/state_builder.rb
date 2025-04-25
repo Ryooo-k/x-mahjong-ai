@@ -46,11 +46,10 @@ module Util
       called_tile_codes = Util::Encoder.encode_called_tile_table(player.called_tile_table)
       river_codes = Util::Encoder.encode_rivers(player.rivers)
       score = player.score / ALL_SCORE
-      shanten = Domain::Logic::HandEvaluator.calculate_minimum_shanten(player.hands) / MAX_SHANTEN_COUNT
-      outs = Domain::Logic::HandEvaluator.count_minimum_outs(player.hands) / MAX_OUTS_COUNT
+      shanten = Domain::Logic::HandEvaluator.calculate_minimum_shanten(player.hands)
+      outs = Domain::Logic::HandEvaluator.count_minimum_outs(player.hands)
 
       [
-        player.id,
         hand_codes,
         called_tile_codes,
         river_codes,
@@ -67,7 +66,6 @@ module Util
         score = player.score / ALL_SCORE
 
         [
-          player.id,
           called_tile_codes,
           river_codes,
           score

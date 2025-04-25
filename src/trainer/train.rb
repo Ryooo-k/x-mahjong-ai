@@ -27,8 +27,8 @@ def run_training_loop(train_config, env)
     end
 
     env.sync_qnet_for_all_players if count % train_config['qnet_sync_interval'] == 0
-    puts "学習回数：#{count}" if count % 10 == 0
-    puts env.log_training_info if count % 10 == 0
+    puts "学習回数：#{count}" if count % 100 == 0
+    puts env.log_training_info if count % 100 == 0
   end
 end
 

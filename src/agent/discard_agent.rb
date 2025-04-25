@@ -19,6 +19,7 @@ class DiscardAgent
     @replay_buffer = ReplayBuffer.new(@buffer_size, @batch_size, @device)
     @q_net = QNet.new(config['qnet'], @action_size).to(@device)
     @q_net_target = QNet.new(config['qnet'], @action_size).to(@device)
+    @batch_index = Torch.arange(@batch_size, dtype: :long)
     @criterion = Torch::NN::MSELoss.new #平均２乗誤差
     @optimizer = Torch::Optim::Adam.new(@q_net.parameters, lr: @lr)
   end
@@ -36,9 +37,8 @@ class DiscardAgent
     return Torch.tensor(0) if @replay_buffer.buffers.size < @batch_size
 
     states, actions, rewards, next_states, donee = @replay_buffer.get_batch
-    batch_number = Torch.arange(@batch_size, dtype: :long)
     qualities = @q_net.call(states)
-    action_qualities = qualities[batch_number, actions]
+    action_qualities = qualities[@batch_index, actions]
 
     next_qualities = @q_net_target.call(next_states)
     next_max_qualities = next_qualities.max(1)[0].detach

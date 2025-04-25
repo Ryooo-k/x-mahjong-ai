@@ -19,7 +19,7 @@ experiment_1:
       min_epsilon: 0.01
       decay_rate: 0.99999
       qnet:
-        layer1: 38
+        layer1: 697
         layer2: 256
         layer3: 128
         layer4: 64

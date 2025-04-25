@@ -57,7 +57,7 @@ class TableTest < Test::Unit::TestCase
   end
 
   def test_table_initialize_attendance_with_expected_number
-    assert_equal(@config['table']['attendance'], @table.attendance)
+    assert_equal(4, @table.attendance)
   end
 
   def test_red_dora_return_tile_names_and_ids
@@ -73,7 +73,7 @@ class TableTest < Test::Unit::TestCase
   def test_table_initialize_players_with_expected_class_and_number
     player_class = Player.new(0, @config['player']['discard_agent'], @config['player']['call_agent']).class
     @table.players.each { |player| assert_instance_of(player_class, player) }
-    assert_equal(@config['table']['attendance'], @table.players.size)
+    assert_equal(4, @table.players.size)
   end
 
   def test_table_initialize_round_with_expected_count_and_name
@@ -150,8 +150,8 @@ class TableTest < Test::Unit::TestCase
   end
 
   def test_top_tile_return_tile_at_current_draw_count_position
-    current_draw_count = @table.draw_count
-    top_tile = @table.tile_wall.live_walls[current_draw_count]
+    draw_count = @table.draw_count
+    top_tile = @table.tile_wall.live_walls[draw_count]
     assert_equal(top_tile, @table.top_tile)
   end
 

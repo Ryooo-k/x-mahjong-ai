@@ -18,7 +18,7 @@ class Tile
     @holder = nil
   end
 
-  def red_dora?(id)
+  def dora?(id)
     @id == id
   end
 end

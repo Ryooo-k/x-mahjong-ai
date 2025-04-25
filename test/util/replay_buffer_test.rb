@@ -34,10 +34,16 @@ class ReplayBufferTest < Test::Unit::TestCase
   def test_gat_batch_return_sample_data
     10.times { |data| @replay_buffer.add(data, data, data, data, false) }
     sample_data = @replay_buffer.get_batch
-    assert_equal(@batch_size, sample_data[0].length)
-    assert_equal(@batch_size, sample_data[1].length)
-    assert_equal(@batch_size, sample_data[2].length)
-    assert_equal(@batch_size, sample_data[3].length)
-    assert_equal(@batch_size, sample_data[4].length)
+    state_size = sample_data[0].length
+    action_size = sample_data[1].length
+    reward_size = sample_data[2].length
+    next_state_size = sample_data[3].length
+    done_size = sample_data[4].length
+
+    assert_equal(@batch_size, state_size)
+    assert_equal(@batch_size, action_size)
+    assert_equal(@batch_size, reward_size)
+    assert_equal(@batch_size, next_state_size)
+    assert_equal(@batch_size, done_size)
   end
 end

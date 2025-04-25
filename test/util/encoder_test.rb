@@ -24,7 +24,7 @@ class EncoderTest < Test::Unit::TestCase
 
     hands = [@manzu_1, @manzu_2, @manzu_2, @manzu_3, @manzu_3, @manzu_3]
     encoded_hands = @encoder.encode_hands(hands)
-    expected = [1, 2, 3] + [0] * 31
+    expected = [1, 2, 3] + [0] * 31 # tile_id順に、1萬が1枚、2萬が2枚、3萬が3枚、それ以外が0枚であることを確認。
     assert_equal(expected, encoded_hands)
   end
 
@@ -60,7 +60,7 @@ class EncoderTest < Test::Unit::TestCase
     encoded_rivers = @encoder.encode_rivers(rivers)
     normalized_manzu_6_code = @manzu_6.code / @tile_count
     normalized_manzu_1_code = @manzu_1.code / @tile_count
-    expected = [normalized_manzu_6_code, normalized_manzu_1_code ] + [-1] * 22
+    expected = [normalized_manzu_6_code, normalized_manzu_1_code] + [-1] * 22
     assert_equal(expected, encoded_rivers)
   end
 

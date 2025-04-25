@@ -32,7 +32,7 @@ class TileWallTest < Test::Unit::TestCase
     assert_tile_wall_initialization(@tile_wall)
   end
 
-  def test_restores_tile_wall_to_initial_state_when_reset
+  def test_restore_tile_wall_to_initial_state_when_reset
     reset_tile_wall = @tile_wall.reset
     assert_instance_of(@tile_wall.class, reset_tile_wall)
     assert_tile_wall_initialization(reset_tile_wall)

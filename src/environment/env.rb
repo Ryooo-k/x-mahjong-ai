@@ -21,6 +21,7 @@ class Env
   end
 
   def player_draw
+    return if game_over?
     top_tile = @table.top_tile
     @current_player.draw(top_tile)
     @table.increase_draw_count
@@ -31,13 +32,10 @@ class Env
   end
 
   def step(action)
-    return nil if @done
+    @done = true if agari? || game_over?
     old_hands = @current_player.hands.dup
-    is_agari = Domain::Logic::HandEvaluator.agari?(old_hands)
-    @done = true if is_agari || game_over?
-
     target_tile = old_hands[action]
-    @current_player.discard(target_tile) unless is_agari
+    @current_player.discard(target_tile) unless agari?
 
     new_hands = @current_player.hands
     reward = cal_reward(old_hands, new_hands)
@@ -63,12 +61,16 @@ class Env
 
   private
 
+  def agari?
+    Domain::Logic::HandEvaluator.agari?(@current_player.hands)
+  end
+
   def game_over?
-    @table.draw_count >= 122
+    @table.draw_count + @table.kong_count >= 122
   end
 
   def cal_reward(old_hands, new_hands)
-    return 100 if Domain::Logic::HandEvaluator.agari?(new_hands)
+    return 100 if agari?
     return -100 if game_over?
 
     old_shanten = Domain::Logic::HandEvaluator.calculate_minimum_shanten(old_hands)

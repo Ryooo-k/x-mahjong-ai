@@ -7,8 +7,8 @@ require_relative '../environment/env'
 def run_training
   config = Util::FileLoader.load_parameter('experiment_1')
   env = MahjongEnv.new(config['table'], config['player'])
-  time_taken = Benchmark.realtime { run_training_loop(config['train'], env) }
-  puts time_taken
+  second = Benchmark.realtime { run_training_loop(config['train'], env) }
+  puts format_second(second)
 end
 
 def run_training_loop(train_config, env)
@@ -41,4 +41,10 @@ def output(start_info, current_info)
   # puts "終了順目：#{env.order}"
   # puts "学習回数：#{count}"
   # puts ''
+end
+
+def format_second(second)
+  hours = second / 3600
+  minutes = (second % 3600) / 60
+  "#{hours.to_i}時間 #{minutes.to_i}分 #{second.to_i}秒"
 end

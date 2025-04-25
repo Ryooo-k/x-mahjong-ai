@@ -29,7 +29,10 @@ class EnvTest < Test::Unit::TestCase
   end
 
   def test_step_return_done_false_and_reward_and_discarded_tile_when_not_agari_or_game_over
-    14.times { |_| @env.player_draw } # 配牌+1枚をツモっている状態
+    15.times { |_| @env.player_draw }
+    target_tile = @env.current_player.hands.first
+    @env.current_player.discard(target_tile)
+
     action = 0
     expected_tile = @env.current_player.hands[action]
     _, reward, done, discarded_tile  = @env.step(action)

@@ -34,7 +34,7 @@ class EnvTest < Test::Unit::TestCase
     @env.current_player.discard(target_tile)
 
     action = 0
-    expected_tile = @env.current_player.hands[action]
+    expected_tile = @env.current_player.sorted_hands[action]
     _, reward, done, discarded_tile  = @env.step(action)
     assert_equal false, done
     assert_equal Integer, reward.class
@@ -50,7 +50,7 @@ class EnvTest < Test::Unit::TestCase
     end # ゲーム終了までツモる
 
     action = 2
-    expected_tile = @env.current_player.hands[action]
+    expected_tile = @env.current_player.sorted_hands[action]
     _, reward, done, discarded_tile  = @env.step(action)
     assert_equal true, done
     assert_equal -100, reward

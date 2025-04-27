@@ -32,14 +32,14 @@ class Env
   end
 
   def step(action)
-    @done = true if agari? || game_over?
+    is_agari = agari?
+    @done = true if is_agari || game_over?
     old_hands = @current_player.hand_histories.last
-    current_hands = @current_player.hands
-    target_tile = current_hands[action]
-    @current_player.discard(target_tile) unless agari?
+    target_tile = @current_player.sorted_hands[action]
+    @current_player.discard(target_tile) unless is_agari
 
     new_hands = @current_player.hands
-    reward = cal_reward(old_hands, new_hands)
+    reward = cal_reward(old_hands, new_hands, is_agari)
     [states, reward, @done, target_tile]
   end
 
@@ -70,8 +70,8 @@ class Env
     @table.draw_count + @table.kong_count >= 122
   end
 
-  def cal_reward(old_hands, new_hands)
-    return 100 if agari?
+  def cal_reward(old_hands, new_hands, is_agari)
+    return 100 if is_agari
     return -100 if game_over?
 
     old_shanten = Domain::Logic::HandEvaluator.calculate_minimum_shanten(old_hands)

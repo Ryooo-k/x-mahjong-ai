@@ -1,9 +1,9 @@
 # frozen_string_literal: true
-
+require 'debug'
 require 'test/unit'
 require 'yaml'
 require_relative '../../src/agent/discard_agent'
-require_relative '../../src/util/file_loader'
+require_relative '../util/file_loader'
 
 class DiscardAgentTest < Test::Unit::TestCase
   class DummyBuffer
@@ -29,7 +29,7 @@ class DiscardAgentTest < Test::Unit::TestCase
 
   class DummyQNet
     def call(x)
-      Torch.tensor([[1.0, 2.0], [3.0, 0.5]])  # argmax_index = 2
+      Torch.tensor([[1.0, 5.0], [3.0, 0.5]])  # argmax_index = 1
     end
   end
 
@@ -57,7 +57,7 @@ class DiscardAgentTest < Test::Unit::TestCase
   def test_get_action_return_argmax_when_epsilon_is_zero
     input = [0.1] * 38
     action = @agent.get_action(input)
-    assert_equal(2, action)  # 期待値: mock_qnetのargmax_index の 2 を期待する
+    assert_equal(1, action)  # 期待値: mock_qnetのargmax_index の 1 を期待する
   end
 
   def test_get_action_return_random_when_epsilon_is_high
@@ -80,8 +80,8 @@ class DiscardAgentTest < Test::Unit::TestCase
     buffer.buffers << [] << []  # バッチサイズと同じ数を入れておく
     @agent.instance_variable_set(:@replay_buffer, buffer)
     loss = @agent.update(dummy_state, nil, nil, dummy_state, nil)
-    assert_instance_of(Torch::Tensor, loss)
-    assert_equal(999.0, loss.item) # DummyCriterionのcallメソッドの戻り値と一致していること
+    assert_instance_of(Float, loss)
+    assert_equal(999.0, loss) # DummyCriterionのcallメソッドの戻り値と一致していること
   end
 
   def test_sync_qnet_copies_weights

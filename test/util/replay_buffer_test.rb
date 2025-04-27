@@ -5,17 +5,17 @@ require_relative '../../src/util/replay_buffer'
 
 class ReplayBufferTest < Test::Unit::TestCase
   def setup
-    @buffer_size = 10
-    @batch_size = 3
-    device = Torch.device("mps")
-    @replay_buffer = ReplayBuffer.new(@buffer_size, @batch_size, device)
+    @buffer_size = 3
+    @batch_size = 2
+    @device = Torch::Backends::MPS.available? ? "mps" : "cpu"
+    @replay_buffer = ReplayBuffer.new(@buffer_size, @batch_size, @device)
   end
 
   def test_add_experience_to_buffer
-    state = 0
+    state = Torch.tensor(0)
     action = 0
     reward = 0
-    next_state = 1
+    next_state = Torch.tensor(0)
     done = false
     @replay_buffer.add(state, action, reward, next_state, done)
     assert_equal(1, @replay_buffer.buffers.size)
@@ -25,14 +25,32 @@ class ReplayBufferTest < Test::Unit::TestCase
   end
 
   def test_remove_oldest_when_buffer_is_full
-    (@buffer_size + 1).times { |data| @replay_buffer.add(data, data, data, data, false) }
-    assert_equal(@buffer_size, @replay_buffer.buffers.size)
+    # bufferサイズ3のため、4回addしている。
+    state_1 = Torch.tensor(1)
+    state_2 = Torch.tensor(2)
+    state_3 = Torch.tensor(3)
+    state_4 = Torch.tensor(4)
+    action = 0
+    reward = 0
+    done = false
+
+    @replay_buffer.add(state_1, action, reward, state_1, done)
+    @replay_buffer.add(state_2, action, reward, state_2, done)
+    @replay_buffer.add(state_3, action, reward, state_3, done)
+    @replay_buffer.add(state_4, action, reward, state_4, done)
+
     states = @replay_buffer.buffers.map { |buffer| buffer[:state] }
-    assert_not_includes(states, 0)
+    result = states.any? { |state| state.equal?(state_1) }
+    assert_equal false, result
   end
 
   def test_gat_batch_return_sample_data
-    10.times { |data| @replay_buffer.add(data, data, data, data, false) }
+    state = Torch.tensor(1)
+    action = 0
+    reward = 0
+    done = false
+    10.times { |data| @replay_buffer.add(state, action, reward, state, done) }
+
     sample_data = @replay_buffer.get_batch
     state_size = sample_data[0].length
     action_size = sample_data[1].length

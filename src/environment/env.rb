@@ -8,6 +8,9 @@ require_relative '../util/state_builder'
 class Env
   attr_reader :table, :current_player, :other_players
 
+  HandEvaluator = Domain::Logic::HandEvaluator
+  StateBuilder = Util::StateBuilder
+
   def initialize(table_config, player_config)
     @table = Table.new(table_config, player_config)
     @done = false
@@ -28,18 +31,18 @@ class Env
   end
 
   def states
-    Util::StateBuilder.build_states(@current_player, @other_players, @table)
+    StateBuilder.build_states(@current_player, @other_players, @table)
   end
 
   def step(action)
-    is_agari = agari?
-    @done = true if is_agari || game_over?
+    is_agari = HandEvaluator.agari?(@current_player.hands)
     old_hands = @current_player.hand_histories.last
-    target_tile = @current_player.sorted_hands[action]
+    target_tile = @current_player.sorted_hands[action] unless is_agari
     @current_player.discard(target_tile) unless is_agari
 
     new_hands = @current_player.hands
     reward = cal_reward(old_hands, new_hands, is_agari)
+    @done = true if is_agari || game_over?
     [states, reward, @done, target_tile]
   end
 
@@ -56,15 +59,11 @@ class Env
   end
 
   def log_training_info
-    info = Util::StateBuilder.build_log_training_info(@table)
+    info = StateBuilder.build_log_training_info(@table)
     info.join("\n")
   end
 
   private
-
-  def agari?
-    Domain::Logic::HandEvaluator.agari?(@current_player.hands)
-  end
 
   def game_over?
     @table.draw_count + @table.kong_count >= 122
@@ -74,10 +73,10 @@ class Env
     return 100 if is_agari
     return -100 if game_over?
 
-    old_shanten = Domain::Logic::HandEvaluator.calculate_minimum_shanten(old_hands)
-    new_shanten = Domain::Logic::HandEvaluator.calculate_minimum_shanten(new_hands)
+    old_shanten = HandEvaluator.calculate_minimum_shanten(old_hands)
+    new_shanten = HandEvaluator.calculate_minimum_shanten(new_hands)
     diff_shanten = new_shanten - old_shanten
-    diff_outs = Domain::Logic::HandEvaluator.count_minimum_outs(new_hands) - Domain::Logic::HandEvaluator.count_minimum_outs(old_hands)
+    diff_outs = HandEvaluator.count_minimum_outs(new_hands) - HandEvaluator.count_minimum_outs(old_hands)
 
     return 50 if diff_shanten < 0
     return 50 if new_shanten == 0 && diff_outs > 0

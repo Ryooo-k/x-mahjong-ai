@@ -19,6 +19,7 @@ module Domain
         MAX_SHANTEN_COUNT = 13
 
         def count_minimum_outs(hands)
+          return 0 if hands.size == 15 # 和了手の場合は早期return
           normal_outs = count_normal_outs(hands)
           chiitoitsu_outs = count_chiitoitsu_outs(hands)
           kokushi_outs = count_kokushi_outs(hands)

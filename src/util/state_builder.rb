@@ -18,7 +18,7 @@ module Util
     end
 
     def self.build_log_training_info(table)
-      info = []
+      info = ["ツモ回数：#{table.draw_count}"]
       table.players.each do |player|
         start_hand = player.hand_histories.first
         start_hand_shanten = Domain::Logic::HandEvaluator.calculate_minimum_shanten(start_hand)

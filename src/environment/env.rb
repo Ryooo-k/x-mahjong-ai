@@ -10,9 +10,11 @@ class Env
 
   HandEvaluator = Domain::Logic::HandEvaluator
   StateBuilder = Util::StateBuilder
+  STARTING_HAND_COUNT = 13
 
   def initialize(table_config, player_config)
     @table = Table.new(table_config, player_config)
+    deal_starting_hand
     @done = false
     @current_player = @table.host
     @other_players = @table.children
@@ -20,6 +22,7 @@ class Env
 
   def reset
     @table.reset
+    deal_starting_hand
     @done = false
   end
 
@@ -64,6 +67,17 @@ class Env
   end
 
   private
+
+  def deal_starting_hand
+    live_walls = @table.tile_wall.live_walls
+    @table.wind_orders.each do |player|
+      STARTING_HAND_COUNT.times do |_|
+        player.draw(live_walls[@table.draw_count])
+        @table.increase_draw_count
+      end
+      player.record_hands
+    end
+  end
 
   def game_over?
     @table.draw_count + @table.kong_count >= 122

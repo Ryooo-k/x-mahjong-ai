@@ -35,8 +35,6 @@ class Table
     33 => 31 # 中がドラ表示牌の時、白がドラとなるcode変換
   }.freeze
 
-  STARTING_HAND_COUNT = 13
-
   def initialize(table_config, player_config)
     @game_mode = GAME_MODES[table_config['game_mode_id']]
     @attendance = table_config['attendance']
@@ -50,7 +48,6 @@ class Table
     @tile_wall.reset
     @players.each(&:reset)
     reset_game_state
-    deal_starting_hand
     self
   end
 
@@ -114,16 +111,6 @@ class Table
   def blind_dora_tiles
     blind_dora_indicators = @tile_wall.blind_dora_indicators[0..@kong_count]
     fetch_dora_tiles(blind_dora_indicators)
-  end
-
-  def deal_starting_hand
-    wind_orders.each do |player|
-      STARTING_HAND_COUNT.times do |_|
-        player.draw(@tile_wall.live_walls[@draw_count])
-        increase_draw_count
-      end
-      player.record_hands
-    end
   end
 
   private

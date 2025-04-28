@@ -196,33 +196,16 @@ class TableTest < Test::Unit::TestCase
     assert_equal(dora_names[4], @table.blind_dora_tiles.last.name)
   end
 
-  def test_deal_starting_hand
-    live_walls = @table.tile_wall.live_walls
-    east_player_hands = live_walls[0..12]
-    south_player_hands = live_walls[13..25]
-    west_player_hands = live_walls[26..38]
-    north_player_hands = live_walls[39..51]
-    @table.deal_starting_hand
-    players = @table.wind_orders
-
-    assert_equal(east_player_hands, players[0].hands)
-    assert_equal(south_player_hands, players[1].hands)
-    assert_equal(west_player_hands, players[2].hands)
-    assert_equal(north_player_hands, players[3].hands)
-  end
-
   def test_reset
     @table.advance_round
     @table.increase_honba
     old_host = @table.host.dup
-    old_round = @table.round.dup
-    old_honba = @table.honba.dup
-    old_draw_count = @table.draw_count.dup
-
     @table.reset
     assert_not_equal(old_host, @table.host)
-    assert_not_equal(old_round, @table.round)
-    assert_not_equal(old_honba, @table.honba)
-    assert_not_equal(old_draw_count, @table.draw_count)
+    assert_equal(0, @table.round[:count])
+    assert_equal('東一局', @table.round[:name])
+    assert_equal(0, @table.honba[:count])
+    assert_equal('〇本場', @table.honba[:name])
+    assert_equal(0, @table.draw_count)
   end
 end

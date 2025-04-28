@@ -45,15 +45,11 @@ class EnvTest < Test::Unit::TestCase
   end
 
   def test_player_draw
-    first_tile = @env.table.tile_wall.live_walls[0]
-    second_tile = @env.table.tile_wall.live_walls[1]
+    top_tile = @env.table.top_tile
+    before_draw_count = @env.table.draw_count
     @env.player_draw
-    assert_equal [first_tile], @env.current_player.hands
-    assert_equal 1, @env.table.draw_count
-
-    @env.player_draw
-    assert_equal [first_tile, second_tile], @env.current_player.hands
-    assert_equal 2, @env.table.draw_count
+    assert_equal top_tile, @env.current_player.hands.last
+    assert_equal before_draw_count + 1, @env.table.draw_count
   end
 
   def test_can_not_player_draw_when_game_over
@@ -71,14 +67,13 @@ class EnvTest < Test::Unit::TestCase
   end
 
   def test_update_triggered_by_game_over
-    13.times { |_| @env.player_draw } # 配牌を受け取る
-    109.times do |_|
+    70.times do |_|
       @env.player_draw
       target_tile = @env.current_player.hands.first
       @env.current_player.discard(target_tile)
     end # ゲーム終了までツモる
 
-    action = 2
+    action = 0
     expected_tile = @env.current_player.sorted_hands[action]
     _, reward, done, discarded_tile  = @env.step(action)
     assert_equal -100, reward

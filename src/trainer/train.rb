@@ -24,7 +24,7 @@ def run_training_loop(train_config, env)
         states = env.states
         env.player_draw
         action = current_player.get_discard_action(states)
-        next_states, reward, done, discard_tile = env.step(action)
+        next_states, reward, done, discarded_tile = env.step(action)
         current_player.update_discard_agent(states, action, reward, next_states, done)
         env.rotate_turn
       end

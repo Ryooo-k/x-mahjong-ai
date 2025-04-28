@@ -6,6 +6,8 @@ require_relative '../domain/logic/hand_evaluator'
 module Util
   module StateBuilder
     class << self
+      HandEvaluator = Domain::Logic::HandEvaluator
+      Encoder = Util::Encoder
       ALL_SCORE = 100_000.0
       MAX_SHANTEN_COUNT = 13.0
       MAX_OUTS_COUNT = 13.0
@@ -22,9 +24,9 @@ module Util
         info = ["ツモ回数：#{table.draw_count}"]
         table.players.each do |player|
           start_hands = player.hand_histories.first.sort_by(&:id)
-          start_hand_shanten = Domain::Logic::HandEvaluator.calculate_minimum_shanten(start_hands)
+          start_hand_shanten = HandEvaluator.calculate_minimum_shanten(start_hands)
           end_hands = player.hand_histories.last.sort_by(&:id)
-          end_hand_shanten = Domain::Logic::HandEvaluator.calculate_minimum_shanten(end_hands)
+          end_hand_shanten = HandEvaluator.calculate_minimum_shanten(end_hands)
           start_hand_names = start_hands.map(&:name).join(' ')
           end_hand_names = end_hands.map(&:name).join(' ')
 
@@ -39,12 +41,12 @@ module Util
       private
 
       def build_current_player_states(player)
-        hand_codes = Util::Encoder.encode_hands(player.hands)
-        called_tile_codes = Util::Encoder.encode_called_tile_table(player.called_tile_table).flatten
-        river_codes = Util::Encoder.encode_rivers(player.rivers)
+        hand_codes = Encoder.encode_hands(player.hands)
+        called_tile_codes = Encoder.encode_called_tile_table(player.called_tile_table).flatten
+        river_codes = Encoder.encode_rivers(player.rivers)
         score = player.score / ALL_SCORE
-        shanten = Domain::Logic::HandEvaluator.calculate_minimum_shanten(player.hands)
-        outs = Domain::Logic::HandEvaluator.count_minimum_outs(player.hands)
+        shanten = HandEvaluator.calculate_minimum_shanten(player.hands)
+        outs = HandEvaluator.count_minimum_outs(player.hands)
 
         [
           *hand_codes,
@@ -58,8 +60,8 @@ module Util
 
       def build_other_players_states(players)
         players.flat_map do |player|
-          called_tile_codes = Util::Encoder.encode_called_tile_table(player.called_tile_table).flatten
-          river_codes = Util::Encoder.encode_rivers(player.rivers)
+          called_tile_codes = Encoder.encode_called_tile_table(player.called_tile_table).flatten
+          river_codes = Encoder.encode_rivers(player.rivers)
           score = player.score / ALL_SCORE
 
           [
@@ -72,7 +74,7 @@ module Util
 
       def build_table_states(table)
         remaining_tiles = table.remaining_tile_count
-        open_dora_codes = Util::Encoder.encode_dora(table.open_dora_tiles)
+        open_dora_codes = Encoder.encode_dora(table.open_dora_tiles)
         kong_count = table.kong_count
         round = table.round[:count]
         honba = table.honba[:count]

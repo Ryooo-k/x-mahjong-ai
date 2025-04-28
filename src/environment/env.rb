@@ -38,14 +38,23 @@ class Env
   end
 
   def step(action)
+    old_shanten = @current_player.shanten
+    old_outs = @current_player.outs
+
     is_agari = HandEvaluator.agari?(@current_player.hands)
-    old_hands = @current_player.hand_histories.last
     target_tile = @current_player.sorted_hands[action] unless is_agari
     @current_player.discard(target_tile) unless is_agari
 
     new_hands = @current_player.hands
-    reward = cal_reward(old_hands, new_hands, is_agari)
+    new_shanten = HandEvaluator.calculate_minimum_shanten(new_hands)
+    new_outs = HandEvaluator.count_minimum_outs(new_hands)
+
+    @current_player.shanten = new_shanten
+    @current_player.outs = new_outs
+
+    reward = cal_reward(old_shanten, new_shanten, old_outs, new_outs, is_agari)
     @done = true if is_agari || game_over?
+
     [states, reward, @done, target_tile]
   end
 
@@ -76,6 +85,8 @@ class Env
         @table.increase_draw_count
       end
       player.record_hands
+      player.shanten = HandEvaluator.calculate_minimum_shanten(player.hands)
+      player.outs = HandEvaluator.count_minimum_outs(player.hands)
     end
   end
 
@@ -83,14 +94,12 @@ class Env
     @table.draw_count + @table.kong_count >= 122
   end
 
-  def cal_reward(old_hands, new_hands, is_agari)
+  def cal_reward(old_shanten, new_shanten, old_outs, new_outs, is_agari)
     return 100 if is_agari
     return -100 if game_over?
 
-    old_shanten = HandEvaluator.calculate_minimum_shanten(old_hands)
-    new_shanten = HandEvaluator.calculate_minimum_shanten(new_hands)
     diff_shanten = new_shanten - old_shanten
-    diff_outs = HandEvaluator.count_minimum_outs(new_hands) - HandEvaluator.count_minimum_outs(old_hands)
+    diff_outs = new_outs - old_outs
 
     return 50 if diff_shanten < 0
     return 50 if new_shanten == 0 && diff_outs > 0

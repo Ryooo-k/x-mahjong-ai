@@ -2,13 +2,16 @@
 require 'debug'
 require 'test/unit'
 require_relative '../../src/environment/env'
+require_relative '../../src/domain/logic/hand_evaluator'
 require_relative '../util/file_loader'
 
 class EnvTest < Test::Unit::TestCase
   TILES = Array.new(136) { |id| Tile.new(id) }.freeze
+  HandEvaluator = Domain::Logic::HandEvaluator
 
   class DummyPlayer
     attr_reader :hands, :hand_histories, :called_tile_table, :rivers, :score
+    attr_accessor :shanten, :outs
 
     def initialize
       # 123456萬 123筒 78索 東 南
@@ -22,6 +25,8 @@ class EnvTest < Test::Unit::TestCase
       @called_tile_table = []
       @rivers = []
       @score = 25_000
+      @shanten = HandEvaluator.calculate_minimum_shanten(@hands)
+      @outs = HandEvaluator.count_minimum_outs(@hands)
     end
 
     def draw(tile)
@@ -83,8 +88,16 @@ class EnvTest < Test::Unit::TestCase
 
   def test_update_triggered_by_shanten_decrease
     @env.instance_variable_set(:@current_player, DummyPlayer.new)
+    old_shanten = @env.current_player.shanten
+    old_outs = @env.current_player.outs
+
     @env.current_player.draw(TILES[109]) # 東を引いて聴牌形にする
     _, reward, done, discarded_tile = @env.step(13) # 南(index=13)を捨て聴牌にする
+    new_shanten = @env.current_player.shanten
+    new_outs = @env.current_player.outs
+
+    assert_equal true, new_shanten < old_shanten
+    assert_equal true, new_outs < old_outs
     assert_equal reward, 50 # 向聴数が減った時の報酬と一致する
     assert_equal done, false
     assert_equal discarded_tile, TILES[113]
@@ -96,6 +109,9 @@ class EnvTest < Test::Unit::TestCase
     @env.step(13) # 南(index=13)を捨て聴牌にする
     @env.current_player.draw(TILES[104]) # 9索を引いて和了にする
     _, reward, done, discarded_tile = @env.step(0)
+
+    assert_equal -1, @env.current_player.shanten
+    assert_equal 0, @env.current_player.outs
     assert_equal reward, 100 # 和了時の報酬と一致する
     assert_equal done, true
     assert_equal discarded_tile, nil

@@ -4,6 +4,7 @@ require_relative '../agent/agent_manager'
 
 class Player
   attr_reader :id, :hands, :score, :point_histories, :hand_histories, :rivers
+  attr_accessor :shanten, :outs
 
   MAX_CALL_COUNT = 4
 
@@ -25,6 +26,8 @@ class Player
     @hand_histories = []
     @called_tile_table = []
     @rivers = []
+    @shanten = nil
+    @outs = nil
   end
 
   def sorted_hands

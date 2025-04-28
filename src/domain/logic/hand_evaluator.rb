@@ -14,6 +14,8 @@ module Domain
       KOKUSHI_TILES = ALL_TILES.select { |tile| KOKUSHI_TILE_CODES.include?(tile.code) }
       SHANTEN_LIST = Util::FileLoader.load_shanten_list
       CHIITOITSU_PAIR_COUNT = 7
+      MAX_TILE_COUNT = 4
+      MAX_SHANTEN_COUNT = 13
 
       def self.count_minimum_outs(hands)
         normal_outs = count_normal_outs(hands)
@@ -68,7 +70,7 @@ module Domain
         ALL_TILES.select do |tile|
           next if hand_ids.include?(tile.id)
           code = tile.code
-          next if (code_counts[code] || 0) >= 4
+          next if (code_counts[code] || 0) >= MAX_TILE_COUNT
 
           test_shanten = calculate_minimum_shanten(hands + [tile])
           test_shanten < current_shanten
@@ -140,7 +142,7 @@ module Domain
         used_kokushi_codes = code_counts.select { |code, _| KOKUSHI_TILE_CODES.include?(code) }
         unique_count = used_kokushi_codes.keys.size
         has_head = used_kokushi_codes.values.any? { |count| count >= 2 }
-        13 - unique_count - (has_head ? 1 : 0)
+        MAX_SHANTEN_COUNT - unique_count - (has_head ? 1 : 0)
       end
     end
   end

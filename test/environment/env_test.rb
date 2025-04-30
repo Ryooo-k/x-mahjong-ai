@@ -6,45 +6,8 @@ require_relative '../../src/domain/logic/hand_evaluator'
 require_relative '../util/file_loader'
 
 class EnvTest < Test::Unit::TestCase
-  TILES = Array.new(136) { |id| Tile.new(id) }.freeze
-  HandEvaluator = Domain::Logic::HandEvaluator
-
-  class DummyPlayer
-    attr_reader :hands, :hand_histories, :called_tile_table, :rivers, :score
-    attr_accessor :shanten, :outs
-
-    def initialize
-      # 123456萬 123筒 78索 東 南
-      @hands = [
-        TILES[0], TILES[4], TILES[8], TILES[12], TILES[16], TILES[20],
-        TILES[36], TILES[40], TILES[44],
-        TILES[96], TILES[100],
-        TILES[108], TILES[113]
-      ]
-      @hand_histories = [@hands.dup]
-      @called_tile_table = []
-      @rivers = []
-      @score = 25_000
-      @shanten = HandEvaluator.calculate_minimum_shanten(@hands)
-      @outs = HandEvaluator.count_minimum_outs(@hands)
-    end
-
-    def draw(tile)
-      @hands << tile
-    end
-
-    def discard(tile)
-      @hands.delete(tile)
-      @hand_histories << @hands.dup
-    end
-
-    def sorted_hands
-      @hands.sort_by(&:id)
-    end
-  end
-
   def setup
-    @all_tiles = Array.new(136) { |id| Tile.new(id) }
+    @tiles = Array.new(136) { |id| Tile.new(id) }
     parameter = FileLoader.load_parameter
     @env = Env.new(parameter['table'], parameter['player'])
   end
@@ -87,31 +50,44 @@ class EnvTest < Test::Unit::TestCase
   end
 
   def test_update_triggered_by_shanten_decrease
-    @env.instance_variable_set(:@current_player, DummyPlayer.new)
-    old_shanten = @env.current_player.shanten
-    old_outs = @env.current_player.outs
+    # 123456萬 123筒 78索 東 南
+    hands = [
+      @tiles[0], @tiles[4], @tiles[8], @tiles[12], @tiles[16], @tiles[20],
+      @tiles[36], @tiles[40], @tiles[44],
+      @tiles[96], @tiles[100],
+      @tiles[108], @tiles[113]
+    ]
 
-    @env.current_player.draw(TILES[109]) # 東を引いて聴牌形にする
+    @env.current_player.instance_variable_set(:@hands, hands)
+    old_shanten = @env.current_player.shanten_histories.last
+    old_outs = @env.current_player.outs_histories.last
+
+    @env.current_player.draw(@tiles[109]) # 東を引いて聴牌形にする
     _, reward, done, discarded_tile = @env.step(13) # 南(index=13)を捨て聴牌にする
-    new_shanten = @env.current_player.shanten
-    new_outs = @env.current_player.outs
+    new_shanten = @env.current_player.shanten_histories.last
+    new_outs = @env.current_player.outs_histories.last
 
     assert_equal true, new_shanten < old_shanten
     assert_equal true, new_outs < old_outs
     assert_equal reward, 50 # 向聴数が減った時の報酬と一致する
     assert_equal done, false
-    assert_equal discarded_tile, TILES[113]
+    assert_equal discarded_tile, @tiles[113]
   end
 
   def test_update_triggered_by_agari
-    @env.instance_variable_set(:@current_player, DummyPlayer.new)
-    @env.current_player.draw(TILES[109]) # 東を引いて聴牌形にする
-    @env.step(13) # 南(index=13)を捨て聴牌にする
-    @env.current_player.draw(TILES[104]) # 9索を引いて和了にする
+    # 123456萬 123筒 789索 東東
+    agari_hands = [
+      @tiles[0], @tiles[4], @tiles[8], @tiles[12], @tiles[16], @tiles[20],
+      @tiles[36], @tiles[40], @tiles[44],
+      @tiles[96], @tiles[100], @tiles[104],
+      @tiles[108], @tiles[109]
+    ]
+
+    @env.current_player.instance_variable_set(:@hands, agari_hands)
     _, reward, done, discarded_tile = @env.step(0)
 
-    assert_equal -1, @env.current_player.shanten
-    assert_equal 0, @env.current_player.outs
+    assert_equal -1, @env.current_player.shanten_histories.last
+    assert_equal 0, @env.current_player.outs_histories.last
     assert_equal reward, 100 # 和了時の報酬と一致する
     assert_equal done, true
     assert_equal discarded_tile, nil

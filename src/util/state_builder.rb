@@ -42,15 +42,15 @@ module Util
 
       def build_current_player_states(player)
         hand_codes = Encoder.encode_hands(player.hands)
-        called_tile_codes = Encoder.encode_called_tile_table(player.called_tile_table).flatten
+        # called_tile_codes = Encoder.encode_called_tile_table(player.called_tile_table).flatten
         river_codes = Encoder.encode_rivers(player.rivers)
         score = player.score / ALL_SCORE
-        shanten = HandEvaluator.calculate_minimum_shanten(player.hands)
-        outs = HandEvaluator.count_minimum_outs(player.hands)
+        shanten = HandEvaluator.calculate_minimum_shanten(player.hand_histories.last)
+        outs = HandEvaluator.count_minimum_outs(player.hand_histories.last)
 
         [
           *hand_codes,
-          *called_tile_codes,
+          # *called_tile_codes,
           *river_codes,
           score,
           shanten,
@@ -60,12 +60,12 @@ module Util
 
       def build_other_players_states(players)
         players.flat_map do |player|
-          called_tile_codes = Encoder.encode_called_tile_table(player.called_tile_table).flatten
+          # called_tile_codes = Encoder.encode_called_tile_table(player.called_tile_table).flatten
           river_codes = Encoder.encode_rivers(player.rivers)
           score = player.score / ALL_SCORE
 
           [
-            *called_tile_codes,
+            # *called_tile_codes,
             *river_codes,
             score
           ]
@@ -78,8 +78,8 @@ module Util
         kong_count = table.kong_count
         round = table.round[:count]
         honba = table.honba[:count]
-        host_id = table.host.id
-        children_ids = table.children.map { |player| player.id }
+        # host_id = table.host.id
+        # children_ids = table.children.map { |player| player.id }
 
         [
           *remaining_tiles,
@@ -87,8 +87,8 @@ module Util
           kong_count,
           round,
           honba,
-          host_id,
-          *children_ids
+          # host_id,
+          # *children_ids
         ]
       end
     end

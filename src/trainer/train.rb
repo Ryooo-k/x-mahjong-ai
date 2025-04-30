@@ -21,8 +21,8 @@ def run_training_loop(train_config, env)
 
       while not done
         current_player = env.current_player
-        states = env.states
         env.player_draw
+        states = env.states
         action = current_player.get_discard_action(states)
         next_states, reward, done, discarded_tile = env.step(action)
         current_player.update_discard_agent(states, action, reward, next_states, done)

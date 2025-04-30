@@ -3,7 +3,7 @@
 require_relative '../agent/agent_manager'
 
 class Player
-  attr_reader :id, :hands, :score, :point_histories, :hand_histories, :rivers
+  attr_reader :id, :hands, :score, :point_histories, :hand_histories, :rivers, :is_menzen
   attr_accessor :shanten, :outs
 
   MAX_CALL_COUNT = 4
@@ -28,6 +28,7 @@ class Player
     @rivers = []
     @shanten = nil
     @outs = nil
+    @is_menzen = true
   end
 
   def sorted_hands
@@ -104,14 +105,6 @@ class Player
   def sync_qnet
     @agent.sync_qnet
   end
-
-  # def can_call?(target)
-  #   can_call_pong?(target) || can_call_chow?(target) || can_call_open_kong?(target)
-  # end
-
-  # def can_pong_or_open_kong?(target)
-  #   can_call_pong?(target) || can_call_open_kong?(target)
-  # end
 
   private
 

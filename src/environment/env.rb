@@ -70,7 +70,7 @@ class Env
     @table.players.each { |player| player.sync_qnet }
   end
 
-  def training_log
+  def log
     Formatter.build_training_log(@table)
   end
 

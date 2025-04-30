@@ -32,7 +32,7 @@ def run_training_loop(train_config, env)
       env.sync_qnet_for_all_players if count % train_config['qnet_sync_interval'] == 0
     end
     total_time += time_taken
-    output(total_time, count, env.training_log) if count == 10 || (count % 100 == 0 && count != 0) || env.table.draw_count != 122
+    output(total_time, count, env.log) if count == 10 || (count % 100 == 0 && count != 0) || env.table.draw_count != 122
   end
 end
 

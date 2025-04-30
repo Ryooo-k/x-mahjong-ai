@@ -32,14 +32,14 @@ def run_training_loop(train_config, env)
       env.sync_qnet_for_all_players if count % train_config['qnet_sync_interval'] == 0
     end
     total_time += time_taken
-    output(total_time, count, env.log_training_info) if count % 10 == 0
+    output(total_time, count, env.training_log) if count % 10 == 0
   end
 end
 
-def output(time_taken, count, info)
+def output(time_taken, count, log)
   puts format_second(time_taken)
   puts "学習回数：#{count}"
-  puts info
+  puts log
 end
 
 def format_second(time_taken)

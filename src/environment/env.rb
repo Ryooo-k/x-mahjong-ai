@@ -4,12 +4,14 @@ require 'json'
 require_relative '../domain/table'
 require_relative '../domain/logic/hand_evaluator'
 require_relative '../util/state_builder'
+require_relative '../util/formatter'
 
 class Env
   attr_reader :table, :current_player, :other_players
 
   HandEvaluator = Domain::Logic::HandEvaluator
   StateBuilder = Util::StateBuilder
+  Formatter = Util::Formatter
   STARTING_HAND_COUNT = 13
 
   def initialize(table_config, player_config)
@@ -70,9 +72,9 @@ class Env
     @table.players.each { |player| player.sync_qnet }
   end
 
-  def log_training_info
-    info = StateBuilder.build_log_training_info(@table)
-    info.join("\n")
+  def training_log
+    log = Formatter.build_training_log(@table)
+    log.join("\n")
   end
 
   private

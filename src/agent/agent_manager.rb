@@ -4,9 +4,16 @@ require_relative '../agent/discard_agent'
 require_relative '../agent/call_agent'
 
 class AgentManager
+  attr_reader :total_discard_loss, :total_call_loss
+
   def initialize(discard_agent_config, call_agent_config)
     @discard = DiscardAgent.new(discard_agent_config)
     @call = CallAgent.new(call_agent_config)
+    @total_discard_loss = 0
+    @total_call_loss = 0
+  end
+
+  def reset
     @total_discard_loss = 0
     @total_call_loss = 0
   end

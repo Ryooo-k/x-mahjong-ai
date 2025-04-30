@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 require 'test/unit'
-require_relative '../../src/util/state_builder'
+require_relative '../util/file_loader'
+require_relative '../../src/environment/state_builder'
 require_relative '../../src/environment/env'
-require_relative 'file_loader'
 
 class StateBuilderTest < Test::Unit::TestCase
   def setup
-    @builder = Util::StateBuilder
+    @builder = StateBuilder
     parameter = FileLoader.load_parameter
     @env = Env.new(parameter['table'], parameter['player'])
   end

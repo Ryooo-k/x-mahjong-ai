@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require 'torch'
+require_relative 'replay_buffer'
 require_relative '../model/qnet'
-require_relative '../util/replay_buffer'
 
 class DiscardAgent
   def initialize(config)

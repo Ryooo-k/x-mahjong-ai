@@ -1,14 +1,13 @@
 # frozen_string_literal: true
 
 require 'json'
+require_relative 'state_builder'
 require_relative '../domain/table'
-require_relative '../util/state_builder'
 require_relative '../util/formatter'
 
 class Env
   attr_reader :table, :current_player, :other_players
 
-  StateBuilder = Util::StateBuilder
   Formatter = Util::Formatter
   STARTING_HAND_COUNT = 13
 

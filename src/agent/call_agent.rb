@@ -2,8 +2,8 @@
 
 require 'torch'
 require 'numo/narray'
+require_relative 'replay_buffer'
 require_relative '../model/qnet'
-require_relative '../util/replay_buffer'
 
 class CallAgent
   def initialize(config)

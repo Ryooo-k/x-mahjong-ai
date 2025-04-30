@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative '../agent/discard_agent'
-require_relative '../agent/call_agent'
+require_relative 'discard_agent'
+require_relative 'call_agent'
 
 class AgentManager
   attr_reader :total_discard_loss, :total_call_loss

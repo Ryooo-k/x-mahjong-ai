@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'test/unit'
-require_relative '../../src/util/replay_buffer'
+require_relative '../../src/agent/replay_buffer'
 
 class ReplayBufferTest < Test::Unit::TestCase
   def setup

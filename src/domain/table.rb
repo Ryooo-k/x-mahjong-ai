@@ -2,6 +2,7 @@
 
 require_relative 'tile_wall'
 require_relative 'player'
+require_relative '../util/formatter'
 
 class Table
   attr_reader :game_mode, :attendance, :red_dora, :tile_wall, :players, :seat_orders, :draw_count, :kong_count
@@ -57,7 +58,7 @@ class Table
   end
 
   def honba
-    number_kanji = convert_number_to_kanji(@honba_count)
+    number_kanji = Util::Formatter.convert_number_to_kanji(@honba_count)
     name = "#{number_kanji}本場"
     { count: @honba_count, name: }
   end
@@ -129,9 +130,5 @@ class Table
       dora_code = SPECIAL_DORA_RULES.fetch(indicator.code, indicator.code + 1)
       @tile_wall.tiles.select { |tile| tile.code == dora_code }
     end.flatten
-  end
-
-  def convert_number_to_kanji(num)
-    num.to_s.tr('0123456789', '〇一二三四五六七八九')
   end
 end

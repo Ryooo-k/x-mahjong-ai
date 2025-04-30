@@ -40,19 +40,17 @@ class Env
   end
 
   def step(action)
-    old_shanten = @current_player.shanten
-    old_outs = @current_player.outs
+    old_shanten = @current_player.shanten_histories.last
+    old_outs = @current_player.outs_histories.last
 
     is_agari = HandEvaluator.agari?(@current_player.hands)
     target_tile = @current_player.sorted_hands[action] unless is_agari
     @current_player.discard(target_tile) unless is_agari
+    @current_player.record_hand_status
 
     new_hands = @current_player.hands
-    new_shanten = HandEvaluator.calculate_minimum_shanten(new_hands)
-    new_outs = HandEvaluator.count_minimum_outs(new_hands)
-
-    @current_player.shanten = new_shanten
-    @current_player.outs = new_outs
+    new_shanten = @current_player.shanten_histories.last
+    new_outs = @current_player.outs_histories.last
 
     reward = cal_reward(old_shanten, new_shanten, old_outs, new_outs, is_agari)
     @done = true if is_agari || game_over?
@@ -73,8 +71,7 @@ class Env
   end
 
   def training_log
-    log = Formatter.build_training_log(@table)
-    log.join("\n")
+    Formatter.build_training_log(@table)
   end
 
   private
@@ -86,9 +83,7 @@ class Env
         player.draw(live_walls[@table.draw_count])
         @table.increase_draw_count
       end
-      player.record_hands
-      player.shanten = HandEvaluator.calculate_minimum_shanten(player.hands)
-      player.outs = HandEvaluator.count_minimum_outs(player.hands)
+      player.record_hand_status
     end
   end
 

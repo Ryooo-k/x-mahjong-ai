@@ -2,14 +2,12 @@
 
 require 'json'
 require_relative '../domain/table'
-require_relative '../domain/logic/hand_evaluator'
 require_relative '../util/state_builder'
 require_relative '../util/formatter'
 
 class Env
   attr_reader :table, :current_player, :other_players
 
-  HandEvaluator = Domain::Logic::HandEvaluator
   StateBuilder = Util::StateBuilder
   Formatter = Util::Formatter
   STARTING_HAND_COUNT = 13
@@ -43,8 +41,8 @@ class Env
     old_shanten = @current_player.shanten_histories.last
     old_outs = @current_player.outs_histories.last
 
-    is_agari = HandEvaluator.agari?(@current_player.hands)
-    target_tile = @current_player.sorted_hands[action] unless is_agari
+    is_agari = @current_player.agari?
+    target_tile = @current_player.choose(action) unless is_agari
     @current_player.discard(target_tile) unless is_agari
     @current_player.record_hand_status
 

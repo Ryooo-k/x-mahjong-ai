@@ -68,6 +68,14 @@ class Player
     record_outs
   end
 
+  def agari?
+    HandEvaluator.agari?(@hands)
+  end
+
+  def choose(index)
+    sorted_hands[index]
+  end
+
   def get_discard_action(states)
     @agent.get_discard_action(states)
   end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../util/tile_definition'
+require_relative '../util/tile_definitions'
 
 class Tile
   attr_reader :id, :code, :name, :number, :suit

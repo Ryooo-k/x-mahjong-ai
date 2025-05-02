@@ -18,14 +18,18 @@ class Table
   }.freeze
 
   ROUNDS = { 
-    0 => '東一局',
-    1 => '東二局',
-    2 => '東三局',
-    3 => '東四局',
-    4 => '南一局',
-    5 => '南二局',
-    6 => '南三局',
-    7 => '南四局'
+    0 => { name: '東一局', code: '1z' },
+    1 => { name: '東二局', code: '1z' },
+    2 => { name: '東三局', code: '1z' },
+    3 => { name: '東四局', code: '1z' },
+    4 => { name: '南一局', code: '2z' },
+    5 => { name: '南二局', code: '2z' },
+    6 => { name: '南三局', code: '2z' },
+    7 => { name: '南四局', code: '2z' },
+    8 => { name: '西一局', code: '3z' },
+    9 => { name: '西二局', code: '3z' },
+    10 => { name: '西三局', code: '3z' },
+    11 => { name: '西四局', code: '3z' }
   }.freeze
 
   SPECIAL_DORA_RULES = {
@@ -53,8 +57,9 @@ class Table
   end
 
   def round
-    name = ROUNDS[@round_count]
-    { count: @round_count, name: }
+    name = ROUNDS[@round_count][:name]
+    code = ROUNDS[@round_count][:code]
+    { count: @round_count, name:, code: }
   end
 
   def honba

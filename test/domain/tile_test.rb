@@ -11,10 +11,12 @@ class TileTest < Test::Unit::TestCase
   end
 
   def test_tile_initialization
-    assert_equal(0, @manzu_1_tile.id)
-    assert_equal(0, @manzu_1_tile.code)
-    assert_equal('1萬', @manzu_1_tile.name)
-    assert_equal(nil, @manzu_1_tile.holder)
+    assert_equal 0, @manzu_1_tile.id
+    assert_equal 0, @manzu_1_tile.code
+    assert_equal '1萬', @manzu_1_tile.name
+    assert_equal 1, @manzu_1_tile.number
+    assert_equal 'm', @manzu_1_tile.suit
+    assert_equal nil, @manzu_1_tile.holder
   end
 
   def test_can_not_generate_tile_when_id_does_not_match

@@ -2,7 +2,7 @@
 
 require 'test/unit'
 require_relative '../../src/domain/tile'
-require_relative '../../src/util/tile_definition'
+require_relative '../../src/util/tile_definitions'
 
 class TileTest < Test::Unit::TestCase
   def setup

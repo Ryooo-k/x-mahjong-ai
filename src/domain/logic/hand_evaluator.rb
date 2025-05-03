@@ -95,7 +95,7 @@ module Domain
 
           used_kokushi_codes = hand_codes.select { |code| KOKUSHI_TILE_CODES.include?(code) }
           used_code_tally = used_kokushi_codes.tally
-          is_head = used_kokushi_codes.tally.values.any? { |count| count >= 2 }
+          is_head = used_code_tally.values.any? { |count| count >= 2 }
 
           if is_head
             unused_code_set = (KOKUSHI_TILE_CODES - used_kokushi_codes).to_set

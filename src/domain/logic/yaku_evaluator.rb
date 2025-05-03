@@ -4,10 +4,10 @@ require 'json'
 
 module Domain
   module Logic
-    module ScoreCalculator
+    module YakuEvaluator
       class << self
-        def get_yaku(hands, melds_list, winning_tile, round_wind, player_wind, is_tsumo, open_dora_indicators, is_reach, blind_dora_indicators, honba)
-          input = convert_hash(hands, melds_list, winning_tile, round_wind, player_wind, is_tsumo, open_dora_indicators, is_reach, blind_dora_indicators, honba)
+        def get_yaku(hands, melds_list, winning_tile, round_wind, player_wind, is_tsumo, is_reach, open_dora_indicators, blind_dora_indicators, honba)
+          input = convert_hash(hands, melds_list, winning_tile, round_wind, player_wind, is_tsumo, is_reach, open_dora_indicators, blind_dora_indicators, honba)
           File.write("tmp/yaku_input.json", JSON.dump(input))
           result = `node src/domain/logic/yaku_checker.js`
           JSON.parse(result)

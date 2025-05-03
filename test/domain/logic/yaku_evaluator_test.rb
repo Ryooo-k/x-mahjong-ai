@@ -1,12 +1,12 @@
 # frozen_string_literal: true
-require 'debug'
+
 require 'test/unit'
-require_relative '../../../src/domain/logic/score_calculator'
+require_relative '../../../src/domain/logic/yaku_evaluator'
 require_relative '../../../src/domain/tile'
 
-class ScoreCalculator < Test::Unit::TestCase
+class YakuEvaluatorTest < Test::Unit::TestCase
   def setup
-    @score_calculator = Domain::Logic::ScoreCalculator
+    @yaku_evaluator = Domain::Logic::YakuEvaluator
     @tiles = Array.new(135) { |id| Tile.new(id) }
   end
 
@@ -30,7 +30,7 @@ class ScoreCalculator < Test::Unit::TestCase
     is_reach = true
     honba = { count: 1 }
 
-    result = @score_calculator.get_yaku(
+    result = @yaku_evaluator.get_yaku(
       hands,
       melds_list,
       winning_tile,
@@ -88,7 +88,7 @@ class ScoreCalculator < Test::Unit::TestCase
     is_reach = false
     honba = { count: 0 }
 
-    result = @score_calculator.get_yaku(
+    result = @yaku_evaluator.get_yaku(
       hands,
       melds_list,
       winning_tile,

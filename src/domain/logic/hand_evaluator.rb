@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-require_relative '../tile'
+require 'json'
 require_relative 'normal_agari_patterns'
+require_relative '../tile'
 require_relative '../../util/file_loader'
 require_relative '../../util/encoder'
 
@@ -19,7 +20,7 @@ module Domain
         MAX_SHANTEN_COUNT = 13
 
         def count_minimum_outs(hands)
-          return 0 if hands.size == 14 # 和了手の場合は早期return
+          return 0 if hands.size == 14
           normal_outs = count_normal_outs(hands)
           chiitoitsu_outs = count_chiitoitsu_outs(hands)
           kokushi_outs = count_kokushi_outs(hands)
@@ -59,6 +60,32 @@ module Domain
 
         def tenpai?(hands)
           calculate_minimum_shanten(hands) == 0
+        end
+
+        def evaluate_yaku(hands:, melds_list:, winning_tile:, round_wind:, player_wind:, is_tsumo:, is_reach:, open_dora_indicators:, blind_dora_indicators:, honba:)
+          input = to_yaku_checker_format(
+            hands:,
+            melds_list:,
+            target_tile: winning_tile,
+            round_wind:,
+            player_wind:,
+            is_tsumo:,
+            is_reach:,
+            open_dora_indicators:,
+            blind_dora_indicators:,
+            honba:)
+          File.write("tmp/yaku_input.json", JSON.dump(input))
+          result = `node src/domain/logic/yaku_checker.js`
+          JSON.parse(result)
+        end
+
+        def has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_reach:)
+          input = to_yaku_checker_format(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_reach:)
+          File.write("tmp/yaku_input.json", JSON.dump(input))
+          result = `node src/domain/logic/yaku_checker.js`
+          yaku_states = JSON.parse(result)
+          yaku = yaku_states["yaku"]
+          yaku.empty? ? false : yaku
         end
 
         private
@@ -145,6 +172,41 @@ module Domain
           unique_count = used_kokushi_codes.keys.size
           has_head = used_kokushi_codes.values.any? { |count| count >= 2 }
           MAX_SHANTEN_COUNT - unique_count - (has_head ? 1 : 0)
+        end
+
+        def to_yaku_checker_format(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_tsumo: false, is_reach: false, open_dora_indicators: [], blind_dora_indicators: [], honba: 0)
+          hai = (hands + [target_tile]).map { |tile| "#{tile.number}#{tile.suit}" }
+          furo = melds_list.map do |melds|
+                  {
+                    type: case melds[:type]
+                          when 'pong' then 'pon'
+                          when 'chow' then 'chi'
+                          when 'concealed_kong' then 'ankan'
+                          when 'open_kong' then 'daiminkan'
+                          when 'extended_kong' then 'kakan'
+                          else melds[:type]
+                          end,
+                    hai: melds[:tiles].map { |tile| "#{tile.number}#{tile.suit}" }
+                  }
+                end
+
+          agari_hai = "#{target_tile.number}#{target_tile.suit}"
+          dora_hyo = open_dora_indicators.map { |tile| "#{tile.number}#{tile.suit}" }
+          uradora_hyo = blind_dora_indicators.map { |tile| "#{tile.number}#{tile.suit}" }
+          is_oya = player_wind == '1z' ? true : false
+
+          {
+            hai: { hai:, furo: },
+            agariHai: agari_hai,
+            bakaze: round_wind,
+            jikaze: player_wind,
+            tsumo: is_tsumo,
+            doraHyo: dora_hyo,
+            reach: is_reach,
+            uradoraHyo: uradora_hyo,
+            honba: honba,
+            oya: is_oya
+          }
         end
       end
     end

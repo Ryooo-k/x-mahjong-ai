@@ -8,113 +8,22 @@ require_relative '../../../src/util/encoder'
 class HandEvaluatorTest < Test::Unit::TestCase
   def setup
     @evaluator = Domain::Logic::HandEvaluator
-    tiles = (0..135).map { |id| Tile.new(id) }
-
-    # 通常手(聴牌): 111222萬 333筒 45索 東東
-    # 向聴数：0
-    # 有効牌：2種8枚 (36索)
-    @tenpai_normal_hands = [
-      tiles[0], tiles[1], tiles[2],
-      tiles[4], tiles[5], tiles[6],
-      tiles[44], tiles[45], tiles[46],
-      tiles[84], tiles[88],
-      tiles[108], tiles[109]
-    ]
-
-    # 通常手(ノーテン): 128萬 555889筒 357索 東
-    # 向聴数：3
-    # 有効牌：19種68枚 (36789萬 6789筒 123456789索 東)
-    @normal_hands = [
-      tiles[0], tiles[4], tiles[28],
-      tiles[52], tiles[53], tiles[54],
-      tiles[64], tiles[68], tiles[69],
-      tiles[80], tiles[88], tiles[96],
-      tiles[108]
-    ]
-
-    # 七対子(聴牌)： 112288萬 3355筒 44索 東
-    # 向聴数：0
-    # 有効牌：1種3枚 (東)
-    @tenpai_chiitoitsu_hands = [
-      tiles[0], tiles[1],
-      tiles[4], tiles[5],
-      tiles[28], tiles[28],
-      tiles[44], tiles[45],
-      tiles[52], tiles[53],
-      tiles[84], tiles[84],
-      tiles[108]
-    ]
-
-    # 七対子(ノーテン)： 112288萬 3355筒 4索 東 白
-    # 向聴数：1
-    # 有効牌：3種9枚 (4索 東 白)
-    @chiitoitsu_hands = [
-      tiles[0], tiles[1],
-      tiles[4], tiles[5],
-      tiles[28], tiles[28],
-      tiles[44], tiles[45],
-      tiles[52], tiles[53],
-      tiles[84],
-      tiles[108],
-      tiles[124]
-    ]
-
-    # 国士無双（頭なし聴牌）： 19萬 19筒 19索 東 南 西 北 白 發 中
-    # 向聴数：0
-    # 有効牌：13種39枚 (19萬 19筒 19索 東 南 西 北 白 發 中)
-    @tenpai_kokushi_hands_without_head = [
-      tiles[0], tiles[32],
-      tiles[36], tiles[68],
-      tiles[72], tiles[104],
-      tiles[108], tiles[112], tiles[116], tiles[120],
-      tiles[124], tiles[128], tiles[132]
-    ]
-
-    # 国士無双（頭あり聴牌）： 119萬 19筒 19索 東 南 西 北 白 發
-    # 向聴数：0
-    # 有効牌：1種4枚 (中)
-    @tenpai_kokushi_hands_with_head = [
-      tiles[0], tiles[0], tiles[32],
-      tiles[36], tiles[68],
-      tiles[72], tiles[104],
-      tiles[108], tiles[112], tiles[116], tiles[120],
-      tiles[124], tiles[128]
-    ]
-
-    # 国士無双（頭なしノーテン）： 159萬 159筒 159索 東 南 西 北
-    # 向聴数：3
-    # 有効牌：13種42枚 (19萬 19筒 19索 東 南 西 北 白 發 中)
-    @kokushi_hands_without_head = [
-      tiles[0], tiles[16], tiles[32],
-      tiles[36], tiles[52], tiles[68],
-      tiles[72], tiles[88], tiles[104],
-      tiles[108], tiles[112], tiles[116], tiles[120]
-    ]
-
-    # 国士無双（頭ありノーテン）： 119萬 159筒 19索 東 南 西 白 發
-    # 向聴数：1
-    # 有効牌：2種8枚 (北 中)
-    @kokushi_hands_with_head = [
-      tiles[0], tiles[0], tiles[32],
-      tiles[36], tiles[52], tiles[68],
-      tiles[72], tiles[104],
-      tiles[108], tiles[112], tiles[116],
-      tiles[124], tiles[128]
-    ]
-
-    # 和了手: 111222萬 333筒 44索 東東
-    # 向聴数：-1
-    @agari_hands = [
-      tiles[0], tiles[1], tiles[2],
-      tiles[4], tiles[5], tiles[6],
-      tiles[44], tiles[45], tiles[46],
-      tiles[84], tiles[85], tiles[86],
-      tiles[108], tiles[109]
-    ]
+    @tiles = Array.new(135) { |id| Tile.new(id) }
   end
 
   def test_count_outs_when_tenpai_normal_hands
-    outs = @evaluator.count_outs(@tenpai_normal_hands) # 有効牌：2種8枚 (36索)
+    # 通常手(聴牌): 111222萬 333筒 45索 東東
+    # 向聴数：0
+    # 有効牌：2種8枚 (36索)
+    hands = [
+      @tiles[0], @tiles[1], @tiles[2],
+      @tiles[4], @tiles[5], @tiles[6],
+      @tiles[44], @tiles[45], @tiles[46],
+      @tiles[84], @tiles[88],
+      @tiles[108], @tiles[109]
+    ]
+
+    outs = @evaluator.count_outs(hands)
     normal_outs = outs[:normal]
     outs_kind = normal_outs.map(&:code).uniq.size
     outs_count = normal_outs.size
@@ -125,7 +34,18 @@ class HandEvaluatorTest < Test::Unit::TestCase
   end
 
   def test_count_outs_when_normal_hands
-    outs = @evaluator.count_outs(@normal_hands) # 有効牌：19種68枚 (36789萬 6789筒 123456789索 東)
+    # 通常手(ノーテン): 128萬 555889筒 357索 東
+    # 向聴数：3
+    # 有効牌：19種68枚 (36789萬 6789筒 123456789索 東)
+    hands = [
+      @tiles[0], @tiles[4], @tiles[28],
+      @tiles[52], @tiles[53], @tiles[54],
+      @tiles[64], @tiles[68], @tiles[69],
+      @tiles[80], @tiles[88], @tiles[96],
+      @tiles[108]
+    ]
+
+    outs = @evaluator.count_outs(hands)
     normal_outs = outs[:normal]
     outs_kind = normal_outs.map(&:code).uniq.size
     outs_count = normal_outs.size
@@ -136,7 +56,20 @@ class HandEvaluatorTest < Test::Unit::TestCase
   end
 
   def test_count_outs_when_tenpai_chiitoitsu_hands
-    outs = @evaluator.count_outs(@tenpai_chiitoitsu_hands) # 有効牌：1種3枚 (東)
+    # 七対子(聴牌)： 112288萬 3355筒 44索 東
+    # 向聴数：0
+    # 有効牌：1種3枚 (東)
+    hands = [
+      @tiles[0], @tiles[1],
+      @tiles[4], @tiles[5],
+      @tiles[28], @tiles[28],
+      @tiles[44], @tiles[45],
+      @tiles[52], @tiles[53],
+      @tiles[84], @tiles[84],
+      @tiles[108]
+    ]
+
+    outs = @evaluator.count_outs(hands)
     chiitoitsu_outs = outs[:chiitoitsu]
     outs_kind = chiitoitsu_outs.map(&:code).uniq.size
     outs_count = chiitoitsu_outs.size
@@ -147,7 +80,21 @@ class HandEvaluatorTest < Test::Unit::TestCase
   end
 
   def test_count_outs_when_chiitoitsu_hands
-    outs = @evaluator.count_outs(@chiitoitsu_hands) # 有効牌：3種9枚 (4索 東 白)
+    # 七対子(ノーテン)： 112288萬 3355筒 4索 東 白
+    # 向聴数：1
+    # 有効牌：3種9枚 (4索 東 白)
+    hands = [
+      @tiles[0], @tiles[1],
+      @tiles[4], @tiles[5],
+      @tiles[28], @tiles[28],
+      @tiles[44], @tiles[45],
+      @tiles[52], @tiles[53],
+      @tiles[84],
+      @tiles[108],
+      @tiles[124]
+    ]
+
+    outs = @evaluator.count_outs(hands)
     chiitoitsu_outs = outs[:chiitoitsu]
     outs_kind = chiitoitsu_outs.map(&:code).uniq.size
     outs_count = chiitoitsu_outs.size
@@ -158,7 +105,18 @@ class HandEvaluatorTest < Test::Unit::TestCase
   end
 
   def test_count_outs_when_tenpai_kokushi_hands_without_head
-    outs = @evaluator.count_outs(@tenpai_kokushi_hands_without_head) # 有効牌：13種39枚 (19萬 19筒 19索 東 南 西 北 白 發 中)
+    # 国士無双（頭なし聴牌）： 19萬 19筒 19索 東 南 西 北 白 發 中
+    # 向聴数：0
+    # 有効牌：13種39枚 (19萬 19筒 19索 東 南 西 北 白 發 中)
+    hands = [
+      @tiles[0], @tiles[32],
+      @tiles[36], @tiles[68],
+      @tiles[72], @tiles[104],
+      @tiles[108], @tiles[112], @tiles[116], @tiles[120],
+      @tiles[124], @tiles[128], @tiles[132]
+    ]
+
+    outs = @evaluator.count_outs(hands)
     kokushi_outs = outs[:kokushi]
     outs_kind = kokushi_outs.map(&:code).uniq.size
     outs_count = kokushi_outs.size
@@ -169,7 +127,18 @@ class HandEvaluatorTest < Test::Unit::TestCase
   end
 
   def test_count_outs_when_tenpai_kokushi_hands_with_head
-    outs = @evaluator.count_outs(@tenpai_kokushi_hands_with_head) # 有効牌：1種4枚 (中)
+    # 国士無双（頭あり聴牌）： 119萬 19筒 19索 東 南 西 北 白 發
+    # 向聴数：0
+    # 有効牌：1種4枚 (中)
+    hands = [
+      @tiles[0], @tiles[0], @tiles[32],
+      @tiles[36], @tiles[68],
+      @tiles[72], @tiles[104],
+      @tiles[108], @tiles[112], @tiles[116], @tiles[120],
+      @tiles[124], @tiles[128]
+    ]
+
+    outs = @evaluator.count_outs(hands)
     kokushi_outs = outs[:kokushi]
     outs_kind = kokushi_outs.map(&:code).uniq.size
     outs_count = kokushi_outs.size
@@ -180,7 +149,17 @@ class HandEvaluatorTest < Test::Unit::TestCase
   end
 
   def test_count_outs_when_kokushi_hands_without_head
-    outs = @evaluator.count_outs(@kokushi_hands_without_head) # 有効牌：13種42枚 (19萬 19筒 19索 東 南 西 北 白 發 中)
+    # 国士無双（頭なしノーテン）： 159萬 159筒 159索 東 南 西 北
+    # 向聴数：3
+    # 有効牌：13種42枚 (19萬 19筒 19索 東 南 西 北 白 發 中)
+    hands = [
+      @tiles[0], @tiles[16], @tiles[32],
+      @tiles[36], @tiles[52], @tiles[68],
+      @tiles[72], @tiles[88], @tiles[104],
+      @tiles[108], @tiles[112], @tiles[116], @tiles[120]
+    ]
+
+    outs = @evaluator.count_outs(hands)
     kokushi_outs = outs[:kokushi]
     outs_kind = kokushi_outs.map(&:code).uniq.size
     outs_count = kokushi_outs.size
@@ -191,7 +170,18 @@ class HandEvaluatorTest < Test::Unit::TestCase
   end
 
   def test_count_outs_when_kokushi_hands_with_head
-    outs = @evaluator.count_outs(@kokushi_hands_with_head) # 有効牌：2種8枚 (北 中)
+    # 国士無双（頭ありノーテン）： 119萬 159筒 19索 東 南 西 白 發
+    # 向聴数：1
+    # 有効牌：2種8枚 (北 中)
+    hands = [
+      @tiles[0], @tiles[0], @tiles[32],
+      @tiles[36], @tiles[52], @tiles[68],
+      @tiles[72], @tiles[104],
+      @tiles[108], @tiles[112], @tiles[116],
+      @tiles[124], @tiles[128]
+    ]
+
+    outs = @evaluator.count_outs(hands)
     kokushi_outs = outs[:kokushi]
     outs_kind = kokushi_outs.map(&:code).uniq.size
     outs_count = kokushi_outs.size
@@ -202,73 +192,339 @@ class HandEvaluatorTest < Test::Unit::TestCase
   end
 
   def test_calculate_minimum_shanten_when_tenpai_normal_hands
-    shanten = @evaluator.calculate_minimum_shanten(@tenpai_normal_hands) # 向聴数：0
+    # 通常手(聴牌): 111222萬 333筒 45索 東東
+    # 向聴数：0
+    hands = [
+      @tiles[0], @tiles[1], @tiles[2],
+      @tiles[4], @tiles[5], @tiles[6],
+      @tiles[44], @tiles[45], @tiles[46],
+      @tiles[84], @tiles[88],
+      @tiles[108], @tiles[109]
+    ]
+
+    shanten = @evaluator.calculate_minimum_shanten(hands)
     assert_equal 0, shanten
   end
 
   def test_calculate_minimum_shanten_when_normal_hands
-    shanten = @evaluator.calculate_minimum_shanten(@normal_hands) # 向聴数：3
+    # 通常手(ノーテン): 128萬 555889筒 357索 東
+    # 向聴数：3
+    hands = [
+      @tiles[0], @tiles[4], @tiles[28],
+      @tiles[52], @tiles[53], @tiles[54],
+      @tiles[64], @tiles[68], @tiles[69],
+      @tiles[80], @tiles[88], @tiles[96],
+      @tiles[108]
+    ]
+
+    shanten = @evaluator.calculate_minimum_shanten(hands)
     assert_equal 3, shanten
   end
 
   def test_calculate_minimum_shanten_when_tenpai_chiitoitsu_hands
-    shanten = @evaluator.calculate_minimum_shanten(@tenpai_chiitoitsu_hands) # 向聴数：0
+    # 七対子(聴牌)： 112288萬 3355筒 44索 東
+    # 向聴数：0
+    hands = [
+      @tiles[0], @tiles[1],
+      @tiles[4], @tiles[5],
+      @tiles[28], @tiles[28],
+      @tiles[44], @tiles[45],
+      @tiles[52], @tiles[53],
+      @tiles[84], @tiles[84],
+      @tiles[108]
+    ]
+
+    shanten = @evaluator.calculate_minimum_shanten(hands)
     assert_equal 0, shanten
   end
 
   def test_calculate_minimum_shanten_when_chiitoitsu_hands
-    shanten = @evaluator.calculate_minimum_shanten(@chiitoitsu_hands) # 向聴数：1
+    # 七対子(ノーテン)： 112288萬 3355筒 4索 東 白
+    # 向聴数：1
+    hands = [
+      @tiles[0], @tiles[1],
+      @tiles[4], @tiles[5],
+      @tiles[28], @tiles[28],
+      @tiles[44], @tiles[45],
+      @tiles[52], @tiles[53],
+      @tiles[84],
+      @tiles[108],
+      @tiles[124]
+    ]
+
+    shanten = @evaluator.calculate_minimum_shanten(hands)
     assert_equal 1, shanten
   end
 
   def test_calculate_minimum_shanten_when_tenpai_kokushi_hands_without_head
-    shanten = @evaluator.calculate_minimum_shanten(@tenpai_kokushi_hands_without_head) # 向聴数：0
+    # 国士無双（頭なし聴牌）： 19萬 19筒 19索 東 南 西 北 白 發 中
+    # 向聴数：0
+    hands = [
+      @tiles[0], @tiles[32],
+      @tiles[36], @tiles[68],
+      @tiles[72], @tiles[104],
+      @tiles[108], @tiles[112], @tiles[116], @tiles[120],
+      @tiles[124], @tiles[128], @tiles[132]
+    ]
+
+    shanten = @evaluator.calculate_minimum_shanten(hands)
     assert_equal 0, shanten
   end
 
   def test_calculate_minimum_shanten_when_tenpai_kokushi_hands_with_head
-    shanten = @evaluator.calculate_minimum_shanten(@tenpai_kokushi_hands_with_head) # 向聴数：0
+    # 国士無双（頭あり聴牌）： 119萬 19筒 19索 東 南 西 北 白 發
+    # 向聴数：0
+    hands = [
+      @tiles[0], @tiles[0], @tiles[32],
+      @tiles[36], @tiles[68],
+      @tiles[72], @tiles[104],
+      @tiles[108], @tiles[112], @tiles[116], @tiles[120],
+      @tiles[124], @tiles[128]
+    ]
+
+    shanten = @evaluator.calculate_minimum_shanten(hands)
     assert_equal 0, shanten
   end
 
   def test_calculate_minimum_shanten_when_kokushi_hands_without_head
-    shanten = @evaluator.calculate_minimum_shanten(@kokushi_hands_without_head) # 向聴数：3
+    # 国士無双（頭なしノーテン）： 159萬 159筒 159索 東 南 西 北
+    # 向聴数：3
+    hands = [
+      @tiles[0], @tiles[16], @tiles[32],
+      @tiles[36], @tiles[52], @tiles[68],
+      @tiles[72], @tiles[88], @tiles[104],
+      @tiles[108], @tiles[112], @tiles[116], @tiles[120]
+    ]
+
+    shanten = @evaluator.calculate_minimum_shanten(hands)
     assert_equal 3, shanten
   end
 
   def test_calculate_minimum_shanten_when_kokushi_hands_with_head
-    shanten = @evaluator.calculate_minimum_shanten(@kokushi_hands_with_head) # 向聴数：1
+    # 国士無双（頭ありノーテン）： 119萬 159筒 19索 東 南 西 白 發
+    # 向聴数：1
+    hands = [
+      @tiles[0], @tiles[0], @tiles[32],
+      @tiles[36], @tiles[52], @tiles[68],
+      @tiles[72], @tiles[104],
+      @tiles[108], @tiles[112], @tiles[116],
+      @tiles[124], @tiles[128]
+    ]
+
+    shanten = @evaluator.calculate_minimum_shanten(hands)
     assert_equal 1, shanten
   end
 
   def test_calculate_shanten_when_normal_hands
-    shanten = @evaluator.calculate_shanten(@normal_hands)
+    # 通常手(ノーテン): 128萬 555889筒 357索 東
+    # 向聴数：3
+    hands = [
+      @tiles[0], @tiles[4], @tiles[28],
+      @tiles[52], @tiles[53], @tiles[54],
+      @tiles[64], @tiles[68], @tiles[69],
+      @tiles[80], @tiles[88], @tiles[96],
+      @tiles[108]
+    ]
+
+    shanten = @evaluator.calculate_shanten(hands)
     assert_equal 3, shanten[:normal]
     assert_equal 4, shanten[:chiitoitsu]
     assert_equal 9, shanten[:kokushi]
   end
 
   def test_calculate_shanten_when_chiitoitsu_hands
-    shanten = @evaluator.calculate_shanten(@chiitoitsu_hands)
+    # 七対子(ノーテン)： 112288萬 3355筒 4索 東 白
+    # 向聴数：1
+    hands = [
+      @tiles[0], @tiles[1],
+      @tiles[4], @tiles[5],
+      @tiles[28], @tiles[28],
+      @tiles[44], @tiles[45],
+      @tiles[52], @tiles[53],
+      @tiles[84],
+      @tiles[108],
+      @tiles[124]
+    ]
+
+    shanten = @evaluator.calculate_shanten(hands)
     assert_equal 3, shanten[:normal]
     assert_equal 1, shanten[:chiitoitsu]
     assert_equal 9, shanten[:kokushi]
   end
 
   def test_calculate_shanten_when_kokushi_hands
-    shanten = @evaluator.calculate_shanten(@kokushi_hands_without_head)
+    # 国士無双（頭なしノーテン）： 159萬 159筒 159索 東 南 西 北
+    # 向聴数：3
+    hands = [
+      @tiles[0], @tiles[16], @tiles[32],
+      @tiles[36], @tiles[52], @tiles[68],
+      @tiles[72], @tiles[88], @tiles[104],
+      @tiles[108], @tiles[112], @tiles[116], @tiles[120]
+    ]
+
+    shanten = @evaluator.calculate_shanten(hands)
     assert_equal 8, shanten[:normal]
     assert_equal 6, shanten[:chiitoitsu]
     assert_equal 3, shanten[:kokushi]
   end
 
   def test_agari?
-    assert_equal true, @evaluator.agari?(@agari_hands)
-    assert_equal false, @evaluator.agari?(@normal_hands)
+    # 和了手: 111222萬 333筒 44索 東東
+    # 向聴数：-1
+    agari_hands = [
+      @tiles[0], @tiles[1], @tiles[2],
+      @tiles[4], @tiles[5], @tiles[6],
+      @tiles[44], @tiles[45], @tiles[46],
+      @tiles[84], @tiles[85], @tiles[86],
+      @tiles[108], @tiles[109]
+    ]
+
+    assert_equal true, @evaluator.agari?(agari_hands)
   end
 
   def test_tenpai?
-    assert_equal true, @evaluator.tenpai?(@tenpai_normal_hands)
-    assert_equal false, @evaluator.tenpai?(@normal_hands)
+    # 通常手(聴牌): 111222萬 333筒 45索 東東
+    tenpai_hands = [
+      @tiles[0], @tiles[1], @tiles[2],
+      @tiles[4], @tiles[5], @tiles[6],
+      @tiles[44], @tiles[45], @tiles[46],
+      @tiles[84], @tiles[88],
+      @tiles[108], @tiles[109]
+    ]
+
+    # 通常手(ノーテン): 128萬 555889筒 357索 東
+    not_tenpai_hands = [
+      @tiles[0], @tiles[4], @tiles[28],
+      @tiles[52], @tiles[53], @tiles[54],
+      @tiles[64], @tiles[68], @tiles[69],
+      @tiles[80], @tiles[88], @tiles[96],
+      @tiles[108]
+    ]
+
+    assert_equal true, @evaluator.tenpai?(tenpai_hands)
+    assert_equal false, @evaluator.tenpai?(not_tenpai_hands)
+  end
+
+  def test_evaluate_yaku_when_host_haneman_point
+    # 123456789萬 23筒 11索
+    # 和了牌：14筒
+    hands = [
+      @tiles[0], @tiles[4], @tiles[8],
+      @tiles[12], @tiles[16], @tiles[20],
+      @tiles[24], @tiles[28], @tiles[32],
+      @tiles[40], @tiles[44],
+      @tiles[72], @tiles[73]
+    ]
+    melds_list = []
+    winning_tile = @tiles[48] # 4筒
+    round_wind = '1z' # 東のnumber+suit
+    player_wind = '1z' # 親番
+    is_tsumo = true
+    open_dora_indicators = [@tiles[1]] # 1萬がドラ表示牌
+    blind_dora_indicators = [@tiles[13]] # 4萬が裏ドラ表示牌
+    is_reach = true
+    honba = 1
+    result = @evaluator.evaluate_yaku(hands:, melds_list:, winning_tile:, round_wind:, player_wind:, is_tsumo:, open_dora_indicators:, is_reach:, blind_dora_indicators:, honba:)
+
+    assert_equal true, result['detail']['oya']
+    assert_equal '跳満', result['scoreType']
+    assert_equal 18_000, result['rawScore']
+    assert_equal 18_300, result['score']
+    assert_equal 6_100, result['pay']['ko']
+    assert_equal nil, result['pay']['oya']
+    assert_equal(
+      [
+        {"han"=>1, "name"=>"立直"},
+        {"han"=>1, "name"=>"門前清自摸和"},
+        {"han"=>2, "name"=>"一気通貫"},
+        {"han"=>1, "name"=>"平和"},
+        {"han"=>1, "name"=>"ドラ"},
+        {"han"=>1, "name"=>"裏ドラ"}
+      ], result['yaku'])
+  end
+
+  def test_evaluate_yaku_when_child_mangan_point
+    # 111222萬 東
+    # 和了牌：東
+    hands = [
+      @tiles[0], @tiles[1], @tiles[2],
+      @tiles[4], @tiles[5], @tiles[6],
+      @tiles[108]
+    ]
+
+    # 555666萬
+    melds_list = [
+      {
+        type: 'pong',
+        tiles: [@tiles[16], @tiles[17], @tiles[18]]
+      },
+      {
+        type: 'pong',
+        tiles: [@tiles[20], @tiles[21], @tiles[22]]
+      }
+    ]
+    winning_tile = @tiles[109] # 東
+    round_wind = '1z' # 東のnumber+suit
+    player_wind = '2z'
+    is_tsumo = true
+    open_dora_indicators = [@tiles[110]] # 東がドラ表示牌
+    blind_dora_indicators = [@tiles[111]] # 東が裏ドラ表示牌
+    is_reach = false
+    honba = 0
+    result = @evaluator.evaluate_yaku(hands:, melds_list:, winning_tile:, round_wind:, player_wind:, is_tsumo:, open_dora_indicators:, is_reach:, blind_dora_indicators:, honba:)
+
+    assert_equal false, result['detail']['oya']
+    assert_equal '満貫', result['scoreType']
+    assert_equal 8_000, result['rawScore']
+    assert_equal 8_000, result['score']
+    assert_equal 2_000, result['pay']['ko']
+    assert_equal 4_000, result['pay']['oya']
+    assert_equal(
+      [
+        {"han"=>2, "name"=>"混一色"},
+        {"han"=>2, "name"=>"対々和"}
+      ], result['yaku'])
+  end
+
+  def test_has_yaku_without_yaku
+    # 役無し聴牌: 12379萬 333筒 456索 東東
+    hands = [
+      @tiles[0], @tiles[4], @tiles[8],
+      @tiles[24],@tiles[32],
+      @tiles[44], @tiles[45], @tiles[46],
+      @tiles[84], @tiles[88], @tiles[92],
+      @tiles[108], @tiles[109]
+    ]
+    melds_list = []
+    target_tile = @tiles[28] # 8萬
+    round_wind = '1z' # 東のnumber+suit
+    player_wind = '1z'
+    is_reach = false
+    result = @evaluator.has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_reach:)
+
+    assert_equal false, result
+  end
+
+  def test_has_yaku_with_yaku
+    # 役あり聴牌: 12379萬 33筒 456索 東東東
+    hands = [
+      @tiles[0], @tiles[4], @tiles[8],
+      @tiles[24],@tiles[32],
+      @tiles[44], @tiles[45],
+      @tiles[84], @tiles[88], @tiles[92],
+      @tiles[108], @tiles[109], @tiles[110]
+    ]
+    melds_list = []
+    target_tile = @tiles[28] # 8萬
+    round_wind = '1z' # 東のnumber+suit
+    player_wind = '1z'
+    is_reach = false
+    yaku = @evaluator.has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_reach:)
+
+    assert_equal(
+      [
+        {"han"=>1, "name"=>"自風牌"},
+        {"han"=>1, "name"=>"場風牌"}
+      ], yaku)
   end
 end

@@ -79,6 +79,7 @@ class TableTest < Test::Unit::TestCase
   def test_table_initialize_round_with_expected_count_and_name
     assert_equal(0, @table.round[:count])
     assert_equal('東一局', @table.round[:name])
+    assert_equal('1z', @table.round[:wind_code])
   end
 
   def test_table_initialize_honba_with_expected_count_and_name
@@ -90,22 +91,27 @@ class TableTest < Test::Unit::TestCase
     @table.advance_round
     assert_equal(1, @table.round[:count])
     assert_equal('東二局', @table.round[:name])
+    assert_equal('1z', @table.round[:wind_code])
 
     @table.advance_round
     assert_equal(2, @table.round[:count])
     assert_equal('東三局', @table.round[:name])
+    assert_equal('1z', @table.round[:wind_code])
 
     @table.advance_round
     assert_equal(3, @table.round[:count])
     assert_equal('東四局', @table.round[:name])
+    assert_equal('1z', @table.round[:wind_code])
 
     @table.advance_round
     assert_equal(4, @table.round[:count])
     assert_equal('南一局', @table.round[:name])
+    assert_equal('2z', @table.round[:wind_code])
 
     @table.reset
     assert_equal(0, @table.round[:count])
     assert_equal('東一局', @table.round[:name])
+    assert_equal('1z', @table.round[:wind_code])
   end
 
   def test_increase_honba_and_restart_honba_counter

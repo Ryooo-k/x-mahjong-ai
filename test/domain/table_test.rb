@@ -52,166 +52,207 @@ class TableTest < Test::Unit::TestCase
   end
 
   def test_table_initialize_game_mode_with_expected_name_and_end_round
-    assert_equal('東南戦', @table.game_mode[:name])
-    assert_equal(8, @table.game_mode[:end_round])
+    assert_equal '東南戦', @table.game_mode[:name]
+    assert_equal 8, @table.game_mode[:end_round]
   end
 
   def test_table_initialize_attendance_with_expected_number
-    assert_equal(4, @table.attendance)
+    assert_equal 4, @table.attendance
   end
 
   def test_red_dora_return_tile_names_and_ids
-    assert_equal(['5萬', '5筒', '5索'], @table.red_dora[:names])
-    assert_equal([19, 55, 91], @table.red_dora[:ids])
+    assert_equal ['5萬', '5筒', '5索'], @table.red_dora[:names]
+    assert_equal [19, 55, 91], @table.red_dora[:ids]
   end
 
   def test_table_initialize_tile_wall_with_expected_class
     tile_wall = TileWall.new
-    assert_instance_of(tile_wall.class, @table.tile_wall)
+    assert_instance_of tile_wall.class, @table.tile_wall
   end
 
   def test_table_initialize_players_with_expected_class_and_number
     player_class = Player.new(0, @config['player']['discard_agent'], @config['player']['call_agent']).class
     @table.players.each { |player| assert_instance_of(player_class, player) }
-    assert_equal(4, @table.players.size)
+    assert_equal 4, @table.players.size
   end
 
   def test_table_initialize_round_with_expected_count_and_name
-    assert_equal(0, @table.round[:count])
-    assert_equal('東一局', @table.round[:name])
-    assert_equal('1z', @table.round[:wind_code])
+    assert_equal 0, @table.round[:count]
+    assert_equal '東一局', @table.round[:name]
+    assert_equal '1z', @table.round[:wind]
   end
 
   def test_table_initialize_honba_with_expected_count_and_name
-    assert_equal(0, @table.honba[:count])
-    assert_equal('〇本場', @table.honba[:name])
+    assert_equal 0, @table.honba[:count]
+    assert_equal '〇本場', @table.honba[:name]
   end
 
-  def test_advance_round_and_restart_round_counter
-    @table.advance_round
-    assert_equal(1, @table.round[:count])
-    assert_equal('東二局', @table.round[:name])
-    assert_equal('1z', @table.round[:wind_code])
-
-    @table.advance_round
-    assert_equal(2, @table.round[:count])
-    assert_equal('東三局', @table.round[:name])
-    assert_equal('1z', @table.round[:wind_code])
-
-    @table.advance_round
-    assert_equal(3, @table.round[:count])
-    assert_equal('東四局', @table.round[:name])
-    assert_equal('1z', @table.round[:wind_code])
-
-    @table.advance_round
-    assert_equal(4, @table.round[:count])
-    assert_equal('南一局', @table.round[:name])
-    assert_equal('2z', @table.round[:wind_code])
+  def test_reset
+    @table.proceed_to_next_round
+    @table.proceed_with_renchan
+    @table.increase_draw_count
+    @table.increase_kong_count
+    old_seat_orders = @table.seat_orders.dup
 
     @table.reset
-    assert_equal(0, @table.round[:count])
-    assert_equal('東一局', @table.round[:name])
-    assert_equal('1z', @table.round[:wind_code])
+    assert_equal '東一局', @table.round[:name]
+    assert_equal '〇本場', @table.honba[:name]
+    assert_equal 0, @table.draw_count
+    assert_equal 0, @table.kong_count
+    assert_not_equal old_seat_orders, @table.seat_orders
+    assert_equal '1z', @table.host.wind
+    assert_equal '2z', @table.children[0].wind
+    assert_equal '3z', @table.children[1].wind
+    assert_equal '4z', @table.children[2].wind
   end
 
-  def test_increase_honba_and_restart_honba_counter
-    @table.increase_honba
-    assert_equal(1, @table.honba[:count])
-    assert_equal('一本場', @table.honba[:name])
+  def test_proceed_with_renchan
+    @table.increase_draw_count
+    @table.increase_kong_count
+    host = @table.host.dup
+    @table.proceed_with_renchan
+    assert_equal 0, @table.draw_count
+    assert_equal 0, @table.kong_count
+    assert_equal '東一局', @table.round[:name]
+    assert_equal 1, @table.honba[:count]
+    assert_equal '一本場', @table.honba[:name]
+    assert_equal host.id, @table.host.id
 
-    @table.increase_honba
-    assert_equal(2, @table.honba[:count])
-    assert_equal('二本場', @table.honba[:name])
-
-    @table.restart_honba_count
-    assert_equal(0, @table.honba[:count])
-    assert_equal('〇本場', @table.honba[:name])
+    @table.increase_draw_count
+    @table.increase_kong_count
+    @table.proceed_with_renchan
+    assert_equal 0, @table.draw_count
+    assert_equal 0, @table.kong_count
+    assert_equal '東一局', @table.round[:name]
+    assert_equal 2, @table.honba[:count]
+    assert_equal '二本場', @table.honba[:name]
+    assert_equal host.id, @table.host.id
   end
 
-  def test_host_rotate_every_four_rounds
-    assert_equal(@table.seat_orders[0], @table.host)
+  def test_proceed_to_next_round
+    @table.increase_draw_count
+    @table.increase_kong_count
+    @table.proceed_with_renchan
+    old_east_player = @table.host
+    old_south_player = @table.children[0]
+    old_west_player = @table.children[1]
+    old_north_player = @table.children[2]
+    @table.proceed_to_next_round
+    assert_equal 0, @table.draw_count
+    assert_equal 0, @table.kong_count
+    assert_equal 1, @table.round[:count]
+    assert_equal '東二局', @table.round[:name]
+    assert_equal '1z', @table.round[:wind]
+    assert_equal 0, @table.honba[:count]
+    assert_equal '〇本場', @table.honba[:name]
+    assert_equal '4z', old_east_player.wind
+    assert_equal '1z', old_south_player.wind
+    assert_equal '2z', old_west_player.wind
+    assert_equal '3z', old_north_player.wind
 
-    @table.advance_round
-    assert_equal(@table.seat_orders[1], @table.host)
+    @table.proceed_to_next_round
+    assert_equal 2, @table.round[:count]
+    assert_equal '東三局', @table.round[:name]
+    assert_equal '1z', @table.round[:wind]
+    assert_equal '3z', old_east_player.wind
+    assert_equal '4z', old_south_player.wind
+    assert_equal '1z', old_west_player.wind
+    assert_equal '2z', old_north_player.wind
 
-    @table.advance_round
-    assert_equal(@table.seat_orders[2], @table.host)
+    @table.proceed_to_next_round
+    assert_equal 3, @table.round[:count]
+    assert_equal '東四局', @table.round[:name]
+    assert_equal '1z', @table.round[:wind]
+    assert_equal 0, @table.honba[:count]
+    assert_equal '〇本場', @table.honba[:name]
+    assert_equal '2z', old_east_player.wind
+    assert_equal '3z', old_south_player.wind
+    assert_equal '4z', old_west_player.wind
+    assert_equal '1z', old_north_player.wind
 
-    @table.advance_round
-    assert_equal(@table.seat_orders[3], @table.host)
-
-    @table.advance_round
-    assert_equal(@table.seat_orders[0], @table.host)
+    @table.proceed_to_next_round
+    assert_equal 4, @table.round[:count]
+    assert_equal '南一局', @table.round[:name]
+    assert_equal '2z', @table.round[:wind]
+    assert_equal 0, @table.honba[:count]
+    assert_equal '〇本場', @table.honba[:name]
+    assert_equal '1z', old_east_player.wind
+    assert_equal '2z', old_south_player.wind
+    assert_equal '3z', old_west_player.wind
+    assert_equal '4z', old_north_player.wind
   end
 
   def test_wind_orders_return_players_in_east_to_north_order
-    assert_equal(@table.host, @table.wind_orders.first)
+    assert_equal @table.host, @table.wind_orders.first
 
-    @table.advance_round
-    assert_equal(@table.host, @table.wind_orders.first)
+    @table.proceed_to_next_round
+    assert_equal @table.host, @table.wind_orders.first
+  end
+
+  def test_host_rotate_every_four_rounds_when_proceed_to_next_round
+    assert_equal @table.host, @table.seat_orders[0]
+
+    @table.proceed_to_next_round
+    assert_equal @table.host, @table.seat_orders[1]
+
+    @table.proceed_to_next_round
+    assert_equal @table.host, @table.seat_orders[2]
+
+    @table.proceed_to_next_round
+    assert_equal @table.host, @table.seat_orders[3]
+
+    @table.proceed_to_next_round
+    assert_equal @table.host, @table.seat_orders[0]
   end
 
   def test_children_return_non_host
-    assert_not_include(@table.children, @table.host)
+    assert_not_include @table.children, @table.host
   end
 
   def test_top_tile_return_tile_at_current_draw_count_position
     draw_count = @table.draw_count
     top_tile = @table.tile_wall.live_walls[draw_count]
-    assert_equal(top_tile, @table.top_tile)
+    assert_equal top_tile, @table.top_tile
   end
 
   def test_remaining_tile_count
     expected = @table.tile_wall.live_walls.size
-    assert_equal(expected, @table.remaining_tile_count)
+    assert_equal expected, @table.remaining_tile_count
   end
 
   def test_open_dora_tile_return_expected_dora_tile
     open_dora_indicators = @table.tile_wall.open_dora_indicators
     dora_names = open_dora_indicators.map { |indicator| DORA_CHECKERS[indicator.name] }
-    assert_equal(dora_names[0], @table.open_dora_tiles.first.name)
+    assert_equal dora_names[0], @table.open_dora_tiles.first.name
 
     @table.increase_kong_count
-    assert_equal(dora_names[1], @table.open_dora_tiles.last.name)
+    assert_equal dora_names[1], @table.open_dora_tiles.last.name
 
     @table.increase_kong_count
-    assert_equal(dora_names[2], @table.open_dora_tiles.last.name)
+    assert_equal dora_names[2], @table.open_dora_tiles.last.name
 
     @table.increase_kong_count
-    assert_equal(dora_names[3], @table.open_dora_tiles.last.name)
+    assert_equal dora_names[3], @table.open_dora_tiles.last.name
 
     @table.increase_kong_count
-    assert_equal(dora_names[4], @table.open_dora_tiles.last.name)
+    assert_equal dora_names[4], @table.open_dora_tiles.last.name
   end
 
   def test_blind_dora_tile_return_expected_dora_tile
     blind_dora_indicators = @table.tile_wall.blind_dora_indicators
     dora_names = blind_dora_indicators.map { |indicator| DORA_CHECKERS[indicator.name] }
-    assert_equal(dora_names[0], @table.blind_dora_tiles.first.name)
+    assert_equal dora_names[0], @table.blind_dora_tiles.first.name
 
     @table.increase_kong_count
-    assert_equal(dora_names[1], @table.blind_dora_tiles.last.name)
+    assert_equal dora_names[1], @table.blind_dora_tiles.last.name
 
     @table.increase_kong_count
-    assert_equal(dora_names[2], @table.blind_dora_tiles.last.name)
+    assert_equal dora_names[2], @table.blind_dora_tiles.last.name
 
     @table.increase_kong_count
-    assert_equal(dora_names[3], @table.blind_dora_tiles.last.name)
+    assert_equal dora_names[3], @table.blind_dora_tiles.last.name
 
     @table.increase_kong_count
-    assert_equal(dora_names[4], @table.blind_dora_tiles.last.name)
-  end
-
-  def test_reset
-    @table.advance_round
-    @table.increase_honba
-    old_host = @table.host.dup
-    @table.reset
-    assert_not_equal(old_host, @table.host)
-    assert_equal(0, @table.round[:count])
-    assert_equal('東一局', @table.round[:name])
-    assert_equal(0, @table.honba[:count])
-    assert_equal('〇本場', @table.honba[:name])
-    assert_equal(0, @table.draw_count)
+    assert_equal dora_names[4], @table.blind_dora_tiles.last.name
   end
 end

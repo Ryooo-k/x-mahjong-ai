@@ -56,10 +56,26 @@ class Table
     self
   end
 
+  def proceed_with_renchan
+    @tile_wall.reset
+    @draw_count = 0
+    @kong_count = 0
+    @honba_count += 1
+  end
+
+  def proceed_to_next_round
+    @tile_wall.reset
+    @draw_count = 0
+    @kong_count = 0
+    @round_count += 1
+    @honba_count = 0
+    set_player_wind
+  end
+
   def round
     name = ROUNDS[@round_count][:name]
-    wind_code = ROUNDS[@round_count][:code]
-    { count: @round_count, name:, wind_code: }
+    wind = ROUNDS[@round_count][:code]
+    { count: @round_count, name:, wind: }
   end
 
   def honba
@@ -68,24 +84,12 @@ class Table
     { count: @honba_count, name: }
   end
 
-  def advance_round
-    @round_count += 1
-  end
-
-  def increase_honba
-    @honba_count += 1
-  end
-
   def increase_draw_count
     @draw_count += 1
   end
 
   def increase_kong_count
     @kong_count += 1
-  end
-
-  def restart_honba_count
-    @honba_count = 0
   end
 
   def wind_orders
@@ -126,7 +130,8 @@ class Table
     @draw_count = 0
     @kong_count = 0
     @round_count = 0
-    restart_honba_count
+    @honba_count = 0
+    set_player_wind
   end
 
   def fetch_dora_tiles(indicators)
@@ -135,5 +140,9 @@ class Table
       dora_code = SPECIAL_DORA_RULES.fetch(indicator.code, indicator.code + 1)
       @tile_wall.tiles.select { |tile| tile.code == dora_code }
     end.flatten
+  end
+
+  def set_player_wind
+    wind_orders.each_with_index { |player, i| player.wind = "#{i + 1}z" }
   end
 end

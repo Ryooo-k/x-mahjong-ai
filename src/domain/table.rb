@@ -58,8 +58,8 @@ class Table
 
   def round
     name = ROUNDS[@round_count][:name]
-    code = ROUNDS[@round_count][:code]
-    { count: @round_count, name:, code: }
+    wind_code = ROUNDS[@round_count][:code]
+    { count: @round_count, name:, wind_code: }
   end
 
   def honba

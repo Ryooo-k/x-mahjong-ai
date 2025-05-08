@@ -31,68 +31,6 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal nil, @player.wind
   end
 
-  def test_reset
-    @player.instance_variable_set(:@score, 33_000)
-    @player.instance_variable_set(:@point_histories, [8_000])
-    @player.instance_variable_set(:@hands, [@manzu_1])
-    @player.instance_variable_set(:@hand_histories, [@manzu_1])
-    @player.instance_variable_set(:@melds_list, [[@manzu_1]])
-    @player.instance_variable_set(:@rivers, @manzu_1)
-    @player.instance_variable_set(:@shanten_histories, [3, 2, 1, 0])
-    @player.instance_variable_set(:@outs_histories, [13, 7, 4, 0])
-    @player.instance_variable_set(:@is_menzen, false)
-    @player.instance_variable_set(:@is_reach, true)
-    @player.instance_variable_set(:@wind, '1z')
-    @player.agent.instance_variable_set(:@total_discard_loss, 100)
-    @player.agent.instance_variable_set(:@total_call_loss, 100)
-
-    @player.reset
-    assert_equal 25_000, @player.score
-    assert_equal [], @player.point_histories
-    assert_equal [], @player.hands
-    assert_equal [], @player.hand_histories
-    assert_equal [], @player.melds_list
-    assert_equal [], @player.rivers
-    assert_equal [], @player.shanten_histories
-    assert_equal [], @player.outs_histories
-    assert_equal true, @player.menzen?
-    assert_equal false, @player.reach?
-    assert_equal nil, @player.wind
-    assert_equal 0, @player.agent.total_discard_loss
-    assert_equal 0, @player.agent.total_call_loss
-  end
-
-  def test_restart
-    @player.instance_variable_set(:@score, 33_000)
-    @player.instance_variable_set(:@point_histories, [8_000])
-    @player.instance_variable_set(:@hands, [@manzu_1])
-    @player.instance_variable_set(:@hand_histories, [@manzu_1])
-    @player.instance_variable_set(:@melds_list, [[@manzu_1]])
-    @player.instance_variable_set(:@rivers, @manzu_1)
-    @player.instance_variable_set(:@shanten_histories, [3, 2, 1, 0])
-    @player.instance_variable_set(:@outs_histories, [13, 7, 4, 0])
-    @player.instance_variable_set(:@is_menzen, false)
-    @player.instance_variable_set(:@is_reach, true)
-    @player.instance_variable_set(:@wind, '1z')
-    @player.agent.instance_variable_set(:@total_discard_loss, 100)
-    @player.agent.instance_variable_set(:@total_call_loss, 100)
-
-    @player.restart
-    assert_equal 33_000, @player.score
-    assert_equal [8_000], @player.point_histories
-    assert_equal [], @player.hands
-    assert_equal [], @player.hand_histories
-    assert_equal [], @player.melds_list
-    assert_equal [], @player.rivers
-    assert_equal [], @player.shanten_histories
-    assert_equal [], @player.outs_histories
-    assert_equal true, @player.menzen?
-    assert_equal false, @player.reach?
-    assert_equal nil, @player.wind
-    assert_equal 100, @player.agent.total_discard_loss
-    assert_equal 100, @player.agent.total_call_loss
-  end
-
   def test_can_write_player_wind
     @player.wind = '1z'
     assert_equal '1z', @player.wind
@@ -387,5 +325,67 @@ class PlayerTest < Test::Unit::TestCase
   def test_can_not_call_extended_kong_when_no_existing_pong
     error = assert_raise(ArgumentError) { @player.extended_kong(@manzu_1) }
     assert_equal('有効な牌が無いため加カンできません。', error.message)
+  end
+
+  def test_restart
+    @player.instance_variable_set(:@score, 33_000)
+    @player.instance_variable_set(:@point_histories, [8_000])
+    @player.instance_variable_set(:@hands, [@manzu_1])
+    @player.instance_variable_set(:@hand_histories, [@manzu_1])
+    @player.instance_variable_set(:@melds_list, [[@manzu_1]])
+    @player.instance_variable_set(:@rivers, @manzu_1)
+    @player.instance_variable_set(:@shanten_histories, [3, 2, 1, 0])
+    @player.instance_variable_set(:@outs_histories, [13, 7, 4, 0])
+    @player.instance_variable_set(:@is_menzen, false)
+    @player.instance_variable_set(:@is_reach, true)
+    @player.instance_variable_set(:@wind, '1z')
+    @player.agent.instance_variable_set(:@total_discard_loss, 100)
+    @player.agent.instance_variable_set(:@total_call_loss, 100)
+
+    @player.restart
+    assert_equal 33_000, @player.score
+    assert_equal [8_000], @player.point_histories
+    assert_equal [], @player.hands
+    assert_equal [], @player.hand_histories
+    assert_equal [], @player.melds_list
+    assert_equal [], @player.rivers
+    assert_equal [], @player.shanten_histories
+    assert_equal [], @player.outs_histories
+    assert_equal true, @player.menzen?
+    assert_equal false, @player.reach?
+    assert_equal nil, @player.wind
+    assert_equal 100, @player.agent.total_discard_loss
+    assert_equal 100, @player.agent.total_call_loss
+  end
+
+  def test_reset
+    @player.instance_variable_set(:@score, 33_000)
+    @player.instance_variable_set(:@point_histories, [8_000])
+    @player.instance_variable_set(:@hands, [@manzu_1])
+    @player.instance_variable_set(:@hand_histories, [@manzu_1])
+    @player.instance_variable_set(:@melds_list, [[@manzu_1]])
+    @player.instance_variable_set(:@rivers, @manzu_1)
+    @player.instance_variable_set(:@shanten_histories, [3, 2, 1, 0])
+    @player.instance_variable_set(:@outs_histories, [13, 7, 4, 0])
+    @player.instance_variable_set(:@is_menzen, false)
+    @player.instance_variable_set(:@is_reach, true)
+    @player.instance_variable_set(:@wind, '1z')
+    @player.agent.instance_variable_set(:@total_discard_loss, 100)
+    @player.agent.instance_variable_set(:@total_call_loss, 100)
+
+    @player.reset
+    assert_equal 25_000, @player.score
+    assert_equal [], @player.point_histories
+    assert_equal [], @player.hands
+    assert_equal [], @player.hand_histories
+    assert_equal [], @player.melds_list
+    assert_equal [], @player.rivers
+    assert_equal [], @player.shanten_histories
+    assert_equal [], @player.outs_histories
+    assert_equal true, @player.menzen?
+    assert_equal false, @player.reach?
+    assert_equal nil, @player.wind
+    assert_equal 0, @player.agent.total_discard_loss
+    assert_equal 0, @player.agent.total_call_loss
   end
 end

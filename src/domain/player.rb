@@ -13,19 +13,8 @@ class Player
   def initialize(id, discard_agent_config, call_agent_config)
     @id = id
     @agent = AgentManager.new(discard_agent_config, call_agent_config)
-    @ron_cache = {}
-    reset
-  end
-
-  def reset
     @score = 25_000
     @point_histories = []
-    @agent.reset
-    restart
-    self
-  end
-
-  def restart
     @hands = []
     @hand_histories = []
     @melds_list = []
@@ -35,6 +24,7 @@ class Player
     @is_menzen = true
     @is_reach = false
     @wind = nil
+    @ron_cache = {}
   end
 
   def menzen?
@@ -150,6 +140,26 @@ class Player
       called_tiles << target_tile if called_codes.uniq.size == 1 && called_codes.first == target_tile.code
     end
     @is_menzen = false
+  end
+
+  def restart
+    @hands = []
+    @hand_histories = []
+    @melds_list = []
+    @rivers = []
+    @shanten_histories = []
+    @outs_histories = []
+    @is_menzen = true
+    @is_reach = false
+    @wind = nil
+  end
+
+  def reset
+    @score = 25_000
+    @point_histories = []
+    @agent.reset
+    restart
+    self
   end
 
   private

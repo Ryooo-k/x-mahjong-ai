@@ -15,24 +15,28 @@ def run_training_loop(train_config, env)
   total_time = 0
   train_config['count'].times do |count|
     time_taken = Benchmark.realtime do |_|
-      done = false
-      env.reset
+      game_over = false
+      round_over = false
       time = 0
 
-      while not done
-        current_player = env.current_player
-        env.player_draw
-        states = env.states
-        action = current_player.get_discard_action(states)
-        next_states, reward, done, discarded_tile = env.step(action)
-        current_player.update_discard_agent(states, action, reward, next_states, done)
-        env.rotate_turn
+      while not game_over
+        while not round_over
+          env.player_draw
+          action = env.get_discard_action
+          env.step(action)
+          env.update_agent
+          env.rotate_turn if !env.round_over
+        end
+        game_over = env.game_over
+        !game_over && env.renchan? ? env.restart : env.proceed_to_next_round
+        round_over = env.round_over
       end
 
       env.sync_qnet_for_all_players if count % train_config['qnet_sync_interval'] == 0
     end
     total_time += time_taken
     output(total_time, count, env.log) if count == 10 || (count % 100 == 0 && count != 0) || env.table.draw_count != 122
+    env.reset
   end
 end
 

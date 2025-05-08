@@ -4,7 +4,8 @@ require_relative '../agent/agent_manager'
 require_relative 'logic/hand_evaluator'
 
 class Player
-  attr_reader :id, :hands, :score, :point_histories, :hand_histories, :rivers, :is_menzen, :agent, :shanten_histories, :outs_histories
+  attr_reader :id, :hands, :score, :point_histories, :hand_histories, :melds_list, :rivers, :is_menzen, :agent, :shanten_histories, :outs_histories
+  attr_accessor :wind
 
   HandEvaluator = Domain::Logic::HandEvaluator
   MAX_CALL_COUNT = 4
@@ -12,6 +13,7 @@ class Player
   def initialize(id, discard_agent_config, call_agent_config)
     @id = id
     @agent = AgentManager.new(discard_agent_config, call_agent_config)
+    @ron_cache = {}
     reset
   end
 
@@ -26,23 +28,29 @@ class Player
   def restart
     @hands = []
     @hand_histories = []
-    @called_tile_table = []
+    @melds_list = []
     @rivers = []
     @shanten_histories = []
     @outs_histories = []
     @is_menzen = true
+    @is_reach = false
+    @wind = nil
+  end
+
+  def menzen?
+    @is_menzen
+  end
+
+  def reach?
+    @is_reach
+  end
+
+  def reach
+    @is_reach = true
   end
 
   def sorted_hands
     @hands.sort_by(&:id)
-  end
-
-  def called_tile_table
-    tile_table = Array.new(MAX_CALL_COUNT) { [] }
-    @called_tile_table.each_with_index do |tiles, order|
-      tile_table[order] = tiles
-    end
-    tile_table
   end
 
   def add_point(point)
@@ -72,6 +80,21 @@ class Player
     HandEvaluator.agari?(@hands)
   end
 
+  def tenpai?
+    HandEvaluator.tenpai?(@hands)
+  end
+
+  def can_ron?(tile, round_wind)
+    return false if !tenpai?
+    test_hands = sorted_hands + [tile]
+    cache_code =  test_hands.map(&:code).join
+    return @ron_cache[cache_code] if @ron_cache.key?(cache_code)
+
+    result = HandEvaluator.has_yaku?(hands: @hands, melds_list: @melds_list, target_tile: tile, round_wind:, player_wind: @wind, is_reach: @is_reach)
+    @ron_cache[cache_code] = result
+    result
+  end
+
   def choose(index)
     sorted_hands[index]
   end
@@ -84,6 +107,14 @@ class Player
     @agent.update_discard_agent(states, action, reward, next_states, done)
   end
 
+  def get_ron_action(states)
+    @agent.get_ron_action(states)
+  end
+
+  def update_ron_agent(states, action, reward, next_states, done)
+    @agent.update_ron_agent(states, action, reward, next_states, done)
+  end
+
   def sync_qnet
     @agent.sync_qnet
   end
@@ -91,11 +122,13 @@ class Player
   def pong(combinations, target_tile)
     raise ArgumentError, '有効な牌が無いためポンできません。' unless can_call_pong?(target_tile)
     preform_call(combinations, target_tile:)
+    @is_menzen = false
   end
 
   def chow(combinations, target_tile)
     raise ArgumentError, '有効な牌が無いためチーできません。' unless can_call_chow?(target_tile)
     preform_call(combinations, target_tile:)
+    @is_menzen = false
   end
 
   def concealed_kong(combinations)
@@ -106,15 +139,17 @@ class Player
   def open_kong(combinations, target_tile)
     raise ArgumentError, '有効な牌が無いため大明カンできません。' unless can_call_open_kong?(target_tile)
     preform_call(combinations, target_tile:)
+    @is_menzen = false
   end
 
   def extended_kong(target_tile)
     raise ArgumentError, '有効な牌が無いため加カンできません。' unless can_call_extended_kong?(target_tile)
 
-    @called_tile_table.each do |called_tiles|
+    @melds_list.each do |called_tiles|
       called_codes = called_tiles.map(&:code)
       called_tiles << target_tile if called_codes.uniq.size == 1 && called_codes.first == target_tile.code
     end
+    @is_menzen = false
   end
 
   private
@@ -163,7 +198,7 @@ class Player
   end
 
   def can_call_extended_kong?(target)
-    pong_code_table = @called_tile_table.map do |called_tiles|
+    pong_code_table = @melds_list.map do |called_tiles|
       called_codes = called_tiles.map(&:code)
       called_codes.uniq.size == 1 ? called_codes : next
     end
@@ -176,7 +211,7 @@ class Player
     target_tile.holder = self if target_tile
     called_tiles << target_tile if target_tile
 
-    @called_tile_table << called_tiles
+    @melds_list << called_tiles
     called_tiles.each { |tile| @hands.delete(tile) }
     @hand_histories << @hands.dup
   end

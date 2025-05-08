@@ -15,12 +15,116 @@ class PlayerTest < Test::Unit::TestCase
   end
 
   def test_player_initialization
-    assert_equal(25_000, @player.score)
-    assert_equal([], @player.point_histories)
-    assert_equal([], @player.hands)
-    assert_equal([], @player.hand_histories)
-    assert_equal([[], [], [], []], @player.called_tile_table)
-    assert_equal([], @player.rivers)
+    old_agent = @player.agent.dup
+
+    assert_equal 25_000, @player.score
+    assert_not_equal old_agent, @player.agent
+    assert_equal [], @player.point_histories
+    assert_equal [], @player.hands
+    assert_equal [], @player.hand_histories
+    assert_equal [], @player.melds_list
+    assert_equal [], @player.rivers
+    assert_equal [], @player.shanten_histories
+    assert_equal [], @player.outs_histories
+    assert_equal true, @player.menzen?
+    assert_equal false, @player.reach?
+    assert_equal nil, @player.wind
+  end
+
+  def test_reset
+    @player.instance_variable_set(:@score, 33_000)
+    @player.instance_variable_set(:@point_histories, [8_000])
+    @player.instance_variable_set(:@hands, [@manzu_1])
+    @player.instance_variable_set(:@hand_histories, [@manzu_1])
+    @player.instance_variable_set(:@melds_list, [[@manzu_1]])
+    @player.instance_variable_set(:@rivers, @manzu_1)
+    @player.instance_variable_set(:@shanten_histories, [3, 2, 1, 0])
+    @player.instance_variable_set(:@outs_histories, [13, 7, 4, 0])
+    @player.instance_variable_set(:@is_menzen, false)
+    @player.instance_variable_set(:@is_reach, true)
+    @player.instance_variable_set(:@wind, '1z')
+    @player.agent.instance_variable_set(:@total_discard_loss, 100)
+    @player.agent.instance_variable_set(:@total_call_loss, 100)
+
+    @player.reset
+    assert_equal 25_000, @player.score
+    assert_equal [], @player.point_histories
+    assert_equal [], @player.hands
+    assert_equal [], @player.hand_histories
+    assert_equal [], @player.melds_list
+    assert_equal [], @player.rivers
+    assert_equal [], @player.shanten_histories
+    assert_equal [], @player.outs_histories
+    assert_equal true, @player.menzen?
+    assert_equal false, @player.reach?
+    assert_equal nil, @player.wind
+    assert_equal 0, @player.agent.total_discard_loss
+    assert_equal 0, @player.agent.total_call_loss
+  end
+
+  def test_restart
+    @player.instance_variable_set(:@score, 33_000)
+    @player.instance_variable_set(:@point_histories, [8_000])
+    @player.instance_variable_set(:@hands, [@manzu_1])
+    @player.instance_variable_set(:@hand_histories, [@manzu_1])
+    @player.instance_variable_set(:@melds_list, [[@manzu_1]])
+    @player.instance_variable_set(:@rivers, @manzu_1)
+    @player.instance_variable_set(:@shanten_histories, [3, 2, 1, 0])
+    @player.instance_variable_set(:@outs_histories, [13, 7, 4, 0])
+    @player.instance_variable_set(:@is_menzen, false)
+    @player.instance_variable_set(:@is_reach, true)
+    @player.instance_variable_set(:@wind, '1z')
+    @player.agent.instance_variable_set(:@total_discard_loss, 100)
+    @player.agent.instance_variable_set(:@total_call_loss, 100)
+
+    @player.restart
+    assert_equal 33_000, @player.score
+    assert_equal [8_000], @player.point_histories
+    assert_equal [], @player.hands
+    assert_equal [], @player.hand_histories
+    assert_equal [], @player.melds_list
+    assert_equal [], @player.rivers
+    assert_equal [], @player.shanten_histories
+    assert_equal [], @player.outs_histories
+    assert_equal true, @player.menzen?
+    assert_equal false, @player.reach?
+    assert_equal nil, @player.wind
+    assert_equal 100, @player.agent.total_discard_loss
+    assert_equal 100, @player.agent.total_call_loss
+  end
+
+  def test_can_write_player_wind
+    @player.wind = '1z'
+    assert_equal '1z', @player.wind
+  end
+
+  def test_reach
+    assert_equal false, @player.reach?
+    @player.reach
+    assert_equal true, @player.reach?
+  end
+
+  def test_sorted_hands_return_hands_sorted_by_id
+    manzu_1 = @tiles[0]
+    manzu_2 = @tiles[4]
+    east = @tiles[108]
+    @player.draw(east)
+    @player.draw(manzu_2)
+    @player.draw(manzu_1)
+    assert_equal [east, manzu_2, manzu_1], @player.hands
+    assert_equal [manzu_1, manzu_2, east], @player.sorted_hands
+  end
+
+  def test_score_increase_with_added_point
+    assert_equal 25_000, @player.score
+  
+    @player.add_point(8_000)
+    assert_equal 33_000, @player.score
+    assert_equal [8_000], @player.point_histories
+  
+    @player.add_point(-12_000)
+    assert_equal 21_000, @player.score
+    assert_equal [8_000, -12_000], @player.point_histories
   end
 
   def test_add_tile_to_hands_when_player_drew
@@ -38,30 +142,32 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal @player, @manzu_1.holder
   end
 
-  def test_sorted_hands_return_hands_sorted_by_id
+  def test_remove_tile_from_hand_when_player_discarded
     manzu_2 = @tiles[4]
-    east = @tiles[108]
-    @player.draw(east)
-    @player.draw(manzu_2)
     @player.draw(@manzu_1)
-    assert_equal [east, manzu_2, @manzu_1], @player.hands
-    assert_equal [@manzu_1, manzu_2, east], @player.sorted_hands
+    @player.draw(manzu_2)
+    assert_equal [@manzu_1, manzu_2], @player.hands
+
+    @player.discard(@manzu_1)
+    assert_equal [manzu_2], @player.hands
   end
 
-  def test_score_increase_with_added_point
-    assert_equal 25_000, @player.score
-  
-    @player.add_point(8_000)
-    assert_equal 33_000, @player.score
-    assert_equal [8_000], @player.point_histories
-  
-    @player.add_point(-12_000)
-    assert_equal 21_000, @player.score
-    assert_equal [8_000, -12_000], @player.point_histories
+  def test_add_tile_from_river_when_player_discarded
+    assert_equal [], @player.rivers
+    @player.draw(@manzu_1)
+    @player.discard(@manzu_1)
+    assert_equal [@manzu_1], @player.rivers
+  end
+
+  def test_can_not_discard_when_tile_not_in_hand
+    error = assert_raise(ArgumentError) { @player.discard(@manzu_1) }
+    assert_equal '手牌に無い牌は選択できません。', error.message
   end
 
   def test_record_hand_status
-    # 123456789萬 123筒　東 
+    # 123456789萬 123筒　東
+    # 向聴数：0
+    # 有効牌数：3
     tiles = [
       @tiles[0], @tiles[4], @tiles[8], 
       @tiles[12], @tiles[16], @tiles[20],
@@ -78,10 +184,10 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal [3], @player.outs_histories
   end
 
-  def test_agari
+  def test_agari?
     # 123456789萬 123筒　東東
     tiles = [
-      @tiles[0], @tiles[4], @tiles[8], 
+      @tiles[0], @tiles[4], @tiles[8],
       @tiles[12], @tiles[16], @tiles[20],
       @tiles[24], @tiles[28], @tiles[32],
       @tiles[36], @tiles[40], @tiles[44],
@@ -91,6 +197,44 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal false, @player.agari?
     tiles.each { |tile| @player.draw(tile)}
     assert_equal true, @player.agari?
+  end
+
+  def test_tenpai?
+    # 123456789萬 123筒　東
+    tiles = [
+      @tiles[0], @tiles[4], @tiles[8],
+      @tiles[12], @tiles[16], @tiles[20],
+      @tiles[24], @tiles[28], @tiles[32],
+      @tiles[36], @tiles[40], @tiles[44],
+      @tiles[108]
+    ]
+
+    assert_equal false, @player.tenpai?
+    tiles.each { |tile| @player.draw(tile)}
+    assert_equal true, @player.tenpai?
+  end
+
+  def test_can_ron?
+    # 123456789萬 123筒 東
+    # 待ち牌：東
+    tiles = [
+      @tiles[0], @tiles[4], @tiles[8],
+      @tiles[12], @tiles[16], @tiles[20],
+      @tiles[24], @tiles[28], @tiles[32],
+      @tiles[36], @tiles[40], @tiles[44],
+      @tiles[108]
+    ]
+    tiles.each { |tile| @player.draw(tile)}
+    
+    @player.wind = '1z'
+    round_wind = '1z'
+    haku = @tiles[124]
+    assert_equal false, @player.can_ron?(haku, round_wind)
+
+    east = @tiles[109]
+    result = @player.can_ron?(east, round_wind)
+    assert_equal true, !result.empty?
+    assert_equal [{"han"=>2, "name"=>"一気通貫"}], result
   end
 
   def test_choose
@@ -106,29 +250,7 @@ class PlayerTest < Test::Unit::TestCase
     tiles.each { |tile| @player.draw(tile)}
     index = 0
     target = @player.choose(index)
-    assert_equal @tiles[0], target
-  end
-
-  def test_remove_tile_from_hand_when_player_discarded
-    manzu_2 = @tiles[4]
-    @player.draw(@manzu_1)
-    @player.draw(manzu_2)
-    assert_equal [@manzu_1, manzu_2], @player.hands
-
-    @player.discard(@manzu_1)
-    assert_equal [manzu_2], @player.hands
-  end
-
-  def test_add_tile_from_river_when_player_discarded_tile
-    assert_equal [], @player.rivers
-    @player.draw(@manzu_1)
-    @player.discard(@manzu_1)
-    assert_equal [@manzu_1], @player.rivers
-  end
-
-  def test_can_not_discard_when_tile_not_in_hand
-    error = assert_raise(ArgumentError) { @player.discard(@manzu_1) }
-    assert_equal '手牌に無い牌は選択できません。', error.message
+    assert_equal @tiles[index], target
   end
 
   def test_tile_holder_change_to_pong_player
@@ -161,7 +283,7 @@ class PlayerTest < Test::Unit::TestCase
     @player.hands.each { |tile| assert_not_include(called_tiles, tile) }
   end
 
-  def test_called_tile_table_add_target_tiles_when_player_called_pong
+  def test_melds_list_add_target_tiles_when_player_called_pong
     manzu_3_id8 = @tiles[8]
     manzu_3_id9 = @tiles[9]
     manzu_3_id10 = @tiles[10]
@@ -172,7 +294,7 @@ class PlayerTest < Test::Unit::TestCase
     @player.pong(combinations, manzu_3_id8)
 
     called_tiles = combinations << manzu_3_id8
-    assert_equal [called_tiles, [], [], []], @player.called_tile_table
+    assert_equal [called_tiles], @player.melds_list
   end
 
   def test_can_not_call_pong_when_combinations_not_in_hand
@@ -210,7 +332,7 @@ class PlayerTest < Test::Unit::TestCase
     @player.hands.each { |tile| assert_not_include(combinations, tile) }
   end
 
-  def test_called_tile_table_add_target_tiles_when_player_called_concealed_kong
+  def test_melds_list_add_target_tiles_when_player_called_concealed_kong
     manzu_3_id8 = @tiles[8]
     manzu_3_id9 = @tiles[9]
     manzu_3_id10 = @tiles[10]
@@ -223,7 +345,7 @@ class PlayerTest < Test::Unit::TestCase
     @player.draw(@manzu_1)
     combinations = [manzu_3_id8, manzu_3_id9, manzu_3_id10, manzu_3_id11]
     @player.concealed_kong(combinations)
-    assert_equal [combinations, [], [], []], @player.called_tile_table
+    assert_equal [combinations], @player.melds_list
   end
 
   def test_can_not_call_concealed_kong_when_combinations_not_in_hand
@@ -247,7 +369,7 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal '有効な牌が無いため大明カンできません。', error.message
   end
 
-  def test_called_tile_table_add_target_tile_when_player_called_extended_kong
+  def test_melds_list_add_target_tile_when_player_called_extended_kong
     manzu_3_id8 = @tiles[8]
     manzu_3_id9 = @tiles[9]
     manzu_3_id10 = @tiles[10]
@@ -259,33 +381,11 @@ class PlayerTest < Test::Unit::TestCase
     @player.pong(combinations, manzu_3_id10)
     @player.extended_kong(manzu_3_id11)
 
-    assert_equal [[manzu_3_id8, manzu_3_id9, manzu_3_id10, manzu_3_id11], [], [], []], @player.called_tile_table
+    assert_equal [[manzu_3_id8, manzu_3_id9, manzu_3_id10, manzu_3_id11]], @player.melds_list
   end
 
   def test_can_not_call_extended_kong_when_no_existing_pong
     error = assert_raise(ArgumentError) { @player.extended_kong(@manzu_1) }
     assert_equal('有効な牌が無いため加カンできません。', error.message)
-  end
-
-  def test_reset
-    manzu_2 = @tiles[4]
-    manzu_3 = @tiles[8]
-    east = @tiles[108]
-
-    @player.draw(@manzu_1)
-    @player.draw(manzu_2)
-    @player.draw(east)
-    @player.record_hand_status
-    @player.discard(east)
-    @player.add_point(8_000)
-    @player.chow([@manzu_1, manzu_2], manzu_3)
-
-    @player.reset
-    assert_equal(25_000, @player.score)
-    assert_equal([], @player.point_histories)
-    assert_equal([], @player.hands)
-    assert_equal([], @player.hand_histories)
-    assert_equal([[], [], [], []], @player.called_tile_table)
-    assert_equal([], @player.rivers)
   end
 end

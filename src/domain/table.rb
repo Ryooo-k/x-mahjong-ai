@@ -46,30 +46,11 @@ class Table
     @red_dora = RED_DORA_MODES[table_config['red_dora_mode_id']]
     @tile_wall = TileWall.new
     @players = Array.new(attendance) { |id| Player.new(id, player_config['discard_agent'], player_config['call_agent']) }
-    reset_game_state
-  end
-
-  def reset
-    @tile_wall.reset
-    @players.each(&:reset)
-    reset_game_state
-    self
-  end
-
-  def proceed_with_renchan
-    @tile_wall.reset
+    @seat_orders = @players.shuffle
     @draw_count = 0
     @kong_count = 0
-    @honba_count += 1
-  end
-
-  def proceed_to_next_round
-    @tile_wall.reset
-    @draw_count = 0
-    @kong_count = 0
-    @round_count += 1
+    @round_count = 0
     @honba_count = 0
-    set_player_wind
   end
 
   def round
@@ -123,15 +104,32 @@ class Table
     fetch_dora_tiles(blind_dora_indicators)
   end
 
-  private
+  def restart
+    prepare_table
+    @honba_count += 1
+  end
 
-  def reset_game_state
-    @seat_orders = @players.shuffle
-    @draw_count = 0
-    @kong_count = 0
+  def proceed_to_next_round
+    prepare_table
+    @round_count += 1
+    @honba_count = 0
+  end
+
+  def reset
+    prepare_table
     @round_count = 0
     @honba_count = 0
-    set_player_wind
+    @players.each(&:reset)
+    @seat_orders = @players.shuffle
+  end
+
+  private
+
+  def prepare_table
+    @tile_wall.reset
+    @players.each(&:restart)
+    @draw_count = 0
+    @kong_count = 0
   end
 
   def fetch_dora_tiles(indicators)
@@ -140,9 +138,5 @@ class Table
       dora_code = SPECIAL_DORA_RULES.fetch(indicator.code, indicator.code + 1)
       @tile_wall.tiles.select { |tile| tile.code == dora_code }
     end.flatten
-  end
-
-  def set_player_wind
-    wind_orders.each_with_index { |player, i| player.wind = "#{i + 1}z" }
   end
 end

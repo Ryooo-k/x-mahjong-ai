@@ -53,14 +53,14 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal [manzu_1, manzu_2, east], @player.sorted_hands
   end
 
-  def test_score_increase_with_added_point
+  def test_award_point
     assert_equal 25_000, @player.score
   
-    @player.add_point(8_000)
+    @player.award_point(8_000)
     assert_equal 33_000, @player.score
     assert_equal [8_000], @player.point_histories
   
-    @player.add_point(-12_000)
+    @player.award_point(-12_000)
     assert_equal 21_000, @player.score
     assert_equal [8_000, -12_000], @player.point_histories
   end

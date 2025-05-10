@@ -43,7 +43,7 @@ class Player
     @hands.sort_by(&:id)
   end
 
-  def add_point(point)
+  def award_point(point)
     @score += point
     @point_histories << point
   end

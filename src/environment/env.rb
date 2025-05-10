@@ -2,6 +2,7 @@
 
 require 'json'
 require_relative 'state_builder'
+require_relative 'reward_calculator'
 require_relative '../domain/table'
 require_relative '../util/formatter'
 
@@ -11,6 +12,7 @@ class Env
 
   Formatter = Util::Formatter
   STARTING_HAND_COUNT = 13
+  RON_ACTION = 0
 
   def initialize(table_config, player_config)
     @table = Table.new(table_config, player_config)
@@ -33,14 +35,14 @@ class Env
   end
 
   def step(discard_action)
-    return handle_agari if @current_player.agari?
+    return handle_tsumo_agari if @current_player.agari?
 
     target_tile = @current_player.choose(discard_action)
     @current_player.discard(target_tile)
     @current_player.record_hand_status
 
-    ron_action = get_ron_action(target_tile)
-    return handle_ron(target_tile) if ron_action
+    ron_action, ron_player = get_ron_action(target_tile)
+    return handle_ron_agari(ron_player, target_tile, ron_action) if ron_player
 
     handle_normal_progress(target_tile)
   end
@@ -116,52 +118,46 @@ class Env
 
   def get_ron_action(tile)
     ron_action = nil
+    ron_player = nil
     round_wind = @table.round[:wind]
 
-    @other_players.each_with_index do |player, order|
-      ron_action = player.get_ron_action(states) if player.can_ron?(tile, round_wind)
-      break if !ron_action.nil?
+    @other_players.each do |player|
+      if player.can_ron?(tile, round_wind)
+        ron_action = player.get_ron_action(ron_states)
+        ron_player = player if ron_action == RON_ACTION
+      end
+      break if !ron_player.nil?
     end
-    ron_action
+    [ron_action, ron_player]
   end
 
-  def handle_agari
-    reward = 100
+  def handle_tsumo_agari
+    received_point, paid_by_host, paid_by_child = HandEvaluator.calculate_tsumo_agari_point(@current_player, @table)
+    @current_player.award_point(received_point)
+    @other_players.each { |player| player.host? ? player.award_point(paid_by_host) : player.award_point(paid_by_child) }
     @round_over = true
-    target_tile = nil
-    [states, reward, @round_over, target_tile]
+    states = StateBuilder.build_all_player_states(@current_player, @other_players, @table)
+    rewards = RewardCalculator.calculate_round_over_rewards(@current_player, @other_players)
+    [states, rewards, @game_over]
   end
 
-  def handle_ron(target_tile)
-    reward = 100
+  def handle_ron_agari(ron_player, winning_tile, ron_action)
+    ron_player.draw(winning_tile)
+    point = HandEvaluator.calculate_ron_agari_point(ron_player, @table)
+    ron_player.award_point(point)
+    @current_player.award_point(-point)
+    @other_players.each { |player| player.award_point(0) if player != ron_player }
     @round_over = true
-    target_tile = nil
-    [states, reward, @round_over, target_tile]
+    states = StateBuilder.build_all_player_states(@current_player, @other_players, @table)
+    rewards = RewardCalculator.calculate_round_over_rewards(@current_player, @other_players)
+    ron_player.update_ron_agent(ron_state, ron_action, reward, ron_next_state, @game_over)
+    [states, rewards, @game_over]
   end
 
-  def handle_normal_progress(target_tile)
-    old_shanten, old_outs = get_previous_status
-    new_shanten, new_outs = get_current_status
-    reward = cal_reward(old_shanten, new_shanten, old_outs, new_outs, false)
+  def handle_normal_progress
     @round_over = round_over?
-    [states, reward, @round_over, target_tile]
-  end
-
-  def cal_reward(old_shanten, new_shanten, old_outs, new_outs, is_agari)
-    return 100 if is_agari
-    return -100 if round_over?
-
-    diff_shanten = new_shanten - old_shanten
-    diff_outs = new_outs - old_outs
-
-    return 50 if diff_shanten < 0
-    return 50 if new_shanten == 0 && diff_outs > 0
-    return 30 if new_shanten == 0 && diff_outs == 0
-    return -10 if new_shanten == 0 && diff_outs < 0
-    return 10 if diff_shanten == 0 && diff_outs > 0
-    return -10 if diff_shanten == 0 && diff_outs == 0
-    return -30 if diff_shanten == 0 && diff_outs < 0
-
-    -50
+    states = StateBuilder.build_all_player_states(@current_player, @other_players, @table)
+    rewards = RewardCalculator.calculate_round_continue_rewards(@current_player, @other_players)
+    [states, rewards, @game_over]
   end
 end

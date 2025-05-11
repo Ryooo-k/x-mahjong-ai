@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 require 'test/unit'
+require_relative '../../util/file_loader'
 require_relative '../../../src/domain/logic/hand_evaluator'
 require_relative '../../../src/domain/tile'
+require_relative '../../../src/domain/table'
 require_relative '../../../src/util/encoder'
 
 class HandEvaluatorTest < Test::Unit::TestCase
@@ -369,7 +371,7 @@ class HandEvaluatorTest < Test::Unit::TestCase
   end
 
   def test_agari?
-    # 和了手: 111222萬 333筒 44索 東東
+    # 和了手: 111222萬 333筒 444索 東東
     # 向聴数：-1
     agari_hands = [
       @tiles[0], @tiles[1], @tiles[2],
@@ -526,5 +528,54 @@ class HandEvaluatorTest < Test::Unit::TestCase
         {"han"=>1, "name"=>"自風牌"},
         {"han"=>1, "name"=>"場風牌"}
       ], yaku)
+  end
+
+  def test_calculate_tsumo_agari_point
+    config = FileLoader.load_parameter
+    table = Table.new(config['table'], config['player'])
+
+    # 和了手: 111222萬 345筒 456索 東東
+    # ツモ牌：東（hands.last）
+    hands = [
+      @tiles[0], @tiles[1], @tiles[2],
+      @tiles[4], @tiles[5], @tiles[6],
+      @tiles[44], @tiles[48], @tiles[52],
+      @tiles[84], @tiles[88], @tiles[92],
+      @tiles[108], @tiles[109]
+    ]
+
+    player = table.host
+    player.instance_variable_set(:@hands, hands)
+    player.instance_variable_set(:@wind, '1z')
+    table.tile_wall.instance_variable_set(:@open_dora_indicators, [@tiles[32]]) # 1萬がドラ
+
+    received_point, paid_by_host, paid_by_child = @evaluator.calculate_tsumo_agari_point(player, table)
+    assert_equal 12_000, received_point
+    assert_equal nil, paid_by_host
+    assert_equal 4_000, paid_by_child
+  end
+
+  def test_calculate_ron_agari_point
+    config = FileLoader.load_parameter
+    table = Table.new(config['table'], config['player'])
+
+    # 和了手: 111222萬 333筒 444索 東東
+    # 和了牌：4索（hands.last）
+    hands = [
+      @tiles[0], @tiles[1], @tiles[2],
+      @tiles[4], @tiles[5], @tiles[6],
+      @tiles[44], @tiles[45], @tiles[46],
+      @tiles[84], @tiles[85],
+      @tiles[108], @tiles[109],
+      @tiles[86]
+    ]
+
+    player = table.host
+    player.instance_variable_set(:@hands, hands)
+    player.instance_variable_set(:@wind, '1z')
+    table.tile_wall.instance_variable_set(:@open_dora_indicators, [@tiles[32]]) # 1萬がドラ
+
+    point = @evaluator.calculate_ron_agari_point(player, table)
+    assert_equal 48_000, point
   end
 end

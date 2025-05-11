@@ -88,6 +88,44 @@ module Domain
           yaku.empty? ? false : yaku
         end
 
+        def calculate_tsumo_agari_point(player, table)
+          input = to_yaku_checker_format(
+            hands: player.hands[..-2],
+            melds_list: player.melds_list,
+            target_tile: player.hands.last,
+            round_wind: table.round[:wind],
+            player_wind: player.wind,
+            is_tsumo: true,
+            is_reach: player.reach?,
+            open_dora_indicators: table.open_dora_indicators,
+            blind_dora_indicators: table.blind_dora_indicators,
+            honba: table.honba[:count]
+            )
+          File.write("tmp/yaku_input.json", JSON.dump(input))
+          result = `node src/domain/logic/yaku_checker.js`
+          yaku = JSON.parse(result)
+          [yaku['score'], yaku['pay']['oya'], yaku['pay']['ko']]
+        end
+
+        def calculate_ron_agari_point(player, table)
+          input = to_yaku_checker_format(
+            hands: player.hands[..-2],
+            melds_list: player.melds_list,
+            target_tile: player.hands.last,
+            round_wind: table.round[:wind],
+            player_wind: player.wind,
+            is_tsumo: true,
+            is_reach: player.reach?,
+            open_dora_indicators: table.open_dora_indicators,
+            blind_dora_indicators: table.blind_dora_indicators,
+            honba: table.honba[:count]
+            )
+          File.write("tmp/yaku_input.json", JSON.dump(input))
+          result = `node src/domain/logic/yaku_checker.js`
+          yaku = JSON.parse(result)
+          yaku['score']
+        end
+
         private
 
         def count_normal_outs(hands)
@@ -192,7 +230,7 @@ module Domain
 
           agari_hai = "#{target_tile.number}#{target_tile.suit}"
           dora_hyo = open_dora_indicators.map { |tile| "#{tile.number}#{tile.suit}" }
-          uradora_hyo = blind_dora_indicators.map { |tile| "#{tile.number}#{tile.suit}" }
+          uradora_hyo = is_reach ? blind_dora_indicators.map { |tile| "#{tile.number}#{tile.suit}" } : []
           is_oya = player_wind == '1z' ? true : false
 
           {

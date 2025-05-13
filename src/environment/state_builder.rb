@@ -76,7 +76,7 @@ module StateBuilder
 
     def build_table_states(table)
       remaining_tile_count = table.remaining_tile_count / REMAINING_TILE_COUNT
-      open_dora_codes = Encoder.encode_dora(table.open_dora_tiles)
+      open_dora_codes = Encoder.encode_doras(table.open_dora_codes)
       kong_count = table.kong_count
       round_count = table.round[:count] / ROUND_COUNT
       honba_count = table.honba[:count] / NORMALIZATION_BASE

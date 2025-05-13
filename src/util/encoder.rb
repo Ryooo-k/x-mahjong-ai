@@ -33,10 +33,10 @@ module Util
         normalized_river_codes
       end
 
-      def encode_dora(dora_tiles)
+      def encode_doras(dora_codes)
         normalized_dora_codes = Array.new(MAX_DORA_COUNT, -1.0)
-        dora_tiles.each_with_index do |tile, order|
-          normalized_dora_codes[order] = tile.code / TILE_COUNT
+        dora_codes.each_with_index do |code, order|
+          normalized_dora_codes[order] = code / TILE_COUNT
         end
         normalized_dora_codes
       end

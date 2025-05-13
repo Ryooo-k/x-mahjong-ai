@@ -5,45 +5,49 @@ require_relative '../../src/domain/table'
 require_relative '../util/file_loader'
 
 class TableTest < Test::Unit::TestCase
-  DORA_CHECKERS = {
-    '1萬' => '2萬',
-    '2萬' => '3萬',
-    '3萬' => '4萬',
-    '4萬' => '5萬',
-    '5萬' => '6萬',
-    '6萬' => '7萬',
-    '7萬' => '8萬',
-    '8萬' => '9萬',
-    '9萬' => '1萬',
+  DORA_CODE_CHECKERS = {
+    # 萬子 0〜8
+    0 => 1,
+    1 => 2,
+    2 => 3,
+    3 => 4,
+    4 => 5,
+    5 => 6,
+    6 => 7,
+    7 => 8,
+    8 => 0, # 9萬 -> 1萬
   
-    '1筒' => '2筒',
-    '2筒' => '3筒',
-    '3筒' => '4筒',
-    '4筒' => '5筒',
-    '5筒' => '6筒',
-    '6筒' => '7筒',
-    '7筒' => '8筒',
-    '8筒' => '9筒',
-    '9筒' => '1筒',
+    # 筒子 9〜17
+    9  => 10,
+    10 => 11,
+    11 => 12,
+    12 => 13,
+    13 => 14,
+    14 => 15,
+    15 => 16,
+    16 => 17,
+    17 => 9, # 9筒 -> 1筒
   
-    '1索' => '2索',
-    '2索' => '3索',
-    '3索' => '4索',
-    '4索' => '5索',
-    '5索' => '6索',
-    '6索' => '7索',
-    '7索' => '8索',
-    '8索' => '9索',
-    '9索' => '1索',
+    # 索子 18〜26
+    18 => 19,
+    19 => 20,
+    20 => 21,
+    21 => 22,
+    22 => 23,
+    23 => 24,
+    24 => 25,
+    25 => 26,
+    26 => 18, # 9索 -> 1索
   
-    '東' => '南',
-    '南' => '西',
-    '西' => '北',
-    '北' => '東',
+    # 字牌 27〜33
+    27 => 28, # 東 -> 南
+    28 => 29, # 南 -> 西
+    29 => 30, # 西 -> 北
+    30 => 27, # 北 -> 東
   
-    '白' => '發',
-    '發' => '中',
-    '中' => '白'
+    31 => 32, # 白 -> 發
+    32 => 33, # 發 -> 中
+    33 => 31, # 中 -> 白
   }.freeze
 
   def setup
@@ -140,40 +144,22 @@ class TableTest < Test::Unit::TestCase
     assert_equal [first_open_dora_indicator, second_open_dora_indicator], @table.open_dora_indicators
   end
 
-  def test_open_dora_tile_return_expected_dora_tile
-    open_dora_indicators = @table.tile_wall.open_dora_indicators
-    dora_names = open_dora_indicators.map { |indicator| DORA_CHECKERS[indicator.name] }
-    assert_equal dora_names[0], @table.open_dora_tiles.first.name
+  def test_open_dora_codes
+    dora_codes = @table.open_dora_indicators.map { |indicator| DORA_CODE_CHECKERS[indicator.code] }
+    assert_equal dora_codes, @table.open_dora_codes
 
     @table.increase_kong_count
-    assert_equal dora_names[1], @table.open_dora_tiles.last.name
-
-    @table.increase_kong_count
-    assert_equal dora_names[2], @table.open_dora_tiles.last.name
-
-    @table.increase_kong_count
-    assert_equal dora_names[3], @table.open_dora_tiles.last.name
-
-    @table.increase_kong_count
-    assert_equal dora_names[4], @table.open_dora_tiles.last.name
+    dora_codes = @table.open_dora_indicators.map { |indicator| DORA_CODE_CHECKERS[indicator.code] }
+    assert_equal dora_codes, @table.open_dora_codes
   end
 
-  def test_blind_dora_tile_return_expected_dora_tile
-    blind_dora_indicators = @table.tile_wall.blind_dora_indicators
-    dora_names = blind_dora_indicators.map { |indicator| DORA_CHECKERS[indicator.name] }
-    assert_equal dora_names[0], @table.blind_dora_tiles.first.name
+  def test_blind_dora_codes
+    dora_codes =  @table.blind_dora_indicators.map { |indicator| DORA_CODE_CHECKERS[indicator.code] }
+    assert_equal dora_codes, @table.blind_dora_codes
 
     @table.increase_kong_count
-    assert_equal dora_names[1], @table.blind_dora_tiles.last.name
-
-    @table.increase_kong_count
-    assert_equal dora_names[2], @table.blind_dora_tiles.last.name
-
-    @table.increase_kong_count
-    assert_equal dora_names[3], @table.blind_dora_tiles.last.name
-
-    @table.increase_kong_count
-    assert_equal dora_names[4], @table.blind_dora_tiles.last.name
+    dora_codes =  @table.blind_dora_indicators.map { |indicator| DORA_CODE_CHECKERS[indicator.code] }
+    assert_equal dora_codes, @table.blind_dora_codes
   end
 
   def test_restart

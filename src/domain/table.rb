@@ -102,14 +102,12 @@ class Table
     @tile_wall.blind_dora_indicators[..@kong_count]
   end
 
-  def open_dora_tiles
-    open_dora_indicators = @tile_wall.open_dora_indicators[0..@kong_count]
-    fetch_dora_tiles(open_dora_indicators)
+  def open_dora_codes
+    fetch_dora_codes(open_dora_indicators)
   end
 
-  def blind_dora_tiles
-    blind_dora_indicators = @tile_wall.blind_dora_indicators[0..@kong_count]
-    fetch_dora_tiles(blind_dora_indicators)
+  def blind_dora_codes
+    fetch_dora_codes(blind_dora_indicators)
   end
 
   def restart
@@ -140,11 +138,7 @@ class Table
     @kong_count = 0
   end
 
-  def fetch_dora_tiles(indicators)
-    indicators = indicators[0..@kong_count]
-    indicators.map do |indicator|
-      dora_code = SPECIAL_DORA_RULES.fetch(indicator.code, indicator.code + 1)
-      @tile_wall.tiles.select { |tile| tile.code == dora_code }
-    end.flatten
+  def fetch_dora_codes(indicators)
+    indicators.map { |indicator| SPECIAL_DORA_RULES.fetch(indicator.code, indicator.code + 1) }
   end
 end

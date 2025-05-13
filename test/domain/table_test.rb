@@ -125,6 +125,21 @@ class TableTest < Test::Unit::TestCase
     assert_equal expected, @table.remaining_tile_count
   end
 
+  def test_open_dora_indicators
+    assert_equal 1, @table.open_dora_indicators.size
+    @table.increase_kong_count
+    assert_equal 2, @table.open_dora_indicators.size
+  end
+
+  def test_blind_dora_indicators
+    first_open_dora_indicator = @table.tile_wall.open_dora_indicators.first
+    assert_equal [first_open_dora_indicator], @table.open_dora_indicators
+
+    @table.increase_kong_count
+    second_open_dora_indicator = @table.tile_wall.open_dora_indicators[1]
+    assert_equal [first_open_dora_indicator, second_open_dora_indicator], @table.open_dora_indicators
+  end
+
   def test_open_dora_tile_return_expected_dora_tile
     open_dora_indicators = @table.tile_wall.open_dora_indicators
     dora_names = open_dora_indicators.map { |indicator| DORA_CHECKERS[indicator.name] }

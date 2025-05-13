@@ -94,6 +94,14 @@ class Table
     @tile_wall.live_walls[@draw_count..].size
   end
 
+  def open_dora_indicators
+    @tile_wall.open_dora_indicators[..@kong_count]
+  end
+
+  def blind_dora_indicators
+    @tile_wall.blind_dora_indicators[..@kong_count]
+  end
+
   def open_dora_tiles
     open_dora_indicators = @tile_wall.open_dora_indicators[0..@kong_count]
     fetch_dora_tiles(open_dora_indicators)

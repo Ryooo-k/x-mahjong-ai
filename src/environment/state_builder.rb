@@ -8,7 +8,10 @@ module StateBuilder
   Encoder = Util::Encoder
   ALL_SCORE = 100_000.0
   MAX_SHANTEN_COUNT = 13.0
-  MAX_OUTS_COUNT = 13.0
+  REMAINING_TILE_COUNT = 122.0
+  ROUND_COUNT = 8.0
+  NORMALIZATION_BASE = 10.0
+
 
   class << self
     def build_all_player_states(current_player, other_players, table)
@@ -35,14 +38,18 @@ module StateBuilder
       hand_codes = Encoder.encode_hands(player.hands)
       melds_codes = Encoder.encode_melds_list(player.melds_list)
       river_codes = Encoder.encode_rivers(player.rivers)
+      reach = player.reach? ? 1 : 0
+      menzen = player.menzen? ? 1 : 0
       score = player.score / ALL_SCORE
       shanten = HandEvaluator.calculate_minimum_shanten(player.hand_histories.last)
-      outs = HandEvaluator.count_minimum_outs(player.hand_histories.last) / 10
+      outs = HandEvaluator.count_minimum_outs(player.hand_histories.last) / NORMALIZATION_BASE
 
       [
         *hand_codes,
         *melds_codes,
         *river_codes,
+        reach,
+        menzen,
         score,
         shanten,
         outs
@@ -53,29 +60,33 @@ module StateBuilder
       players.flat_map do |player|
         melds_codes = Encoder.encode_melds_list(player.melds_list)
         river_codes = Encoder.encode_rivers(player.rivers)
+        reach = player.reach? ? 1 : 0
+        menzen = player.menzen? ? 1 : 0
         score = player.score / ALL_SCORE
 
         [
           *melds_codes,
           *river_codes,
+          reach,
+          menzen,
           score
         ]
       end
     end
 
     def build_table_states(table)
-      remaining_tiles_count = table.remaining_tile_count / 122
+      remaining_tile_count = table.remaining_tile_count / REMAINING_TILE_COUNT
       open_dora_codes = Encoder.encode_dora(table.open_dora_tiles)
       kong_count = table.kong_count
-      round_count = table.round[:count] / 8
-      honba_count = table.honba[:count] / 10
+      round_count = table.round[:count] / ROUND_COUNT
+      honba_count = table.honba[:count] / NORMALIZATION_BASE
 
       [
-        *remaining_tiles_count,
+        *remaining_tile_count,
         *open_dora_codes,
         kong_count,
         round_count,
-        honba_count,
+        honba_count
       ]
     end
   end

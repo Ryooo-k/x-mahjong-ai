@@ -28,53 +28,58 @@ class EncoderTest < Test::Unit::TestCase
     assert_equal(expected, encoded_hands)
   end
 
-  def test_encode_called_tile_table
-    called_tile_table = []
-    encoded_called_tile_table = @encoder.encode_called_tile_table(called_tile_table)
-    expected = [
-      [0] * 34,
-      [0] * 34,
-      [0] * 34,
-      [0] * 34
-    ]
-    assert_equal(expected, encoded_called_tile_table)
+  def test_encode_melds_list
+    melds_list = []
+    encoded_melds_list = @encoder.encode_melds_list(melds_list)
+    expected = [-1] * 16
+    assert_equal(expected, encoded_melds_list)
 
-    called_tile_table = [[@manzu_1, @manzu_2, @manzu_3], [@manzu_4, @manzu_5, @manzu_6]]
-    encoded_called_tile_table = @encoder.encode_called_tile_table(called_tile_table)
+    melds_list = [[@manzu_1, @manzu_2, @manzu_3], [@manzu_4, @manzu_5, @manzu_6]]
+    encoded_melds_list = @encoder.encode_melds_list(melds_list)
+    normalize_manzu_1_code = @manzu_1.code / @tile_count
+    normalize_manzu_2_code = @manzu_2.code / @tile_count
+    normalize_manzu_3_code = @manzu_3.code / @tile_count
+    normalize_manzu_4_code = @manzu_4.code / @tile_count
+    normalize_manzu_5_code = @manzu_5.code / @tile_count
+    normalize_manzu_6_code = @manzu_6.code / @tile_count
     expected = [
-      [1, 1, 1] + [0] * 31,
-      [0, 0, 0, 1, 1, 1] + [0] * 28,
-      [0] * 34,
-      [0] * 34
-    ]
-    assert_equal(expected, encoded_called_tile_table)
+      normalize_manzu_1_code,
+      normalize_manzu_2_code,
+      normalize_manzu_3_code,
+      -1.0,
+      normalize_manzu_4_code,
+      normalize_manzu_5_code,
+      normalize_manzu_6_code,
+      -1.0
+      ] + [-1.0] * 8
+    assert_equal(expected, encoded_melds_list)
   end
 
   def test_encode_rivers
     rivers = []
     encoded_rivers = @encoder.encode_rivers(rivers)
-    expected = [-1] * 24
+    expected = [-1.0] * 24
     assert_equal(expected, encoded_rivers)
 
     rivers = [@manzu_6, @manzu_1]
     encoded_rivers = @encoder.encode_rivers(rivers)
     normalized_manzu_6_code = @manzu_6.code / @tile_count
     normalized_manzu_1_code = @manzu_1.code / @tile_count
-    expected = [normalized_manzu_6_code, normalized_manzu_1_code] + [-1] * 22
+    expected = [normalized_manzu_6_code, normalized_manzu_1_code] + [-1.0] * 22
     assert_equal(expected, encoded_rivers)
   end
 
   def test_encode_dora
     dora_tiles = []
     encoded_dora_tiles = @encoder.encode_dora(dora_tiles)
-    expected = [-1] * 5
+    expected = [-1.0] * 5
     assert_equal(expected, encoded_dora_tiles)
 
     dora_tiles = [@manzu_1, @manzu_2]
     encoded_dora_tiles = @encoder.encode_dora(dora_tiles)
     normalized_manzu_1_code = @manzu_1.code / @tile_count
     normalized_manzu_2_code = @manzu_2.code / @tile_count
-    expected = [normalized_manzu_1_code , normalized_manzu_2_code] + [-1] * 3
+    expected = [normalized_manzu_1_code , normalized_manzu_2_code] + [-1.0] * 3
     assert_equal(expected, encoded_dora_tiles)
   end
 end

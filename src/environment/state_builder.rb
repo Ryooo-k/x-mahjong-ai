@@ -14,25 +14,25 @@ module StateBuilder
 
 
   class << self
-    def build_all_player_states(current_player, other_players, table)
-      all_players = [current_player] + other_players
-      all_players.each_with_index.map do |player, i|
-        rotated_players = all_players.rotate(i)
-        main_player = rotated_players.first
-        sub_players = rotated_players[1..]
-        build_states(main_player, sub_players, table)
-      end
-    end
-
-    private
-
-    def build_states(main_player, sub_players, table)
+    def build_player_states(main_player, sub_players, table)
       main_player_states = build_main_player_states(main_player)
       sub_players_states = build_sub_players_states(sub_players)
       table_states = build_table_states(table)
       states = main_player_states + sub_players_states + table_states
       Torch.tensor(states, dtype: :float32)
     end
+
+    def build_all_player_states(current_player, other_players, table)
+      all_players = [current_player] + other_players
+      all_players.each_with_index.map do |player, i|
+        rotated_players = all_players.rotate(i)
+        main_player = rotated_players.first
+        sub_players = rotated_players[1..]
+        build_player_states(main_player, sub_players, table)
+      end
+    end
+
+    private
 
     def build_main_player_states(player)
       hand_codes = Encoder.encode_hands(player.hands)

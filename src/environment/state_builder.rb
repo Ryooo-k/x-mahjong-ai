@@ -4,34 +4,44 @@ require_relative '../util/encoder'
 require_relative '../domain/logic/hand_evaluator'
 
 module StateBuilder
-  class << self
-    HandEvaluator = Domain::Logic::HandEvaluator
-    Encoder = Util::Encoder
-    ALL_SCORE = 100_000.0
-    MAX_SHANTEN_COUNT = 13.0
-    MAX_OUTS_COUNT = 13.0
+  HandEvaluator = Domain::Logic::HandEvaluator
+  Encoder = Util::Encoder
+  ALL_SCORE = 100_000.0
+  MAX_SHANTEN_COUNT = 13.0
+  MAX_OUTS_COUNT = 13.0
 
-    def build_states(current_player, other_players, table)
-      current_plyer_states = build_current_player_states(current_player)
-      other_players_states = build_other_players_states(other_players)
-      table_states = build_table_states(table)
-      states = current_plyer_states + other_players_states + table_states
-      Torch.tensor(states, dtype: :float32)
+  class << self
+    def build_all_player_states(current_player, other_players, table)
+      all_players = [current_player] + other_players
+      all_players.each_with_index.map do |player, i|
+        rotated_players = all_players.rotate(i)
+        main_player = rotated_players.first
+        sub_players = rotated_players[1..]
+        build_states(main_player, sub_players, table)
+      end
     end
 
     private
 
-    def build_current_player_states(player)
+    def build_states(main_player, sub_players, table)
+      main_player_states = build_main_player_states(main_player)
+      sub_players_states = build_sub_players_states(sub_players)
+      table_states = build_table_states(table)
+      states = main_player_states + sub_players_states + table_states
+      Torch.tensor(states, dtype: :float32)
+    end
+
+    def build_main_player_states(player)
       hand_codes = Encoder.encode_hands(player.hands)
-      # called_tile_codes = Encoder.encode_called_tile_table(player.called_tile_table).flatten
+      melds_codes = Encoder.encode_melds_list(player.melds_list)
       river_codes = Encoder.encode_rivers(player.rivers)
       score = player.score / ALL_SCORE
       shanten = HandEvaluator.calculate_minimum_shanten(player.hand_histories.last)
-      outs = HandEvaluator.count_minimum_outs(player.hand_histories.last)
+      outs = HandEvaluator.count_minimum_outs(player.hand_histories.last) / 10
 
       [
         *hand_codes,
-        # *called_tile_codes,
+        *melds_codes,
         *river_codes,
         score,
         shanten,
@@ -39,14 +49,14 @@ module StateBuilder
       ]
     end
 
-    def build_other_players_states(players)
+    def build_sub_players_states(players)
       players.flat_map do |player|
-        # called_tile_codes = Encoder.encode_called_tile_table(player.called_tile_table).flatten
+        melds_codes = Encoder.encode_melds_list(player.melds_list)
         river_codes = Encoder.encode_rivers(player.rivers)
         score = player.score / ALL_SCORE
 
         [
-          # *called_tile_codes,
+          *melds_codes,
           *river_codes,
           score
         ]
@@ -54,22 +64,18 @@ module StateBuilder
     end
 
     def build_table_states(table)
-      remaining_tiles = table.remaining_tile_count
+      remaining_tiles_count = table.remaining_tile_count / 122
       open_dora_codes = Encoder.encode_dora(table.open_dora_tiles)
       kong_count = table.kong_count
-      round = table.round[:count]
-      honba = table.honba[:count]
-      # host_id = table.host.id
-      # children_ids = table.children.map { |player| player.id }
+      round_count = table.round[:count] / 8
+      honba_count = table.honba[:count] / 10
 
       [
-        *remaining_tiles,
+        *remaining_tiles_count,
         *open_dora_codes,
         kong_count,
-        round,
-        honba,
-        # host_id,
-        # *children_ids
+        round_count,
+        honba_count,
       ]
     end
   end

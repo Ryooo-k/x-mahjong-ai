@@ -424,9 +424,9 @@ class HandEvaluatorTest < Test::Unit::TestCase
     is_tsumo = true
     open_dora_indicators = [@tiles[1]] # 1萬がドラ表示牌
     blind_dora_indicators = [@tiles[13]] # 4萬が裏ドラ表示牌
-    is_reach = true
+    is_riichi = true
     honba = 1
-    result = @evaluator.evaluate_yaku(hands:, melds_list:, winning_tile:, round_wind:, player_wind:, is_tsumo:, open_dora_indicators:, is_reach:, blind_dora_indicators:, honba:)
+    result = @evaluator.evaluate_yaku(hands:, melds_list:, winning_tile:, round_wind:, player_wind:, is_tsumo:, open_dora_indicators:, is_riichi:, blind_dora_indicators:, honba:)
 
     assert_equal true, result['detail']['oya']
     assert_equal '跳満', result['scoreType']
@@ -471,9 +471,9 @@ class HandEvaluatorTest < Test::Unit::TestCase
     is_tsumo = true
     open_dora_indicators = [@tiles[110]] # 東がドラ表示牌
     blind_dora_indicators = [@tiles[111]] # 東が裏ドラ表示牌
-    is_reach = false
+    is_riichi = false
     honba = 0
-    result = @evaluator.evaluate_yaku(hands:, melds_list:, winning_tile:, round_wind:, player_wind:, is_tsumo:, open_dora_indicators:, is_reach:, blind_dora_indicators:, honba:)
+    result = @evaluator.evaluate_yaku(hands:, melds_list:, winning_tile:, round_wind:, player_wind:, is_tsumo:, open_dora_indicators:, is_riichi:, blind_dora_indicators:, honba:)
 
     assert_equal false, result['detail']['oya']
     assert_equal '満貫', result['scoreType']
@@ -501,8 +501,8 @@ class HandEvaluatorTest < Test::Unit::TestCase
     target_tile = @tiles[28] # 8萬
     round_wind = '1z' # 東のnumber+suit
     player_wind = '1z'
-    is_reach = false
-    result = @evaluator.has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_reach:)
+    is_riichi = false
+    result = @evaluator.has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_riichi:)
 
     assert_equal false, result
   end
@@ -520,8 +520,8 @@ class HandEvaluatorTest < Test::Unit::TestCase
     target_tile = @tiles[28] # 8萬
     round_wind = '1z' # 東のnumber+suit
     player_wind = '1z'
-    is_reach = false
-    yaku = @evaluator.has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_reach:)
+    is_riichi = false
+    yaku = @evaluator.has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_riichi:)
 
     assert_equal(
       [

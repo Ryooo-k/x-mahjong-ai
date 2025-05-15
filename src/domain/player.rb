@@ -4,7 +4,7 @@ require_relative '../agent/agent_manager'
 require_relative 'logic/hand_evaluator'
 
 class Player
-  attr_reader :id, :hands, :score, :point_histories, :hand_histories, :melds_list, :rivers, :is_menzen, :agent, :shanten_histories, :outs_histories
+  attr_reader :id, :hands, :score, :point_histories, :hand_histories, :melds_list, :rivers, :agent, :shanten_histories, :outs_histories
   attr_accessor :wind
 
   HandEvaluator = Domain::Logic::HandEvaluator
@@ -22,7 +22,7 @@ class Player
     @shanten_histories = []
     @outs_histories = []
     @is_menzen = true
-    @is_reach = false
+    @is_riichi = false
     @wind = nil
     @ron_cache = {}
   end
@@ -31,12 +31,12 @@ class Player
     @is_menzen
   end
 
-  def reach?
-    @is_reach
+  def riichi?
+    @is_riichi
   end
 
-  def reach
-    @is_reach = true
+  def riichi
+    @is_riichi = true
   end
 
   def sorted_hands
@@ -54,8 +54,6 @@ class Player
   end
 
   def discard(tile)
-    raise ArgumentError, '手牌に無い牌は選択できません。' unless @hands.include?(tile)
-
     @hands.delete(tile)
     @rivers << tile
   end
@@ -80,7 +78,7 @@ class Player
     cache_code =  test_hands.map(&:code).join
     return @ron_cache[cache_code] if @ron_cache.key?(cache_code)
 
-    result = HandEvaluator.has_yaku?(hands: @hands, melds_list: @melds_list, target_tile: tile, round_wind:, player_wind: @wind, is_reach: @is_reach)
+    result = HandEvaluator.has_yaku?(hands: @hands, melds_list: @melds_list, target_tile: tile, round_wind:, player_wind: @wind, is_riichi: @is_riichi)
     @ron_cache[cache_code] = result
     result
   end
@@ -109,31 +107,31 @@ class Player
     @agent.sync_qnet
   end
 
-  def pong(combinations, target_tile)
-    raise ArgumentError, '有効な牌が無いためポンできません。' unless can_call_pong?(target_tile)
+  def pon(combinations, target_tile)
+    raise ArgumentError, '有効な牌が無いためポンできません。' unless can_pon?(target_tile)
     preform_call(combinations, target_tile:)
     @is_menzen = false
   end
 
-  def chow(combinations, target_tile)
-    raise ArgumentError, '有効な牌が無いためチーできません。' unless can_call_chow?(target_tile)
+  def chi(combinations, target_tile)
+    raise ArgumentError, '有効な牌が無いためチーできません。' unless can_chi?(target_tile)
     preform_call(combinations, target_tile:)
     @is_menzen = false
   end
 
-  def concealed_kong(combinations)
-    raise ArgumentError, '有効な牌が無いため暗カンできません。' unless can_call_concealed_kong?(combinations)
+  def ankan(combinations)
+    raise ArgumentError, '有効な牌が無いため暗カンできません。' unless can_ankan?(combinations)
     preform_call(combinations)
   end
 
-  def open_kong(combinations, target_tile)
-    raise ArgumentError, '有効な牌が無いため大明カンできません。' unless can_call_open_kong?(target_tile)
+  def daiminkan(combinations, target_tile)
+    raise ArgumentError, '有効な牌が無いため大明カンできません。' unless can_daiminkan?(target_tile)
     preform_call(combinations, target_tile:)
     @is_menzen = false
   end
 
-  def extended_kong(target_tile)
-    raise ArgumentError, '有効な牌が無いため加カンできません。' unless can_call_extended_kong?(target_tile)
+  def kakan(target_tile)
+    raise ArgumentError, '有効な牌が無いため加カンできません。' unless can_kakan?(target_tile)
 
     @melds_list.each do |called_tiles|
       called_codes = called_tiles.map(&:code)
@@ -150,7 +148,7 @@ class Player
     @shanten_histories = []
     @outs_histories = []
     @is_menzen = true
-    @is_reach = false
+    @is_riichi = false
     @wind = nil
   end
 
@@ -178,12 +176,12 @@ class Player
     @outs_histories << outs
   end
 
-  def can_call_pong?(target)
+  def can_pon?(target)
     hand_codes = @hands.map(&:code)
     hand_codes.count(target.code) >= 2
   end
 
-  def can_call_chow?(target)
+  def can_chi?(target)
     return false if target.code >= 27 # 字牌はチーできないので早期return
 
     hand_codes = @hands.map(&:code)
@@ -193,7 +191,7 @@ class Player
     end
   end
 
-  def can_call_concealed_kong?(combinations)
+  def can_ankan?(combinations)
     target_codes = combinations.map(&:code)
     return false if combinations.size != 4 || target_codes.uniq.size != 1
 
@@ -202,12 +200,12 @@ class Player
     hand_codes.count(target_code) == 4
   end
 
-  def can_call_open_kong?(target)
+  def can_daiminkan?(target)
     hand_codes = @hands.map(&:code)
     hand_codes.count(target.code) == 3
   end
 
-  def can_call_extended_kong?(target)
+  def can_kakan?(target)
     pong_code_table = @melds_list.map do |called_tiles|
       called_codes = called_tiles.map(&:code)
       called_codes.uniq.size == 1 ? called_codes : next

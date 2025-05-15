@@ -62,7 +62,7 @@ module Domain
           calculate_minimum_shanten(hands) == 0
         end
 
-        def evaluate_yaku(hands:, melds_list:, winning_tile:, round_wind:, player_wind:, is_tsumo:, is_reach:, open_dora_indicators:, blind_dora_indicators:, honba:)
+        def evaluate_yaku(hands:, melds_list:, winning_tile:, round_wind:, player_wind:, is_tsumo:, is_riichi:, open_dora_indicators:, blind_dora_indicators:, honba:)
           input = to_yaku_checker_format(
             hands:,
             melds_list:,
@@ -70,7 +70,7 @@ module Domain
             round_wind:,
             player_wind:,
             is_tsumo:,
-            is_reach:,
+            is_riichi:,
             open_dora_indicators:,
             blind_dora_indicators:,
             honba:)
@@ -79,8 +79,8 @@ module Domain
           JSON.parse(result)
         end
 
-        def has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_reach:)
-          input = to_yaku_checker_format(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_reach:)
+        def has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_riichi:)
+          input = to_yaku_checker_format(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_riichi:)
           File.write("tmp/yaku_input.json", JSON.dump(input))
           result = `node src/domain/logic/yaku_checker.js`
           yaku_states = JSON.parse(result)
@@ -96,7 +96,7 @@ module Domain
             round_wind: table.round[:wind],
             player_wind: player.wind,
             is_tsumo: true,
-            is_reach: player.reach?,
+            is_riichi: player.riichi?,
             open_dora_indicators: table.open_dora_indicators,
             blind_dora_indicators: table.blind_dora_indicators,
             honba: table.honba[:count]
@@ -115,7 +115,7 @@ module Domain
             round_wind: table.round[:wind],
             player_wind: player.wind,
             is_tsumo: true,
-            is_reach: player.reach?,
+            is_riichi: player.riichi?,
             open_dora_indicators: table.open_dora_indicators,
             blind_dora_indicators: table.blind_dora_indicators,
             honba: table.honba[:count]
@@ -212,7 +212,7 @@ module Domain
           MAX_SHANTEN_COUNT - unique_count - (has_head ? 1 : 0)
         end
 
-        def to_yaku_checker_format(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_tsumo: false, is_reach: false, open_dora_indicators: [], blind_dora_indicators: [], honba: 0)
+        def to_yaku_checker_format(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_tsumo: false, is_riichi: false, open_dora_indicators: [], blind_dora_indicators: [], honba: 0)
           hai = (hands + [target_tile]).map { |tile| "#{tile.number}#{tile.suit}" }
           furo = melds_list.map do |melds|
                   {
@@ -230,7 +230,7 @@ module Domain
 
           agari_hai = "#{target_tile.number}#{target_tile.suit}"
           dora_hyo = open_dora_indicators.map { |tile| "#{tile.number}#{tile.suit}" }
-          uradora_hyo = is_reach ? blind_dora_indicators.map { |tile| "#{tile.number}#{tile.suit}" } : []
+          uradora_hyo = is_riichi ? blind_dora_indicators.map { |tile| "#{tile.number}#{tile.suit}" } : []
           is_oya = player_wind == '1z' ? true : false
 
           {
@@ -240,7 +240,7 @@ module Domain
             jikaze: player_wind,
             tsumo: is_tsumo,
             doraHyo: dora_hyo,
-            reach: is_reach,
+            reach: is_riichi,
             uradoraHyo: uradora_hyo,
             honba: honba,
             oya: is_oya

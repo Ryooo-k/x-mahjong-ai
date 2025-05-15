@@ -27,7 +27,7 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal [], @player.shanten_histories
     assert_equal [], @player.outs_histories
     assert_equal true, @player.menzen?
-    assert_equal false, @player.reach?
+    assert_equal false, @player.riichi?
     assert_equal nil, @player.wind
   end
 
@@ -37,9 +37,9 @@ class PlayerTest < Test::Unit::TestCase
   end
 
   def test_reach
-    assert_equal false, @player.reach?
-    @player.reach
-    assert_equal true, @player.reach?
+    assert_equal false, @player.riichi?
+    @player.riichi
+    assert_equal true, @player.riichi?
   end
 
   def test_sorted_hands_return_hands_sorted_by_id
@@ -95,11 +95,6 @@ class PlayerTest < Test::Unit::TestCase
     @player.draw(@manzu_1)
     @player.discard(@manzu_1)
     assert_equal [@manzu_1], @player.rivers
-  end
-
-  def test_can_not_discard_when_tile_not_in_hand
-    error = assert_raise(ArgumentError) { @player.discard(@manzu_1) }
-    assert_equal '手牌に無い牌は選択できません。', error.message
   end
 
   def test_record_hand_status
@@ -191,7 +186,7 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal @tiles[index], target
   end
 
-  def test_tile_holder_change_to_pong_player
+  def test_tile_holder_change_to_called_player
     manzu_3_id8 = @tiles[8]
     manzu_3_id9 = @tiles[9]
     manzu_3_id10 = @tiles[10]
@@ -202,11 +197,11 @@ class PlayerTest < Test::Unit::TestCase
     combinations = [manzu_3_id9, manzu_3_id10]
     @player.draw(manzu_3_id9)
     @player.draw(manzu_3_id10)
-    @player.pong(combinations, manzu_3_id8)
+    @player.pon(combinations, manzu_3_id8)
     assert_equal @player, manzu_3_id8.holder
   end
 
-  def test_hands_delete_target_tiles_when_player_called_pong
+  def test_hands_delete_target_tiles_when_player_called_pon
     manzu_3_id8 = @tiles[8]
     manzu_3_id9 = @tiles[9]
     manzu_3_id10 = @tiles[10]
@@ -215,13 +210,13 @@ class PlayerTest < Test::Unit::TestCase
     @player.draw(@manzu_1)
     @player.draw(manzu_3_id9)
     @player.draw(manzu_3_id10)
-    @player.pong(combinations, manzu_3_id8)
+    @player.pon(combinations, manzu_3_id8)
 
     called_tiles = combinations << manzu_3_id8
     @player.hands.each { |tile| assert_not_include(called_tiles, tile) }
   end
 
-  def test_melds_list_add_target_tiles_when_player_called_pong
+  def test_melds_list_add_target_tiles_when_player_called_pon
     manzu_3_id8 = @tiles[8]
     manzu_3_id9 = @tiles[9]
     manzu_3_id10 = @tiles[10]
@@ -229,7 +224,7 @@ class PlayerTest < Test::Unit::TestCase
     combinations = [manzu_3_id9, manzu_3_id10]
     @player.draw(manzu_3_id9)
     @player.draw(manzu_3_id10)
-    @player.pong(combinations, manzu_3_id8)
+    @player.pon(combinations, manzu_3_id8)
 
     called_tiles = combinations << manzu_3_id8
     assert_equal [called_tiles], @player.melds_list
@@ -241,7 +236,7 @@ class PlayerTest < Test::Unit::TestCase
     manzu_3_id10 = @tiles[10]
 
     combinations = [manzu_3_id9, manzu_3_id10]
-    error = assert_raise(ArgumentError) { @player.pong(combinations, manzu_3_id8) }
+    error = assert_raise(ArgumentError) { @player.pon(combinations, manzu_3_id8) }
     assert_equal '有効な牌が無いためポンできません。', error.message
   end
 
@@ -250,11 +245,11 @@ class PlayerTest < Test::Unit::TestCase
     manzu_3 = @tiles[8]
 
     combinations = [@manzu_1, manzu_2]
-    error = assert_raise(ArgumentError) { @player.chow(combinations, manzu_3) }
+    error = assert_raise(ArgumentError) { @player.chi(combinations, manzu_3) }
     assert_equal '有効な牌が無いためチーできません。', error.message
   end
 
-  def test_hands_delete_target_tiles_when_player_called_concealed_kong
+  def test_hands_delete_target_tiles_when_player_called_ankan
     manzu_3_id8 = @tiles[8]
     manzu_3_id9 = @tiles[9]
     manzu_3_id10 = @tiles[10]
@@ -266,11 +261,11 @@ class PlayerTest < Test::Unit::TestCase
     @player.draw(manzu_3_id11)
     @player.draw(@manzu_1)
     combinations = [manzu_3_id8, manzu_3_id9, manzu_3_id10, manzu_3_id11]
-    @player.concealed_kong(combinations)
+    @player.ankan(combinations)
     @player.hands.each { |tile| assert_not_include(combinations, tile) }
   end
 
-  def test_melds_list_add_target_tiles_when_player_called_concealed_kong
+  def test_melds_list_add_target_tiles_when_player_called_ankan
     manzu_3_id8 = @tiles[8]
     manzu_3_id9 = @tiles[9]
     manzu_3_id10 = @tiles[10]
@@ -282,32 +277,32 @@ class PlayerTest < Test::Unit::TestCase
     @player.draw(manzu_3_id11)
     @player.draw(@manzu_1)
     combinations = [manzu_3_id8, manzu_3_id9, manzu_3_id10, manzu_3_id11]
-    @player.concealed_kong(combinations)
+    @player.ankan(combinations)
     assert_equal [combinations], @player.melds_list
   end
 
-  def test_can_not_call_concealed_kong_when_combinations_not_in_hand
+  def test_can_not_call_ankan_when_combinations_not_in_hand
     manzu_3_id8 = @tiles[8]
     manzu_3_id9 = @tiles[9]
     manzu_3_id10 = @tiles[10]
     manzu_3_id11 = @tiles[11]
     combinations = [manzu_3_id8, manzu_3_id9, manzu_3_id10, manzu_3_id11]
-    error = assert_raise(ArgumentError) { @player.concealed_kong(combinations) }
+    error = assert_raise(ArgumentError) { @player.ankan(combinations) }
     assert_equal '有効な牌が無いため暗カンできません。', error.message
   end
 
-  def test_can_not_call_open_kong_when_combinations_not_in_hand
+  def test_can_not_call_daiminkan_when_combinations_not_in_hand
     manzu_3_id8 = @tiles[8]
     manzu_3_id9 = @tiles[9]
     manzu_3_id10 = @tiles[10]
     manzu_3_id11 = @tiles[11]
 
     combinations = [manzu_3_id8, manzu_3_id9, manzu_3_id10]
-    error = assert_raise(ArgumentError) { @player.open_kong(combinations, manzu_3_id11) }
+    error = assert_raise(ArgumentError) { @player.daiminkan(combinations, manzu_3_id11) }
     assert_equal '有効な牌が無いため大明カンできません。', error.message
   end
 
-  def test_melds_list_add_target_tile_when_player_called_extended_kong
+  def test_melds_list_add_target_tile_when_player_called_kakan
     manzu_3_id8 = @tiles[8]
     manzu_3_id9 = @tiles[9]
     manzu_3_id10 = @tiles[10]
@@ -316,14 +311,14 @@ class PlayerTest < Test::Unit::TestCase
     combinations = [manzu_3_id8, manzu_3_id9]
     @player.draw(manzu_3_id8)
     @player.draw(manzu_3_id9)
-    @player.pong(combinations, manzu_3_id10)
-    @player.extended_kong(manzu_3_id11)
+    @player.pon(combinations, manzu_3_id10)
+    @player.kakan(manzu_3_id11)
 
     assert_equal [[manzu_3_id8, manzu_3_id9, manzu_3_id10, manzu_3_id11]], @player.melds_list
   end
 
-  def test_can_not_call_extended_kong_when_no_existing_pong
-    error = assert_raise(ArgumentError) { @player.extended_kong(@manzu_1) }
+  def test_can_not_call_kakan_when_no_existing_pong
+    error = assert_raise(ArgumentError) { @player.kakan(@manzu_1) }
     assert_equal('有効な牌が無いため加カンできません。', error.message)
   end
 
@@ -352,7 +347,7 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal [], @player.shanten_histories
     assert_equal [], @player.outs_histories
     assert_equal true, @player.menzen?
-    assert_equal false, @player.reach?
+    assert_equal false, @player.riichi?
     assert_equal nil, @player.wind
     assert_equal 100, @player.agent.total_discard_loss
     assert_equal 100, @player.agent.total_call_loss
@@ -383,7 +378,7 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal [], @player.shanten_histories
     assert_equal [], @player.outs_histories
     assert_equal true, @player.menzen?
-    assert_equal false, @player.reach?
+    assert_equal false, @player.riichi?
     assert_equal nil, @player.wind
     assert_equal 0, @player.agent.total_discard_loss
     assert_equal 0, @player.agent.total_call_loss

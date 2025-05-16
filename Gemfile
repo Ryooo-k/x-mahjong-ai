@@ -5,3 +5,4 @@ source "https://rubygems.org"
 gem "torch-rb"
 gem 'numo-narray'
 gem 'terminal-table'
+gem 'mocha'

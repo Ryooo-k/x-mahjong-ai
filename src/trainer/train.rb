@@ -21,21 +21,20 @@ def run_training_loop(train_config, env)
 
       while not game_over
         while not round_over
-          env.player_draw
-          action = env.get_discard_action
-          env.step(action)
-          env.update_agent
-          env.rotate_turn if !env.round_over
+          env.step
+          round_over = env.round_over?
+          env.rotate_turn if !round_over
         end
-        game_over = env.game_over
-        !game_over && env.renchan? ? env.restart : env.proceed_to_next_round
-        round_over = env.round_over
+        puts env.table.round[:name]
+        !env.game_over? && env.renchan? ? env.restart : env.proceed_to_next_round
+        round_over = env.round_over?
+        game_over = env.check_game_over
       end
 
-      env.sync_qnet_for_all_players if count % train_config['qnet_sync_interval'] == 0
+      env.sync_qnet if count % train_config['qnet_sync_interval'] == 0
     end
     total_time += time_taken
-    output(total_time, count, env.log) if count == 10 || (count % 100 == 0 && count != 0) || env.table.draw_count != 122
+    output(total_time, count, env.log) if count % 100 == 0  || env.table.draw_count != 122
     env.reset
   end
 end

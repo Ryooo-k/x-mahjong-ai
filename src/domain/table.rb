@@ -110,6 +110,10 @@ class Table
     fetch_dora_codes(blind_dora_indicators)
   end
 
+  def ranked_players
+    @seat_orders.reverse.sort_by(&:score).reverse
+  end
+
   def restart
     prepare_table
     @honba_count += 1

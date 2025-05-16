@@ -162,6 +162,23 @@ class TableTest < Test::Unit::TestCase
     assert_equal dora_codes, @table.blind_dora_codes
   end
 
+  def test_ranked_players
+    first_player = @table.seat_orders[0]
+    second_player = @table.seat_orders[1]
+    third_player = @table.seat_orders[2]
+    fourth_player = @table.seat_orders[3]
+    assert_equal [first_player, second_player, third_player, fourth_player], @table.ranked_players
+
+    first_player.award_point(-12_000)
+    second_player.award_point(-8_000)
+    third_player.award_point(8_000)
+    fourth_player.award_point(12_000)
+    assert_equal [fourth_player, third_player, second_player, first_player], @table.ranked_players
+
+    first_player.award_point(24_000)
+    assert_equal [first_player, fourth_player, third_player, second_player], @table.ranked_players
+  end
+
   def test_restart
     @table.increase_draw_count
     @table.increase_kong_count

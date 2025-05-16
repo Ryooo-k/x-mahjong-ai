@@ -29,11 +29,17 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal true, @player.menzen?
     assert_equal false, @player.riichi?
     assert_equal nil, @player.wind
+    assert_equal nil, @player.rank
   end
 
-  def test_can_write_player_wind
+  def test_can_set_player_wind
     @player.wind = '1z'
     assert_equal '1z', @player.wind
+  end
+
+  def test_can_set_player_rank
+    @player.rank = 1
+    assert_equal 1, @player.rank
   end
 
   def test_riichi

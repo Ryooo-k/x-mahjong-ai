@@ -5,7 +5,7 @@ require_relative 'logic/hand_evaluator'
 
 class Player
   attr_reader :id, :hands, :score, :point_histories, :hand_histories, :melds_list, :rivers, :agent, :shanten_histories, :outs_histories
-  attr_accessor :wind
+  attr_accessor :wind, :rank
 
   HandEvaluator = Domain::Logic::HandEvaluator
   MAX_CALL_COUNT = 4
@@ -24,6 +24,7 @@ class Player
     @is_menzen = true
     @is_riichi = false
     @wind = nil
+    @rank = nil
     @ron_cache = {}
   end
 

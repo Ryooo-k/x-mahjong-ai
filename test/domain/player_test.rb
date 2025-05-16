@@ -8,8 +8,8 @@ require_relative '../util/file_loader'
 class PlayerTest < Test::Unit::TestCase
   def setup
     @config = FileLoader.load_parameter
-    @player = Player.new(0, @config['player']['discard_agent'], @config['player']['call_agent'])
-    @other_player = Player.new(1, @config['player']['discard_agent'], @config['player']['call_agent'])
+    @player = Player.new(0, @config['player']['agent'])
+    @other_player = Player.new(1, @config['player']['agent'])
     @tiles = Array.new(136) { |id| Tile.new(id) }
     @manzu_1 = @tiles[0]
   end
@@ -36,7 +36,7 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal '1z', @player.wind
   end
 
-  def test_reach
+  def test_riichi
     assert_equal false, @player.riichi?
     @player.riichi
     assert_equal true, @player.riichi?
@@ -332,7 +332,7 @@ class PlayerTest < Test::Unit::TestCase
     @player.instance_variable_set(:@shanten_histories, [3, 2, 1, 0])
     @player.instance_variable_set(:@outs_histories, [13, 7, 4, 0])
     @player.instance_variable_set(:@is_menzen, false)
-    @player.instance_variable_set(:@is_reach, true)
+    @player.instance_variable_set(:@is_riichi, true)
     @player.instance_variable_set(:@wind, '1z')
     @player.agent.instance_variable_set(:@total_discard_loss, 100)
     @player.agent.instance_variable_set(:@total_call_loss, 100)
@@ -363,7 +363,7 @@ class PlayerTest < Test::Unit::TestCase
     @player.instance_variable_set(:@shanten_histories, [3, 2, 1, 0])
     @player.instance_variable_set(:@outs_histories, [13, 7, 4, 0])
     @player.instance_variable_set(:@is_menzen, false)
-    @player.instance_variable_set(:@is_reach, true)
+    @player.instance_variable_set(:@is_riichi, true)
     @player.instance_variable_set(:@wind, '1z')
     @player.agent.instance_variable_set(:@total_discard_loss, 100)
     @player.agent.instance_variable_set(:@total_call_loss, 100)

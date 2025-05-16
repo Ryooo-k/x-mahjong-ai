@@ -75,7 +75,7 @@ class TableTest < Test::Unit::TestCase
   end
 
   def test_table_initialize_players_with_expected_class_and_number
-    player_class = Player.new(0, @config['player']['discard_agent'], @config['player']['call_agent']).class
+    player_class = Player.new(0, @config['player']['agent']).class
     @table.players.each { |player| assert_instance_of(player_class, player) }
     assert_equal 4, @table.players.size
   end

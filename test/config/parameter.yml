@@ -9,73 +9,69 @@ test_parameter:
     qnet_sync_interval: 500
 
   player:
-    discard_agent:
-      gamma: 0.98
-      learning_rate: 0.0001
-      epsilon: 0.0
-      buffer_size: 1000
-      batch_size: 2
-      action_size: 14
-      min_epsilon: 0.01
-      decay_rate: 0.99999
-      qnet:
-        layer1: 38
-        layer2: 256
-        layer3: 128
-        layer4: 64
-    call_agent:
-      gamma: 0.98
-      learning_rate: 0.0001
-      epsilon: 0.0
-      buffer_size: 1000
-      batch_size: 2
-      action_size: 4
-      min_epsilon: 0.01
-      decay_rate: 0.99999
-      qnet:
-        layer1: 38
-        layer2: 256
-        layer3: 128
-        layer4: 64
-    riichi_agent:
-      gamma: 0.98
-      learning_rate: 0.0001
-      epsilon: 0.0
-      buffer_size: 1000
-      batch_size: 2
-      action_size: 4
-      min_epsilon: 0.01
-      decay_rate: 0.99999
-      qnet:
-        layer1: 38
-        layer2: 256
-        layer3: 128
-        layer4: 64
-    tsumo_agent:
-      gamma: 0.98
-      learning_rate: 0.0001
-      epsilon: 0.0
-      buffer_size: 1000
-      batch_size: 2
-      action_size: 4
-      min_epsilon: 0.01
-      decay_rate: 0.99999
-      qnet:
-        layer1: 38
-        layer2: 256
-        layer3: 128
-        layer4: 64
-    ron_agent:
-      gamma: 0.98
-      learning_rate: 0.0001
-      epsilon: 0.0
-      buffer_size: 1000
-      batch_size: 2
-      action_size: 4
-      min_epsilon: 0.01
-      decay_rate: 0.99999
-      qnet:
-        layer1: 38
-        layer2: 256
-        layer3: 128
-        layer4: 64
+    agent:
+      discard:
+        gamma: 0.98
+        learning_rate: 0.0001
+        epsilon: 0.1
+        buffer_size: 1000
+        batch_size: 2
+        min_epsilon: 0.01
+        decay_rate: 0.99999
+        qnet:
+          layer1: 145
+          layer2: 256
+          layer3: 128
+          layer4: 64
+      call:
+        gamma: 0.98
+        learning_rate: 0.0001
+        epsilon: 0.1
+        buffer_size: 1000
+        batch_size: 2
+        min_epsilon: 0.01
+        decay_rate: 0.99999
+        qnet:
+          layer1: 145
+          layer2: 256
+          layer3: 128
+          layer4: 64
+      riichi:
+        gamma: 0.98
+        learning_rate: 0.0001
+        epsilon: 0.1
+        buffer_size: 1000
+        batch_size: 2
+        min_epsilon: 0.01
+        decay_rate: 0.99999
+        qnet:
+          layer1: 145
+          layer2: 256
+          layer3: 128
+          layer4: 64
+      tsumo:
+        gamma: 0.98
+        learning_rate: 0.0001
+        epsilon: 0.1
+        buffer_size: 1000
+        batch_size: 2
+        min_epsilon: 0.01
+        decay_rate: 0.99999
+        qnet:
+          layer1: 145
+          layer2: 256
+          layer3: 128
+          layer4: 64
+      ron:
+        gamma: 0.98
+        learning_rate: 0.0001
+        epsilon: 0.1
+        buffer_size: 1000
+        batch_size: 2
+        min_epsilon: 0.01
+        decay_rate: 0.99999
+        qnet:
+          layer1: 145
+          layer2: 256
+          layer3: 128
+          layer4: 64

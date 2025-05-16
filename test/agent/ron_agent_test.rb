@@ -46,7 +46,7 @@ class RonAgentTest < Test::Unit::TestCase
 
   def setup
     config = FileLoader.load_parameter
-    @agent = RonAgent.new(config['player']['tsumo_agent'])
+    @agent = RonAgent.new(config['player']['agent']['ron'])
     @agent.instance_variable_set(:@replay_buffer, DummyBuffer.new)
     @agent.instance_variable_set(:@q_net, DummyQNet.new)
     @agent.instance_variable_set(:@q_net_target, DummyQNet.new)

@@ -46,7 +46,7 @@ class CallAgentTest < Test::Unit::TestCase
 
   def setup
     config = FileLoader.load_parameter
-    @agent = CallAgent.new(config['player']['call_agent'])
+    @agent = CallAgent.new(config['player']['agent']['call'])
     @agent.instance_variable_set(:@replay_buffer, DummyBuffer.new)
     @agent.instance_variable_set(:@q_net, DummyQNet.new)
     @agent.instance_variable_set(:@q_net_target, DummyQNet.new)

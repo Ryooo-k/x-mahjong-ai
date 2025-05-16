@@ -38,7 +38,7 @@ module StateBuilder
       hand_codes = Encoder.encode_hands(player.hands)
       melds_codes = Encoder.encode_melds_list(player.melds_list)
       river_codes = Encoder.encode_rivers(player.rivers)
-      reach = player.reach? ? 1 : 0
+      riichi = player.riichi? ? 1 : 0
       menzen = player.menzen? ? 1 : 0
       score = player.score / ALL_SCORE
       shanten = HandEvaluator.calculate_minimum_shanten(player.hand_histories.last)
@@ -48,7 +48,7 @@ module StateBuilder
         *hand_codes,
         *melds_codes,
         *river_codes,
-        reach,
+        riichi,
         menzen,
         score,
         shanten,
@@ -60,14 +60,14 @@ module StateBuilder
       players.flat_map do |player|
         melds_codes = Encoder.encode_melds_list(player.melds_list)
         river_codes = Encoder.encode_rivers(player.rivers)
-        reach = player.reach? ? 1 : 0
+        riichi = player.riichi? ? 1 : 0
         menzen = player.menzen? ? 1 : 0
         score = player.score / ALL_SCORE
 
         [
           *melds_codes,
           *river_codes,
-          reach,
+          riichi,
           menzen,
           score
         ]

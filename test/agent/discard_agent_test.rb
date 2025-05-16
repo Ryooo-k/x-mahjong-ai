@@ -46,7 +46,7 @@ class DiscardAgentTest < Test::Unit::TestCase
 
   def setup
     config = FileLoader.load_parameter
-    @agent = DiscardAgent.new(config['player']['call_agent'])
+    @agent = DiscardAgent.new(config['player']['agent']['discard'])
     @agent.instance_variable_set(:@replay_buffer, DummyBuffer.new)
     @agent.instance_variable_set(:@q_net, DummyQNet.new)
     @agent.instance_variable_set(:@q_net_target, DummyQNet.new)

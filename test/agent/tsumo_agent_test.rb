@@ -46,7 +46,7 @@ class TsumoAgentTest < Test::Unit::TestCase
 
   def setup
     config = FileLoader.load_parameter
-    @agent = TsumoAgent.new(config['player']['tsumo_agent'])
+    @agent = TsumoAgent.new(config['player']['agent']['tsumo'])
     @agent.instance_variable_set(:@replay_buffer, DummyBuffer.new)
     @agent.instance_variable_set(:@q_net, DummyQNet.new)
     @agent.instance_variable_set(:@q_net_target, DummyQNet.new)

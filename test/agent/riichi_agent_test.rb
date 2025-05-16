@@ -46,7 +46,7 @@ class RiichiAgentTest < Test::Unit::TestCase
 
   def setup
     config = FileLoader.load_parameter
-    @agent = RiichiAgent.new(config['player']['tsumo_agent'])
+    @agent = RiichiAgent.new(config['player']['agent']['riichi'])
     @agent.instance_variable_set(:@replay_buffer, DummyBuffer.new)
     @agent.instance_variable_set(:@q_net, DummyQNet.new)
     @agent.instance_variable_set(:@q_net_target, DummyQNet.new)

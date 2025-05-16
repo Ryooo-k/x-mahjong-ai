@@ -13,7 +13,7 @@ test_parameter:
       discard:
         gamma: 0.98
         learning_rate: 0.0001
-        epsilon: 0.1
+        epsilon: 0.0 # Flakyなテストになるため、ランダム行動はしないように設定
         buffer_size: 1000
         batch_size: 2
         min_epsilon: 0.01
@@ -26,7 +26,8 @@ test_parameter:
       call:
         gamma: 0.98
         learning_rate: 0.0001
-        epsilon: 0.1
+        epsilon: 0.0 # Flakyなテストになるため、ランダム行動はしないように設定
+        buffer_size: 1000
         buffer_size: 1000
         batch_size: 2
         min_epsilon: 0.01
@@ -39,7 +40,8 @@ test_parameter:
       riichi:
         gamma: 0.98
         learning_rate: 0.0001
-        epsilon: 0.1
+        epsilon: 0.0 # Flakyなテストになるため、ランダム行動はしないように設定
+        buffer_size: 1000
         buffer_size: 1000
         batch_size: 2
         min_epsilon: 0.01
@@ -52,7 +54,8 @@ test_parameter:
       tsumo:
         gamma: 0.98
         learning_rate: 0.0001
-        epsilon: 0.1
+        epsilon: 0.0 # Flakyなテストになるため、ランダム行動はしないように設定
+        buffer_size: 1000
         buffer_size: 1000
         batch_size: 2
         min_epsilon: 0.01
@@ -65,7 +68,8 @@ test_parameter:
       ron:
         gamma: 0.98
         learning_rate: 0.0001
-        epsilon: 0.1
+        epsilon: 0.0 # Flakyなテストになるため、ランダム行動はしないように設定
+        buffer_size: 1000
         buffer_size: 1000
         batch_size: 2
         min_epsilon: 0.01

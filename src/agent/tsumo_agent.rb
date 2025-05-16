@@ -4,14 +4,14 @@ require 'torch'
 require_relative 'replay_buffer'
 require_relative '../model/qnet'
 
-class DiscardAgent
+class TsumoAgent
   def initialize(config)
     @gamma = config['gamma']
     @lr = config['learning_rate']
     @epsilon = config['epsilon']
     @buffer_size = config['buffer_size']
     @batch_size = config['batch_size']
-    @action_size = 14
+    @action_size = 2
     @min_epsilon = config['min_epsilon']
     @decay_rate = config['decay_rate']
     @device = Torch::Backends::MPS.available? ? "mps" : "cpu"

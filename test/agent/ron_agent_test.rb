@@ -2,10 +2,10 @@
 
 require 'test/unit'
 require 'yaml'
-require_relative '../../src/agent/discard_agent'
+require_relative '../../src/agent/ron_agent'
 require_relative '../util/file_loader'
 
-class DiscardAgentTest < Test::Unit::TestCase
+class RonAgentTest < Test::Unit::TestCase
   class DummyBuffer
     attr_reader :buffers
 
@@ -46,7 +46,7 @@ class DiscardAgentTest < Test::Unit::TestCase
 
   def setup
     config = FileLoader.load_parameter
-    @agent = DiscardAgent.new(config['player']['call_agent'])
+    @agent = RonAgent.new(config['player']['tsumo_agent'])
     @agent.instance_variable_set(:@replay_buffer, DummyBuffer.new)
     @agent.instance_variable_set(:@q_net, DummyQNet.new)
     @agent.instance_variable_set(:@q_net_target, DummyQNet.new)
@@ -110,7 +110,7 @@ class DiscardAgentTest < Test::Unit::TestCase
       'qnet' => qnet
     }
 
-    agent = DiscardAgent.new(config)
+    agent = RonAgent.new(config)
     agent.update_epsilon
     expected = epsilon * decay_rate
     assert_equal expected, agent.instance_variable_get(:@epsilon)
@@ -130,7 +130,7 @@ class DiscardAgentTest < Test::Unit::TestCase
       'qnet' => qnet
     }
 
-    agent = DiscardAgent.new(config)
+    agent = RonAgent.new(config)
     agent.update_epsilon
     assert_equal min_epsilon, agent.instance_variable_get(:@epsilon)
   end  

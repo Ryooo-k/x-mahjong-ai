@@ -10,9 +10,9 @@ class Player
   HandEvaluator = Domain::Logic::HandEvaluator
   MAX_CALL_COUNT = 4
 
-  def initialize(id, discard_agent_config, call_agent_config)
+  def initialize(id, agent_config)
     @id = id
-    @agent = AgentManager.new(discard_agent_config, call_agent_config)
+    @agent = AgentManager.new(agent_config['discard'], agent_config['call'], agent_config['riichi'], agent_config['tsumo'], agent_config['ron'])
     @score = 25_000
     @point_histories = []
     @hands = []

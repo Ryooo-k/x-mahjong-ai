@@ -2,6 +2,9 @@
 
 require_relative 'discard_agent'
 require_relative 'call_agent'
+require_relative 'riichi_agent'
+require_relative 'tsumo_agent'
+require_relative 'ron_agent'
 
 class AgentManager
   attr_reader :total_discard_loss, :total_call_loss

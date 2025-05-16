@@ -45,7 +45,7 @@ class Table
     @attendance = table_config['attendance']
     @red_dora = RED_DORA_MODES[table_config['red_dora_mode_id']]
     @tile_wall = TileWall.new
-    @players = Array.new(attendance) { |id| Player.new(id, player_config['discard_agent'], player_config['call_agent']) }
+    @players = Array.new(attendance) { |id| Player.new(id, player_config['agent']) }
     @seat_orders = @players.shuffle
     @draw_count = 0
     @kong_count = 0

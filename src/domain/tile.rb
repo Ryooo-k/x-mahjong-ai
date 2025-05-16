@@ -18,4 +18,8 @@ class Tile
     @suit = TILE_DEFINITIONS[id][:suit]
     @holder = nil
   end
+
+  def reset
+    @holder = nil
+  end
 end

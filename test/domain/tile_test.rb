@@ -23,4 +23,12 @@ class TileTest < Test::Unit::TestCase
     noting_id = 1000
     assert_raise(ArgumentError) { Tile.new(noting_id) }
   end
+
+  def test_reset
+    @manzu_1_tile.holder = '１萬の所有者'
+    assert_equal '１萬の所有者', @manzu_1_tile.holder
+
+    @manzu_1_tile.reset
+    assert_equal nil, @manzu_1_tile.holder
+  end
 end

@@ -11,6 +11,7 @@ class TileWall
   end
 
   def reset
+    @tiles.each { |tile| tile.reset }
     shuffled_tiles = @tiles.shuffle
     setup(shuffled_tiles)
     self

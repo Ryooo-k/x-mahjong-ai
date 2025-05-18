@@ -157,7 +157,7 @@ class Env
   def distribute_tsumo_point
     received_point, paid_by_host, paid_by_child = HandEvaluator.calculate_tsumo_agari_point(@current_player, @table)
     @current_player.award_point(received_point)
-    @other_players.each { |player| @table.host == player ? player.award_point(paid_by_host) : player.award_point(paid_by_child) }
+    @other_players.each { |player| @table.host == player ? player.award_point(-paid_by_host) : player.award_point(-paid_by_child) }
   end
 
   def update_tsumo_agent(states, action)

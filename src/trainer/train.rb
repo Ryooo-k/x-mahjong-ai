@@ -25,24 +25,26 @@ def run_training_loop(train_config, env)
           round_over = env.round_over?
           env.rotate_turn if !round_over
         end
-        puts env.table.round[:name]
-        !env.game_over? && env.renchan? ? env.restart : env.proceed_to_next_round
+
+        puts env.log
+        env.renchan? ? env.restart : env.proceed_to_next_round
         round_over = env.round_over?
-        game_over = env.check_game_over
+        env.check_game_over
+        game_over = env.game_over?
       end
 
       env.sync_qnet if count % train_config['qnet_sync_interval'] == 0
     end
+
     total_time += time_taken
-    output(total_time, count, env.log) if count % 100 == 0  || env.table.draw_count != 122
+    output(total_time, count) if count % 100 == 0
     env.reset
   end
 end
 
-def output(time_taken, count, log)
+def output(time_taken, count)
   puts format_second(time_taken)
   puts "学習回数：#{count}"
-  puts log
 end
 
 def format_second(time_taken)

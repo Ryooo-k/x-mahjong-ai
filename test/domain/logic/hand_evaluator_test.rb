@@ -555,6 +555,54 @@ class HandEvaluatorTest < Test::Unit::TestCase
     assert_equal 4_000, paid_by_child
   end
 
+  def test_calculate_tsumo_agari_point_when_host_chombo
+    config = FileLoader.load_parameter
+    table = Table.new(config['table'], config['player'])
+
+    # 和了できない手: 111222萬 345筒 456索 東中
+    hands = [
+      @tiles[0], @tiles[1], @tiles[2],
+      @tiles[4], @tiles[5], @tiles[6],
+      @tiles[44], @tiles[48], @tiles[52],
+      @tiles[84], @tiles[88], @tiles[92],
+      @tiles[108], @tiles[132]
+    ]
+
+    player = table.host
+    player.instance_variable_set(:@hands, hands)
+    player.instance_variable_set(:@wind, '1z')
+    table.tile_wall.instance_variable_set(:@open_dora_indicators, [@tiles[32]])
+
+    received_point, paid_by_host, paid_by_child = @evaluator.calculate_tsumo_agari_point(player, table)
+    assert_equal -12_000, received_point
+    assert_equal 0, paid_by_host
+    assert_equal 4_000, paid_by_child
+  end
+
+  def test_calculate_tsumo_agari_point_when_child_chombo
+    config = FileLoader.load_parameter
+    table = Table.new(config['table'], config['player'])
+
+    # 和了できない手: 111222萬 345筒 456索 東中
+    hands = [
+      @tiles[0], @tiles[1], @tiles[2],
+      @tiles[4], @tiles[5], @tiles[6],
+      @tiles[44], @tiles[48], @tiles[52],
+      @tiles[84], @tiles[88], @tiles[92],
+      @tiles[108], @tiles[132]
+    ]
+
+    player = table.children[0]
+    player.instance_variable_set(:@hands, hands)
+    player.instance_variable_set(:@wind, '1z')
+    table.tile_wall.instance_variable_set(:@open_dora_indicators, [@tiles[32]])
+
+    received_point, paid_by_host, paid_by_child = @evaluator.calculate_tsumo_agari_point(player, table)
+    assert_equal -8_000, received_point
+    assert_equal 4_000, paid_by_host
+    assert_equal 2_000, paid_by_child
+  end
+
   def test_calculate_ron_agari_point
     config = FileLoader.load_parameter
     table = Table.new(config['table'], config['player'])
@@ -577,6 +625,52 @@ class HandEvaluatorTest < Test::Unit::TestCase
     table.tile_wall.instance_variable_set(:@open_dora_indicators, [@tiles[32]]) # 1萬がドラ
 
     point = @evaluator.calculate_ron_agari_point(player, table)
-    assert_equal 18_000, point
+    assert_equal [18_000, nil, nil], point
+  end
+
+  def test_calculate_ron_agari_point_when_host_chombo
+    config = FileLoader.load_parameter
+    table = Table.new(config['table'], config['player'])
+
+    # 和了できない手: 111222萬 333筒 44索 東東 中
+    hands = [
+      @tiles[0], @tiles[1], @tiles[2],
+      @tiles[4], @tiles[5], @tiles[6],
+      @tiles[44], @tiles[45], @tiles[46],
+      @tiles[84], @tiles[85],
+      @tiles[108], @tiles[109],
+      @tiles[132]
+    ]
+
+    player = table.host
+    player.instance_variable_set(:@hands, hands)
+    player.instance_variable_set(:@wind, '1z')
+    table.tile_wall.instance_variable_set(:@open_dora_indicators, [@tiles[32]])
+
+    point = @evaluator.calculate_ron_agari_point(player, table)
+    assert_equal [-12_000, 0, 4_000], point
+  end
+
+  def test_calculate_ron_agari_point_when_child_chombo
+    config = FileLoader.load_parameter
+    table = Table.new(config['table'], config['player'])
+
+    # 和了できない手: 111222萬 333筒 44索 東東 中
+    hands = [
+      @tiles[0], @tiles[1], @tiles[2],
+      @tiles[4], @tiles[5], @tiles[6],
+      @tiles[44], @tiles[45], @tiles[46],
+      @tiles[84], @tiles[85],
+      @tiles[108], @tiles[109],
+      @tiles[132]
+    ]
+
+    player = table.children[0]
+    player.instance_variable_set(:@hands, hands)
+    player.instance_variable_set(:@wind, '1z')
+    table.tile_wall.instance_variable_set(:@open_dora_indicators, [@tiles[32]])
+
+    point = @evaluator.calculate_ron_agari_point(player, table)
+    assert_equal [-8_000, 4_000, 2_000], point
   end
 end

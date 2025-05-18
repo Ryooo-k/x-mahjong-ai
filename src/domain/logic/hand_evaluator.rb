@@ -104,7 +104,7 @@ module Domain
           File.write("tmp/yaku_input.json", JSON.dump(input))
           result = `node src/domain/logic/yaku_checker.js`
           yaku = JSON.parse(result)
-          [yaku['score'], yaku['pay']['oya'], yaku['pay']['ko']]
+          calculate_point_distribution(player, yaku, table)
         end
 
         def calculate_ron_agari_point(player, table)
@@ -123,7 +123,7 @@ module Domain
           File.write("tmp/yaku_input.json", JSON.dump(input))
           result = `node src/domain/logic/yaku_checker.js`
           yaku = JSON.parse(result)
-          yaku['score']
+          calculate_point_distribution(player, yaku, table)
         end
 
         private
@@ -245,6 +245,17 @@ module Domain
             honba: honba,
             oya: is_oya
           }
+        end
+
+        def calculate_point_distribution(player, yaku, table)
+          honba_point = table.honba[:count] * 100
+          if yaku['score'].zero? && table.host == player
+            [-12_000 - honba_point, 0, 4_000 + honba_point]
+          elsif yaku['score'].zero? && table.host != player
+            [-8_000 - honba_point, 4_000 + honba_point, 2_000 + honba_point]
+          else
+            [yaku['score'], yaku['pay']['oya'], yaku['pay']['ko']]
+          end
         end
       end
     end

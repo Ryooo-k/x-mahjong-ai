@@ -27,16 +27,10 @@ class Env
 
   def step
     current_player_draw
-    states = build_states(@current_player)
-
     handle_tsumo_action
-
-    discard_action, discarded_tile = handle_discard_action(states)
-
-    ron_action, ron_player = get_ron_action(discarded_tile)
-    return handle_ron_agari(states, discard_action, ron_player, ron_action, discarded_tile) if ron_player
-
-    handle_normal_progress(states, discard_action)
+    discarded_states, discarded_action, discarded_tile = handle_discard_action
+    handle_ron_action(discarded_states, discarded_action, discarded_tile)
+    handle_normal_progress(discarded_states, discard_action) if !ron_player
   end
 
   def rotate_turn
@@ -162,16 +156,34 @@ class Env
 
   def update_tsumo_agent(states, action)
     next_states = StateBuilder.build_tsumo_next_states(@current_player, @other_players, @table)
-    reward = RewardCalculator.calculate_round_over_reward(@current_player)
+    reward = RewardCalculator.calculate_reward(@current_player, @round_over)
     @current_player.update_tsumo_agent(states, action, reward, next_states, @game_over)
   end
 
-  def handle_discard_action(states)
+  def handle_discard_action
+    states = StateBuilder.build_discard_states(@current_player, @other_players, @table)
     discard_action = @current_player.get_discard_action(states)
     target_tile = @current_player.choose(discard_action)
     @current_player.discard(target_tile)
     @current_player.record_hand_status
-    [discard_action, target_tile]
+    [states, discard_action, target_tile]
+  end
+
+  def handle_ron_action(discarded_states, discarded_action, discard_tile)
+    ron_action, ron_player = get_ron_action(discarded_tile)
+
+    if ron_action == ACTION_NUMBER
+      @round_over = true
+      received_point, *_ = HandEvaluator.calculate_ron_agari_point(ron_player, @table)
+      update_discard_agent(discarded_states, discarded_action)
+      ron_player.draw(winning_tile)
+      ron_player.record_hand_status
+      ron_player_states = build_states(ron_player)
+      distribute_ron_point(ron_player)
+      set_player_rank
+      update_ron_agent(ron_player, ron_player_states, ron_action)
+    end
+    ron_player
   end
 
   def get_ron_action(tile)
@@ -190,28 +202,15 @@ class Env
     [ron_action, ron_player]
   end
 
-  def handle_ron_agari(current_player_states, discard_action, ron_player, ron_action, winning_tile)
-    @round_over = true
-    update_discard_agent(@current_player, current_player_states, discard_action)
-
-    ron_player.draw(winning_tile)
-    ron_player.record_hand_status
-    ron_player_states = build_states(ron_player)
-    distribute_ron_point(ron_player)
-    set_player_rank
-
-    update_ron_agent(ron_player, ron_player_states, ron_action)
-  end
-
-  def update_discard_agent(player, states, action)
-    next_states = build_states(player)
-    reward = RewardCalculator.calculate_round_over_reward(player)
+  def update_discard_agent(states, action)
+    next_states = StateBuilder.build_discard_states(@current_player, @other_players, @table)
+    reward = RewardCalculator.calculate_reward(player, @round_over)
     player.update_discard_agent(states, action, reward, next_states, @game_over)
   end
 
   def update_ron_agent(player, states, action)
     next_states = build_states(player)
-    reward = RewardCalculator.calculate_round_over_reward(player)
+    reward = RewardCalculator.calculate_reward(player, @round_over)
     player.update_ron_agent(states, action, reward, next_states, @game_over)
   end
 
@@ -225,7 +224,7 @@ class Env
   def handle_normal_progress(states, action)
     @round_over = can_not_draw?
     next_states = build_states(@current_player)
-    reward = RewardCalculator.calculate_round_continue_reward(@current_player)
+    reward = RewardCalculator.calculate_reward(@current_player, @round_over)
     @current_player.update_discard_agent(states, action, reward, next_states, @game_over)
   end
 end

@@ -561,6 +561,7 @@ class HandEvaluatorTest < Test::Unit::TestCase
 
     # 和了手: 111222萬 333筒 444索 東東
     # 和了牌：4索（hands.last）
+    # 対々和、三暗刻、ドラ３
     hands = [
       @tiles[0], @tiles[1], @tiles[2],
       @tiles[4], @tiles[5], @tiles[6],
@@ -576,6 +577,6 @@ class HandEvaluatorTest < Test::Unit::TestCase
     table.tile_wall.instance_variable_set(:@open_dora_indicators, [@tiles[32]]) # 1萬がドラ
 
     point = @evaluator.calculate_ron_agari_point(player, table)
-    assert_equal 48_000, point
+    assert_equal 18_000, point
   end
 end

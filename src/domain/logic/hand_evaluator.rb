@@ -114,7 +114,7 @@ module Domain
             target_tile: player.hands.last,
             round_wind: table.round[:wind],
             player_wind: player.wind,
-            is_tsumo: true,
+            is_tsumo: false,
             is_riichi: player.riichi?,
             open_dora_indicators: table.open_dora_indicators,
             blind_dora_indicators: table.blind_dora_indicators,

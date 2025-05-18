@@ -9,12 +9,12 @@ module RewardCalculator
     3 => -10.0,
     4 => -30.0
   }
-  POINT_BASE = 10_000.0
+  NORMALIZATION_BASE_POINT = 10_000.0
 
   class << self
     def calculate_round_over_reward(player)
       rank_reward = REWARDS_BY_RANK[player.rank]
-      score_reward = player.score / POINT_BASE
+      score_reward = player.score / NORMALIZATION_BASE_POINT
       rank_reward + score_reward
     end
 

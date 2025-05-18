@@ -29,8 +29,7 @@ class Env
     current_player_draw
     states = build_states(@current_player)
 
-    tsumo_action = get_tsumo_action if @current_player.agari?
-    return handle_tsumo_agari(states, tsumo_action) if tsumo_action == ACTION_NUMBER
+    handle_tsumo_action
 
     discard_action, discarded_tile = handle_discard_action(states)
 
@@ -142,15 +141,16 @@ class Env
     StateBuilder.build_player_states(main_player, sub_players, @table)
   end
 
-  def get_tsumo_action
-    states = build_states(@current_player)
-    @current_player.get_tsumo_action(states)
-  end
+  def handle_tsumo_action
+    states = StateBuilder.build_tsumo_states(@current_player, @other_players, @table)
+    tsumo_action = @current_player.get_tsumo_action(states)
 
-  def handle_tsumo_agari(states, tsumo_action)
-    @round_over = true
-    distribute_tsumo_point
-    set_player_rank
+    if tsumo_action == ACTION_NUMBER
+      @round_over = true
+      distribute_tsumo_point
+      set_player_rank
+    end
+
     update_tsumo_agent(states, tsumo_action)
   end
 
@@ -161,7 +161,7 @@ class Env
   end
 
   def update_tsumo_agent(states, action)
-    next_states = build_states(@current_player)
+    next_states = StateBuilder.build_tsumo_next_states(@current_player, @other_players, @table)
     reward = RewardCalculator.calculate_round_over_reward(@current_player)
     @current_player.update_tsumo_agent(states, action, reward, next_states, @game_over)
   end

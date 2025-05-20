@@ -41,8 +41,12 @@ class Env
     @other_players = rotated_orders[1..]
   end
 
+  def update_epsilon
+    @table.players.each { |player| player.agent.update_epsilon }
+  end
+
   def sync_qnet
-    @table.players.each { |player| player.sync_qnet }
+    @table.players.each { |player| player.agent.sync_qnet }
   end
 
   def log
@@ -130,7 +134,7 @@ class Env
 
   def handle_tsumo_action
     states = StateBuilder.build_tsumo_states(@current_player, @other_players, @table)
-    tsumo_action = @current_player.get_tsumo_action(states)
+    tsumo_action = @current_player.agent.get_tsumo_action(states)
 
     if tsumo_action == ACTION_NUMBER
       @round_over = true
@@ -151,12 +155,12 @@ class Env
   def update_tsumo_agent(states, action)
     next_states = StateBuilder.build_tsumo_next_states(@current_player, @other_players, @table)
     reward = RewardCalculator.calculate_agari_reward(@current_player, @round_over)
-    @current_player.update_tsumo_agent(states, action, reward, next_states, @game_over)
+    @current_player.agent.update_tsumo_agent(states, action, reward, next_states, @game_over)
   end
 
   def handle_discard_action
     states = StateBuilder.build_discard_states(@current_player, @other_players, @table)
-    discard_action = @current_player.get_discard_action(states)
+    discard_action = @current_player.agent.get_discard_action(states)
     target_tile = @current_player.choose(discard_action)
     @current_player.discard(target_tile)
     @current_player.record_hand_status
@@ -188,7 +192,7 @@ class Env
     @other_players.each do |player|
       is_ron = player.can_ron?(tile, round_wind)
       states = build_ron_states(is_ron, player)
-      ron_action = player.get_ron_action(states)
+      ron_action = player.agent.get_ron_action(states)
       ron_player = player if ron_action == ACTION_NUMBER
       break if !ron_player.nil?
     end
@@ -205,7 +209,7 @@ class Env
   def update_ron_agent(player, states, action)
     next_states = build_ron_next_states(player)
     reward = RewardCalculator.calculate_agari_reward(player, @round_over)
-    player.update_ron_agent(states, action, reward, next_states, @game_over)
+    player.agent.update_ron_agent(states, action, reward, next_states, @game_over)
   end
 
   def build_ron_next_states(main_player)
@@ -231,6 +235,6 @@ class Env
   def update_discard_agent(states, action)
     next_states = StateBuilder.build_discard_states(@current_player, @other_players, @table)
     reward = RewardCalculator.calculate_normal_reward(@current_player, @round_over)
-    @current_player.update_discard_agent(states, action, reward, next_states, @game_over)
+    @current_player.agent.update_discard_agent(states, action, reward, next_states, @game_over)
   end
 end

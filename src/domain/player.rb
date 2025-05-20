@@ -92,50 +92,6 @@ class Player
     sorted_hands[index]
   end
 
-  def get_discard_action(states)
-    @agent.get_discard_action(states)
-  end
-
-  def get_call_action(states)
-    @agent.get_call_action(states)
-  end
-
-  def get_riichi_action(states)
-    @agent.get_riichi_action(states)
-  end
-
-  def get_tsumo_action(states)
-    @agent.get_tsumo_action(states)
-  end
-
-  def get_ron_action(states)
-    @agent.get_ron_action(states)
-  end
-
-  def update_discard_agent(states, action, reward, next_states, done)
-    @agent.update_discard_agent(states, action, reward, next_states, done)
-  end
-
-  def update_call_agent(states, action, reward, next_states, done)
-    @agent.update_call_agent(states, action, reward, next_states, done)
-  end
-
-  def update_riichi_agent(states, action, reward, next_states, done)
-    @agent.update_riichi_agent(states, action, reward, next_states, done)
-  end
-
-  def update_tsumo_agent(states, action, reward, next_states, done)
-    @agent.update_tsumo_agent(states, action, reward, next_states, done)
-  end
-
-  def update_ron_agent(states, action, reward, next_states, done)
-    @agent.update_ron_agent(states, action, reward, next_states, done)
-  end
-
-  def sync_qnet
-    @agent.sync_qnet
-  end
-
   def pon(combinations, target_tile)
     raise ArgumentError, '有効な牌が無いためポンできません。' unless can_pon?(target_tile)
     preform_call(combinations, target_tile:)

@@ -82,4 +82,12 @@ class AgentManager
     @tsumo_agent.sync_qnet
     @ron_agent.sync_qnet
   end
+
+  def update_epsilon
+    @discard_agent.update_epsilon
+    @call_agent.update_epsilon
+    @riichi_agent.update_epsilon
+    @tsumo_agent.update_epsilon
+    @ron_agent.update_epsilon
+  end
 end

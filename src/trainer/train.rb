@@ -33,6 +33,7 @@ def run_training_loop(train_config, env)
         game_over = env.game_over?
       end
 
+      env.update_epsilon
       env.sync_qnet if count % train_config['qnet_sync_interval'] == 0
     end
 

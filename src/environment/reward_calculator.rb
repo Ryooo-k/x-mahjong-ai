@@ -12,11 +12,11 @@ module RewardCalculator
   NORMALIZATION_BASE_POINT = 10_000.0
 
   class << self
-    def calculate_reward(player, round_over)
+    def calculate_normal_reward(player, round_over)
       round_over ? calculate_round_over_reward(player) : calculate_round_continue_reward(player)
     end
 
-    def calculate_tsumo_reward(player, round_over)
+    def calculate_agari_reward(player, round_over)
       round_over ? calculate_round_over_reward(player) : 0
     end
 

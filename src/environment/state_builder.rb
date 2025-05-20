@@ -15,15 +15,16 @@ module StateBuilder
 
   class << self
     def build_discard_states(current_player, other_players, table)
-      current_player_states = build_main_player_states(current_player)
-      other_players_states = build_sub_players_states(other_players)
+      current_player_states = build_current_player_states(current_player)
+      other_players_states = build_other_players_states(other_players)
       table_states = build_table_states(table)
       states = current_player_states + other_players_states + table_states
       Torch.tensor(states, dtype: :float32)
     end
 
     def build_tsumo_states(current_player, other_players, table)
-      is_tsumo = current_player.can_tsumo? ? 1.0 : 0.0
+      round_wind = table.round[:wind]
+      is_tsumo = current_player.can_tsumo?(round_wind) ? 1.0 : 0.0
 
       received_point, *_ = HandEvaluator.calculate_tsumo_agari_point(current_player, table)
       normalized_point = received_point / NORMALIZATION_BASE_POINT
@@ -62,7 +63,7 @@ module StateBuilder
 
     private
 
-    def build_main_player_states(player)
+    def build_current_player_states(player)
       hand_codes = Encoder.encode_hands(player.hands)
       melds_codes = Encoder.encode_melds_list(player.melds_list)
       river_codes = Encoder.encode_rivers(player.rivers)
@@ -84,7 +85,7 @@ module StateBuilder
       ]
     end
 
-    def build_sub_players_states(players)
+    def build_other_players_states(players)
       players.flat_map do |player|
         melds_codes = Encoder.encode_melds_list(player.melds_list)
         river_codes = Encoder.encode_rivers(player.rivers)

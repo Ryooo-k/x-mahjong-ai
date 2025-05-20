@@ -14,11 +14,11 @@ module StateBuilder
   NORMALIZATION_BASE_HONBA = 10.0
 
   class << self
-    def build_player_states(main_player, sub_players, table)
-      main_player_states = build_main_player_states(main_player)
-      sub_players_states = build_sub_players_states(sub_players)
+    def build_discard_states(current_player, other_players, table)
+      current_player_states = build_main_player_states(current_player)
+      other_players_states = build_sub_players_states(other_players)
       table_states = build_table_states(table)
-      states = main_player_states + sub_players_states + table_states
+      states = current_player_states + other_players_states + table_states
       Torch.tensor(states, dtype: :float32)
     end
 

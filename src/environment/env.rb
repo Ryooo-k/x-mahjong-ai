@@ -28,9 +28,9 @@ class Env
   def step
     current_player_draw
     handle_tsumo_action
-    discarded_states, discarded_action, discarded_tile = handle_discard_action
-    handle_ron_action(discarded_states, discarded_action, discarded_tile)
-    handle_normal_progress(discarded_states, discard_action) if !ron_player
+    discarded_states, discarded_action, discarded_tile = handle_discard_action unless round_over
+    ron_player = handle_ron_action(discarded_states, discarded_action, discarded_tile)
+    handle_normal_progress(discarded_states, discarded_action) if !ron_player
   end
 
   def rotate_turn
@@ -169,7 +169,7 @@ class Env
     [states, discard_action, target_tile]
   end
 
-  def handle_ron_action(discarded_states, discarded_action, discard_tile)
+  def handle_ron_action(discarded_states, discarded_action, discarded_tile)
     ron_action, ron_player = get_ron_action(discarded_tile)
 
     if ron_action == ACTION_NUMBER
@@ -223,7 +223,7 @@ class Env
 
   def handle_normal_progress(states, action)
     @round_over = can_not_draw?
-    next_states = build_states(@current_player)
+    next_states = StateBuilder.build_discard_states(@current_player, @other_players, @table)
     reward = RewardCalculator.calculate_reward(@current_player, @round_over)
     @current_player.update_discard_agent(states, action, reward, next_states, @game_over)
   end

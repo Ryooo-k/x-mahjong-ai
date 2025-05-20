@@ -79,9 +79,13 @@ class Player
     cache_code =  test_hands.map(&:code).join
     return @ron_cache[cache_code] if @ron_cache.key?(cache_code)
 
-    result = HandEvaluator.has_yaku?(hands: @hands, melds_list: @melds_list, target_tile: tile, round_wind:, player_wind: @wind, is_riichi: @is_riichi)
+    result = HandEvaluator.has_yaku?(hands: @hands, melds_list: @melds_list, target_tile: tile, round_wind:, player_wind: @wind, is_tsumo: false, is_riichi: @is_riichi)
     @ron_cache[cache_code] = result
     result
+  end
+
+  def can_tsumo?(round_wind)
+    HandEvaluator.has_yaku?(hands: @hands[..-2], melds_list: @melds_list, target_tile: @hands.last, round_wind:, player_wind: @wind, is_tsumo: true, is_riichi: @is_riichi)
   end
 
   def choose(index)

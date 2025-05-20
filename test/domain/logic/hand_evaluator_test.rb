@@ -488,7 +488,7 @@ class HandEvaluatorTest < Test::Unit::TestCase
       ], result['yaku'])
   end
 
-  def test_has_yaku_without_yaku
+  def test_has_yaku_return_false_without_yaku
     # 役無し聴牌: 12379萬 333筒 456索 東東
     hands = [
       @tiles[0], @tiles[4], @tiles[8],
@@ -501,13 +501,14 @@ class HandEvaluatorTest < Test::Unit::TestCase
     target_tile = @tiles[28] # 8萬
     round_wind = '1z' # 東のnumber+suit
     player_wind = '1z'
+    is_tsumo = false
     is_riichi = false
-    result = @evaluator.has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_riichi:)
+    result = @evaluator.has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_tsumo:, is_riichi:)
 
     assert_equal false, result
   end
 
-  def test_has_yaku_with_yaku
+  def test_has_yaku_return_yaku_when_player_have_yaku
     # 役あり聴牌: 12379萬 33筒 456索 東東東
     hands = [
       @tiles[0], @tiles[4], @tiles[8],
@@ -520,8 +521,9 @@ class HandEvaluatorTest < Test::Unit::TestCase
     target_tile = @tiles[28] # 8萬
     round_wind = '1z' # 東のnumber+suit
     player_wind = '1z'
+    is_tsumo = false
     is_riichi = false
-    yaku = @evaluator.has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_riichi:)
+    yaku = @evaluator.has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_tsumo:, is_riichi:)
 
     assert_equal(
       [

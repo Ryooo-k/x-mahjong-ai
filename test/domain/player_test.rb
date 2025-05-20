@@ -153,7 +153,7 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal true, @player.tenpai?
   end
 
-  def test_can_ron?
+  def test_can_ron_return_yaku_when_player_can_ron
     # 123456789萬 123筒 東
     # 待ち牌：東
     tiles = [
@@ -163,7 +163,7 @@ class PlayerTest < Test::Unit::TestCase
       @tiles[36], @tiles[40], @tiles[44],
       @tiles[108]
     ]
-    tiles.each { |tile| @player.draw(tile)}
+    tiles.each { |tile| @player.draw(tile) }
     
     @player.wind = '1z'
     round_wind = '1z'
@@ -172,8 +172,63 @@ class PlayerTest < Test::Unit::TestCase
 
     east = @tiles[109]
     result = @player.can_ron?(east, round_wind)
-    assert_equal true, !result.empty?
     assert_equal [{"han"=>2, "name"=>"一気通貫"}], result
+  end
+
+  def test_can_ron_return_false_when_player_can_not_ron
+    # 123456789萬 135筒 東
+    # 待ち牌：東
+    tiles = [
+      @tiles[0], @tiles[4], @tiles[8],
+      @tiles[12], @tiles[16], @tiles[20],
+      @tiles[24], @tiles[28], @tiles[32],
+      @tiles[36], @tiles[44], @tiles[52],
+      @tiles[108]
+    ]
+    tiles.each { |tile| @player.draw(tile) }
+    
+    @player.wind = '1z'
+    round_wind = '1z'
+    haku = @tiles[124]
+    assert_equal false, @player.can_ron?(haku, round_wind)
+
+    east = @tiles[109]
+    result = @player.can_ron?(east, round_wind)
+    assert_equal false, result
+  end
+
+  def test_can_tsumo_return_yaku_when_player_can_tsumo
+    # 123456789萬 123筒 東東
+    tiles = [
+      @tiles[0], @tiles[4], @tiles[8],
+      @tiles[12], @tiles[16], @tiles[20],
+      @tiles[24], @tiles[28], @tiles[32],
+      @tiles[36], @tiles[40], @tiles[44],
+      @tiles[108], @tiles[109]
+    ]
+    tiles.each { |tile| @player.draw(tile)}
+    
+    @player.wind = '1z'
+    round_wind = '1z'
+    result = @player.can_tsumo?(round_wind)
+    assert_equal [{ "han" => 1, "name" => "門前清自摸和" }, { "han" => 2, "name" => "一気通貫" }], result
+  end
+
+  def test_can_tsumo_return_false_when_player_can_not_tsumo
+    # 123456789萬 123筒 東中
+    tiles = [
+      @tiles[0], @tiles[4], @tiles[8],
+      @tiles[12], @tiles[16], @tiles[20],
+      @tiles[24], @tiles[28], @tiles[32],
+      @tiles[36], @tiles[40], @tiles[44],
+      @tiles[108], @tiles[132]
+    ]
+    tiles.each { |tile| @player.draw(tile)}
+    
+    @player.wind = '1z'
+    round_wind = '1z'
+    result = @player.can_tsumo?(round_wind)
+    assert_equal false, result
   end
 
   def test_choose

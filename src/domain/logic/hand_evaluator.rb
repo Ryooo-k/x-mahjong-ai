@@ -79,8 +79,8 @@ module Domain
           JSON.parse(result)
         end
 
-        def has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_riichi:)
-          input = to_yaku_checker_format(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_riichi:)
+        def has_yaku?(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_tsumo:, is_riichi:)
+          input = to_yaku_checker_format(hands:, melds_list:, target_tile:, round_wind:, player_wind:, is_tsumo:, is_riichi:)
           File.write("tmp/yaku_input.json", JSON.dump(input))
           result = `node src/domain/logic/yaku_checker.js`
           yaku_states = JSON.parse(result)

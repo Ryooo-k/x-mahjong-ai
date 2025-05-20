@@ -16,6 +16,10 @@ module RewardCalculator
       round_over ? calculate_round_over_reward(player) : calculate_round_continue_reward(player)
     end
 
+    def calculate_tsumo_reward(player, round_over)
+      round_over ? calculate_round_over_reward(player) : 0
+    end
+
     private
 
     def calculate_round_over_reward(player)

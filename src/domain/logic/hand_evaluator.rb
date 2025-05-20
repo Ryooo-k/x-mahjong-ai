@@ -249,12 +249,16 @@ module Domain
 
         def calculate_point_distribution(player, yaku, table)
           honba_point = table.honba[:count] * 100
-          if yaku['score'].zero? && table.host == player
+          received_point = yaku['score']
+          paid_by_host = yaku['pay']['oya'].nil? ? 0 : yaku['pay']['oya']
+          paid_by_child = yaku['pay']['ko'].nil? ? 0 : yaku['pay']['ko']
+
+          if received_point.zero? && table.host == player
             [-12_000 - honba_point, 0, 4_000 + honba_point]
-          elsif yaku['score'].zero? && table.host != player
+          elsif received_point.zero? && table.host != player
             [-8_000 - honba_point, 4_000 + honba_point, 2_000 + honba_point]
           else
-            [yaku['score'], yaku['pay']['oya'], yaku['pay']['ko']]
+            [received_point, -paid_by_host, -paid_by_child]
           end
         end
       end

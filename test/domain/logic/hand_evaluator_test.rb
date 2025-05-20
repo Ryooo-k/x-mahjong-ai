@@ -532,7 +532,7 @@ class HandEvaluatorTest < Test::Unit::TestCase
       ], yaku)
   end
 
-  def test_calculate_tsumo_agari_point
+  def test_calculate_tsumo_agari_point_when_host_mangan_agari
     config = FileLoader.load_parameter
     table = Table.new(config['table'], config['player'])
 
@@ -553,8 +553,33 @@ class HandEvaluatorTest < Test::Unit::TestCase
 
     received_point, paid_by_host, paid_by_child = @evaluator.calculate_tsumo_agari_point(player, table)
     assert_equal 12_000, received_point
-    assert_equal nil, paid_by_host
-    assert_equal 4_000, paid_by_child
+    assert_equal 0, paid_by_host
+    assert_equal -4_000, paid_by_child
+  end
+
+  def test_calculate_tsumo_agari_point_when_child_mangan_agari
+    config = FileLoader.load_parameter
+    table = Table.new(config['table'], config['player'])
+
+    # 和了手: 111222萬 345筒 456索 東東
+    # ツモ牌：東（hands.last）
+    hands = [
+      @tiles[0], @tiles[1], @tiles[2],
+      @tiles[4], @tiles[5], @tiles[6],
+      @tiles[44], @tiles[48], @tiles[52],
+      @tiles[84], @tiles[88], @tiles[92],
+      @tiles[108], @tiles[109]
+    ]
+
+    player = table.children[0]
+    player.instance_variable_set(:@hands, hands)
+    player.instance_variable_set(:@wind, '2z')
+    table.tile_wall.instance_variable_set(:@open_dora_indicators, [@tiles[32]]) # 1萬がドラ
+
+    received_point, paid_by_host, paid_by_child = @evaluator.calculate_tsumo_agari_point(player, table)
+    assert_equal 8_000, received_point
+    assert_equal -4_000, paid_by_host
+    assert_equal -2_000, paid_by_child
   end
 
   def test_calculate_tsumo_agari_point_when_host_chombo
@@ -627,7 +652,7 @@ class HandEvaluatorTest < Test::Unit::TestCase
     table.tile_wall.instance_variable_set(:@open_dora_indicators, [@tiles[32]]) # 1萬がドラ
 
     point = @evaluator.calculate_ron_agari_point(player, table)
-    assert_equal [18_000, nil, nil], point
+    assert_equal [18_000, 0, 0], point
   end
 
   def test_calculate_ron_agari_point_when_host_chombo

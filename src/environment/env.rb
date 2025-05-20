@@ -28,9 +28,9 @@ class Env
   def step
     current_player_draw
     handle_tsumo_action
-    discarded_states, discarded_action, discarded_tile = handle_discard_action unless round_over
-    ron_player = handle_ron_action(discarded_states, discarded_action, discarded_tile)
-    handle_normal_progress(discarded_states, discarded_action) if !ron_player
+    discarded_states, discarded_action, discarded_tile = handle_discard_action unless @round_over
+    ron_player = handle_ron_action(discarded_states, discarded_action, discarded_tile) unless @round_over
+    handle_normal_progress(discarded_states, discarded_action) unless @round_over
   end
 
   def rotate_turn
@@ -128,13 +128,6 @@ class Env
     @table.draw_count + @table.kong_count >= 122
   end
 
-  def build_states(main_player)
-    all_players = [@current_player] + @other_players
-    index = all_players.find_index(main_player)
-    sub_players = all_players.rotate(index + 1)[1..]
-    StateBuilder.build_player_states(main_player, sub_players, @table)
-  end
-
   def handle_tsumo_action
     states = StateBuilder.build_tsumo_states(@current_player, @other_players, @table)
     tsumo_action = @current_player.get_tsumo_action(states)
@@ -149,14 +142,15 @@ class Env
   end
 
   def distribute_tsumo_point
-    received_point, paid_by_host, paid_by_child = HandEvaluator.calculate_tsumo_agari_point(@current_player, @table)
+    is_tsumo = true
+    received_point, paid_by_host, paid_by_child = HandEvaluator.calculate_point(@current_player, @table, is_tsumo)
     @current_player.award_point(received_point)
-    @other_players.each { |player| @table.host == player ? player.award_point(-paid_by_host) : player.award_point(-paid_by_child) }
+    @other_players.each { |player| @table.host == player ? player.award_point(paid_by_host) : player.award_point(paid_by_child) }
   end
 
   def update_tsumo_agent(states, action)
     next_states = StateBuilder.build_tsumo_next_states(@current_player, @other_players, @table)
-    reward = RewardCalculator.calculate_reward(@current_player, @round_over)
+    reward = RewardCalculator.calculate_agari_reward(@current_player, @round_over)
     @current_player.update_tsumo_agent(states, action, reward, next_states, @game_over)
   end
 
@@ -170,18 +164,17 @@ class Env
   end
 
   def handle_ron_action(discarded_states, discarded_action, discarded_tile)
-    ron_action, ron_player = get_ron_action(discarded_tile)
+    ron_player, ron_states, ron_action = get_ron_action(discarded_tile)
 
     if ron_action == ACTION_NUMBER
       @round_over = true
-      received_point, *_ = HandEvaluator.calculate_ron_agari_point(ron_player, @table)
-      update_discard_agent(discarded_states, discarded_action)
-      ron_player.draw(winning_tile)
+      is_tsumo = false
+      received_point, *_ = HandEvaluator.calculate_point(ron_player, @table, is_tsumo)
+      ron_player.draw(discarded_tile)
       ron_player.record_hand_status
-      ron_player_states = build_states(ron_player)
       distribute_ron_point(ron_player)
       set_player_rank
-      update_ron_agent(ron_player, ron_player_states, ron_action)
+      update_ron_agent(ron_player, ron_states, ron_action)
     end
     ron_player
   end
@@ -189,33 +182,42 @@ class Env
   def get_ron_action(tile)
     ron_action = nil
     ron_player = nil
+    states = nil
     round_wind = @table.round[:wind]
 
     @other_players.each do |player|
-      if player.can_ron?(tile, round_wind)
-        states = build_states(player)
-        ron_action = player.get_ron_action(states)
-        ron_player = player if ron_action == ACTION_NUMBER
-      end
+      is_ron = player.can_ron?(tile, round_wind)
+      states = build_ron_states(is_ron, player)
+      ron_action = player.get_ron_action(states)
+      ron_player = player if ron_action == ACTION_NUMBER
       break if !ron_player.nil?
     end
-    [ron_action, ron_player]
+    [ron_player, states, ron_action]
   end
 
-  def update_discard_agent(states, action)
-    next_states = StateBuilder.build_discard_states(@current_player, @other_players, @table)
-    reward = RewardCalculator.calculate_reward(player, @round_over)
-    player.update_discard_agent(states, action, reward, next_states, @game_over)
+  def build_ron_states(is_ron, main_player)
+    all_players = [@current_player] + @other_players
+    index = all_players.find_index(main_player)
+    sub_players = all_players.rotate(index + 1)[1..]
+    StateBuilder.build_ron_states(is_ron, main_player, sub_players, @table)
   end
 
   def update_ron_agent(player, states, action)
-    next_states = build_states(player)
-    reward = RewardCalculator.calculate_reward(player, @round_over)
+    next_states = build_ron_next_states(player)
+    reward = RewardCalculator.calculate_agari_reward(player, @round_over)
     player.update_ron_agent(states, action, reward, next_states, @game_over)
   end
 
+  def build_ron_next_states(main_player)
+    all_players = [@current_player] + @other_players
+    index = all_players.find_index(main_player)
+    sub_players = all_players.rotate(index + 1)[1..]
+    StateBuilder.build_ron_next_states(main_player, sub_players, @table)
+  end
+
   def distribute_ron_point(ron_player)
-    point = HandEvaluator.calculate_ron_agari_point(ron_player, @table)
+    is_tsumo = false
+    point, *_ = HandEvaluator.calculate_point(ron_player, @table, is_tsumo)
     ron_player.award_point(point)
     @current_player.award_point(-point)
     @other_players.each { |player| player.award_point(0) if player != ron_player }
@@ -223,8 +225,12 @@ class Env
 
   def handle_normal_progress(states, action)
     @round_over = can_not_draw?
+    update_discard_agent(states, action)
+  end
+
+  def update_discard_agent(states, action)
     next_states = StateBuilder.build_discard_states(@current_player, @other_players, @table)
-    reward = RewardCalculator.calculate_reward(@current_player, @round_over)
+    reward = RewardCalculator.calculate_normal_reward(@current_player, @round_over)
     @current_player.update_discard_agent(states, action, reward, next_states, @game_over)
   end
 end

@@ -26,7 +26,7 @@ module StateBuilder
       round_wind = table.round[:wind]
       tsumo_action = current_player.can_tsumo?(round_wind) ? 1.0 : 0.0
 
-      received_point, *_ = HandEvaluator.calculate_tsumo_agari_point(current_player, table)
+      received_point, *_ = HandEvaluator.calculate_point(current_player, table, true)
       normalized_point = received_point / NORMALIZATION_BASE_POINT
 
       scores = ([current_player] + other_players).map(&:score)
@@ -63,7 +63,7 @@ module StateBuilder
 
     def build_ron_states(is_ron, current_player, other_players, table)
       ron_action = is_ron ? 1.0 : 0.0
-      received_point, *_ = HandEvaluator.calculate_ron_agari_point(current_player, table)
+      received_point, *_ = HandEvaluator.calculate_point(current_player, table, false)
       normalized_point = received_point / NORMALIZATION_BASE_POINT
 
       scores = ([current_player] + other_players).map(&:score)

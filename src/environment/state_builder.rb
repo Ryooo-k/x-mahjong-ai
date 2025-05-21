@@ -14,12 +14,20 @@ module StateBuilder
   NORMALIZATION_BASE_HONBA = 10.0
 
   class << self
-    def build_states(current_player, other_players, table)
-      current_player_states = build_current_player_states(current_player)
-      other_players_states = build_other_players_states(other_players)
+    def build_states_list(current_player, other_players, table)
+      all_players = [current_player] + other_players
       table_states = build_table_states(table)
-      states = current_player_states + other_players_states + table_states
-      Torch.tensor(states, dtype: :float32)
+
+      all_player_states = (0..3).map do |i|
+        rotated_players = all_players.rotate(i)
+        main_player = rotated_players[0]
+        sub_players = rotated_players[1..]
+
+        main_player_states = build_main_player_states(main_player)
+        sub_players_states = build_sub_players_states(sub_players)
+        states = main_player_states + sub_players_states + table_states
+        Torch.tensor(states, dtype: :float32)
+      end
     end
 
     def build_action_mask(player, round_wind, tile)
@@ -43,7 +51,7 @@ module StateBuilder
 
     private
 
-    def build_current_player_states(player)
+    def build_main_player_states(player)
       hand_codes = Encoder.encode_hands(player.hands)
       melds_codes = Encoder.encode_melds_list(player.melds_list)
       river_codes = Encoder.encode_rivers(player.rivers)
@@ -65,7 +73,7 @@ module StateBuilder
       ]
     end
 
-    def build_other_players_states(players)
+    def build_sub_players_states(players)
       players.flat_map do |player|
         melds_codes = Encoder.encode_melds_list(player.melds_list)
         river_codes = Encoder.encode_rivers(player.rivers)

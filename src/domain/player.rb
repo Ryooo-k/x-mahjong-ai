@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../agent/agent_manager'
+require_relative '../agent/agent'
 require_relative 'logic/hand_evaluator'
 
 class Player
@@ -12,7 +12,7 @@ class Player
 
   def initialize(id, agent_config)
     @id = id
-    @agent = AgentManager.new(agent_config['discard'], agent_config['call'], agent_config['riichi'], agent_config['tsumo'], agent_config['ron'])
+    @agent = Agent.new(agent_config)
     @score = 25_000
     @point_histories = []
     @hands = []
@@ -36,7 +36,8 @@ class Player
     @is_riichi
   end
 
-  def riichi
+  def riichi(tile)
+    discard(tile)
     @is_riichi = true
   end
 
@@ -59,6 +60,10 @@ class Player
     @rivers << tile
   end
 
+  def choose(index)
+    sorted_hands[index]
+  end
+
   def record_hand_status
     record_hands
     record_shanten
@@ -73,23 +78,47 @@ class Player
     HandEvaluator.tenpai?(@hands)
   end
 
+  def can_pon?(tile)
+    hand_codes.count(tile.code) >= 2
+  end
+
+  def can_chi?(tile)
+    return false if tile.code >= 27 # 字牌はチーできないので早期return
+
+    possible_chi_table = build_possible_chi_table(tile)
+    possible_chi_table.any? do |possible_chi_codes|
+      possible_chi_codes.all? { |code| hand_codes.include?(code) }
+    end
+  end
+
+  def can_ankan?
+    hand_codes.tally.any? { |_, count| count == 4 }
+  end
+
+  def can_daiminkan?(tile)
+    hand_codes.count(tile.code) == 3
+  end
+
+  def can_kakan?(tile)
+    pon_codes = @melds_list.map do |melds|
+      codes = melds.map(&:code)
+      codes.uniq.size == 1 && codes.size == 3 ? codes.uniq : next
+    end.flatten
+
+    pon_codes.include?(tile.code)
+  end
+
+  def can_riichi?
+    @melds_list.empty? # 暗カンの場合はリーチできるので、melds_listの設定の仕方を見直す
+  end
+
   def can_ron?(tile, round_wind)
     return false if !tenpai?
-    test_hands = sorted_hands + [tile]
-    cache_code =  test_hands.map(&:code).join
-    return @ron_cache[cache_code] if @ron_cache.key?(cache_code)
-
-    result = HandEvaluator.has_yaku?(hands: @hands, melds_list: @melds_list, target_tile: tile, round_wind:, player_wind: @wind, is_tsumo: false, is_riichi: @is_riichi)
-    @ron_cache[cache_code] = result
-    result
+    HandEvaluator.has_yaku?(hands: @hands, melds_list: @melds_list, target_tile: tile, round_wind:, player_wind: @wind, is_tsumo: false, is_riichi: @is_riichi)
   end
 
   def can_tsumo?(round_wind)
     HandEvaluator.has_yaku?(hands: @hands[..-2], melds_list: @melds_list, target_tile: @hands.last, round_wind:, player_wind: @wind, is_tsumo: true, is_riichi: @is_riichi)
-  end
-
-  def choose(index)
-    sorted_hands[index]
   end
 
   def pon(combinations, target_tile)
@@ -147,6 +176,10 @@ class Player
 
   private
 
+  def hand_codes
+    hand_codes = @hands.map(&:code)
+  end
+
   def record_hands
     @hand_histories << @hands.dup
   end
@@ -161,44 +194,6 @@ class Player
     @outs_histories << outs
   end
 
-  def can_pon?(target)
-    hand_codes = @hands.map(&:code)
-    hand_codes.count(target.code) >= 2
-  end
-
-  def can_chi?(target)
-    return false if target.code >= 27 # 字牌はチーできないので早期return
-
-    hand_codes = @hands.map(&:code)
-    possible_chow_table = build_possible_chow_table(target)
-    possible_chow_table.any? do |possible_chow_codes|
-      possible_chow_codes.all? { |code| hand_codes.include?(code) }
-    end
-  end
-
-  def can_ankan?(combinations)
-    target_codes = combinations.map(&:code)
-    return false if combinations.size != 4 || target_codes.uniq.size != 1
-
-    target_code = target_codes.first
-    hand_codes = @hands.map(&:code)
-    hand_codes.count(target_code) == 4
-  end
-
-  def can_daiminkan?(target)
-    hand_codes = @hands.map(&:code)
-    hand_codes.count(target.code) == 3
-  end
-
-  def can_kakan?(target)
-    pong_code_table = @melds_list.map do |called_tiles|
-      called_codes = called_tiles.map(&:code)
-      called_codes.uniq.size == 1 ? called_codes : next
-    end
-
-    pong_code_table.any?{ |pong_codes| pong_codes.count(target.code) == 3 }
-  end
-
   def preform_call(combinations, target_tile: false)
     called_tiles = combinations.dup
     target_tile.holder = self if target_tile
@@ -209,7 +204,7 @@ class Player
     @hand_histories << @hands.dup
   end
 
-  def build_possible_chow_table(target)
+  def build_possible_chi_table(target)
     n = target.number
     code = target.code
 

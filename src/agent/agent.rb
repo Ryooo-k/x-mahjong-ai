@@ -2,16 +2,17 @@
 
 require 'torch'
 require_relative 'replay_buffer'
+require_relative 'action_manager'
 require_relative '../model/qnet'
 
-class TsumoAgent
+class Agent
   def initialize(config)
     @gamma = config['gamma']
     @lr = config['learning_rate']
     @epsilon = config['epsilon']
     @buffer_size = config['buffer_size']
     @batch_size = config['batch_size']
-    @action_size = 2
+    @action_size = 23
     @min_epsilon = config['min_epsilon']
     @decay_rate = config['decay_rate']
     @device = Torch::Backends::MPS.available? ? "mps" : "cpu"
@@ -30,6 +31,33 @@ class TsumoAgent
     qualities = @q_net.call(tensor_states).detach
     qualities.argmax(1)[0].item
   end
+
+  def get_action(states, mask = nil)
+    if rand < @epsilon
+      if mask
+        # 有効なアクションからランダムに選ぶ
+        valid_indices = mask.each_index.select { |i| mask[i] == 1 }
+        return valid_indices.sample
+      else
+        return rand(@action_size)
+      end
+    end
+  
+    tensor_states = Torch.tensor(states, dtype: :float32).unsqueeze(0).to(@device)
+    qualities = @q_net.call(tensor_states).detach.squeeze(0)
+  
+    if mask
+      # 無効なアクションは -∞ にして選ばれないようにする
+      masked_qualities = Torch.tensor(
+        qualities.to_a.each_with_index.map { |q, i| mask[i] == 1 ? q : -Float::INFINITY },
+        dtype: :float32
+      ).to(@device)
+      return masked_qualities.argmax.item
+    else
+      return qualities.argmax.item
+    end
+  end
+  
 
   def update(state, action, reward, next_state, done)
     @replay_buffer.add(state, action, reward, next_state, done)

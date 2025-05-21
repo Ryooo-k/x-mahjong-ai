@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 require_relative '../util/encoder'
+require_relative '../domain/action_manager'
 require_relative '../domain/logic/hand_evaluator'
 
 module StateBuilder
+  ActionManager = Domain::ActionManager
   HandEvaluator = Domain::Logic::HandEvaluator
   Encoder = Util::Encoder
   NORMALIZATION_BASE_SCORE = 100_000.0
@@ -30,19 +32,23 @@ module StateBuilder
       end
     end
 
-    def build_action_mask(player, round_wind, tile)
-      mask = Array.new(ActionManager::ACTIONS.size, 0)
+    def build_action_mask(player, round_wind, target_tile = false)
+      mask = Array.new(ActionManager.size, 0)
 
       ActionManager::DISCARD_RANGE.each do |i|
-        mask[i] = 1 if player.valid_discard_index?(i)
+        mask[i] = 1 if player.hands[i]
       end
-      mask[ActionManager::PON_INDEX] = 1 if player.can_pon?(tile)
-      mask[ActionManager::CHI_INDEX] = 1 if player.can_chi?(tile)
+
+      if target_tile
+        mask[ActionManager::PON_INDEX] = 1 if player.can_pon?(target_tile)
+        mask[ActionManager::CHI_INDEX] = 1 if player.can_chi?(target_tile)
+        mask[ActionManager::DAIMINKAN_INDEX] = 1 if player.can_daiminkan?(target_tile)
+        mask[ActionManager::RON_INDEX] = 1 if player.can_ron?(target_tile, round_wind)
+      end
+
       mask[ActionManager::ANKAN_INDEX] = 1 if player.can_ankan?
-      mask[ActionManager::DAIMINKAN_INDEX] = 1 if player.can_daiminkan?(tile)
       mask[ActionManager::KAKAN_INDEX] = 1 if player.can_kakan?
       mask[ActionManager::RIICHI_INDEX] = 1 if player.can_riichi?
-      mask[ActionManager::RON_INDEX] = 1 if player.can_ron?(tile, round_wind)
       mask[ActionManager::TSUMO_INDEX] = 1 if player.can_tsumo?(round_wind)
       mask[ActionManager::PASS_INDEX] = 1
 

@@ -25,7 +25,6 @@ class Player
     @is_riichi = false
     @wind = nil
     @rank = nil
-    @ron_cache = {}
   end
 
   def menzen?
@@ -105,8 +104,7 @@ class Player
       codes.uniq.size == 1 && codes.size == 3 ? codes.uniq : next
     end.flatten
 
-    drew_tile = @hands.last
-    pon_codes.include?(drew_tile.code)
+    hand_codes.any? { |code| pon_codes.include?(code) }
   end
 
   def can_riichi?
@@ -135,7 +133,7 @@ class Player
   end
 
   def ankan(combinations)
-    raise ArgumentError, '有効な牌が無いため暗カンできません。' unless can_ankan?(combinations)
+    raise ArgumentError, '有効な牌が無いため暗カンできません。' unless can_ankan?
     preform_call(combinations)
   end
 
@@ -146,11 +144,11 @@ class Player
   end
 
   def kakan(target_tile)
-    raise ArgumentError, '有効な牌が無いため加カンできません。' unless can_kakan?(target_tile)
+    raise ArgumentError, '有効な牌が無いため加カンできません。' unless can_kakan?
 
-    @melds_list.each do |called_tiles|
-      called_codes = called_tiles.map(&:code)
-      called_tiles << target_tile if called_codes.uniq.size == 1 && called_codes.first == target_tile.code
+    @melds_list.each do |melds|
+      melds_codes = melds.map(&:code)
+      melds << target_tile if melds_codes.uniq.size == 1 && melds_codes.first == target_tile.code
     end
     @is_menzen = false
   end
@@ -170,7 +168,6 @@ class Player
   def reset
     @score = 25_000
     @point_histories = []
-    @agent.reset
     restart
     self
   end

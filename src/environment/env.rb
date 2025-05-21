@@ -3,12 +3,14 @@
 require_relative 'state_builder'
 require_relative '../domain/table'
 require_relative '../domain/action_handler'
+require_relative '../domain/action_manager'
 require_relative '../util/formatter'
 
 class Env
   attr_reader :table, :current_player, :other_players
 
   ActionHandler = Domain::ActionHandler
+  ActionManager = Domain::ActionManager
   STARTING_HAND_COUNT = 13
   ACTION_NUMBER = 1
 
@@ -30,21 +32,22 @@ class Env
 
     tsumo_actions = ActionHandler.handle_tsumo_action(@current_player, @other_players, @table, current_player_states)
     next_states_list = StateBuilder.build_states_list(@current_player, @other_players, @table)
+    @round_over = true if tsumo_actions[0] == ActionManager::TSUMO_INDEX
     check_game_over
-    rewards = RewardCalculator.calculate_normal_reward(current_player, round_over)
-    update_agent(states_list, actions, rewards, next_states_list, @game_over)
+    rewards = RewardCalculator.calculate_tsumo_rewards(@current_player, @other_players, @round_over)
+    update_agent(states_list, tsumo_actions, rewards, next_states_list, @game_over)
     return if tsumo_actions[0] == ActionManager::TSUMO_INDEX
 
-    action, discarded_tile = ActionHandler.handle_discard_action(@current_player, @other_players, @table, current_player_states)
+    discard_action, discarded_tile = ActionHandler.handle_discard_action(@current_player, @other_players, @table, current_player_states)
     # ActionHandler.handle_ron_action(@current_player, @other_players, @table, discarded_tile)
     @round_over = can_not_draw?
 
     check_game_over
-    pass = ActionManager::PASS_INDEX_INDEX
-    actions = [action, pass, pass, pass]
+    pass = ActionManager::PASS_INDEX
+    discard_actions = [discard_action, pass, pass, pass]
     next_states_list = StateBuilder.build_states_list(@current_player, @other_players, @table)
-    rewards = RewardCalculator.calculate_normal_reward(current_player, round_over)
-    update_agent(states_list, actions, rewards, next_states_list, @game_over)
+    rewards = RewardCalculator.calculate_discard_rewards(@current_player, @other_players, @round_over)
+    update_agent(states_list, discard_actions, rewards, next_states_list, @game_over)
   end
 
   def rotate_turn
@@ -144,5 +147,12 @@ class Env
 
   def can_not_draw?
     @table.draw_count + @table.kong_count >= 122
+  end
+
+  def update_agent(states_list, actions, rewards, next_states_list, game_over)
+    all_players = [@current_player] + @other_players
+    all_players.each_with_index do |player, i|
+      player.agent.update(states_list[i], actions[i], rewards[i], next_states_list[i], game_over)
+    end
   end
 end

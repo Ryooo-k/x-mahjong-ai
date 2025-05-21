@@ -99,13 +99,14 @@ class Player
     hand_codes.count(tile.code) == 3
   end
 
-  def can_kakan?(tile)
+  def can_kakan?
     pon_codes = @melds_list.map do |melds|
       codes = melds.map(&:code)
       codes.uniq.size == 1 && codes.size == 3 ? codes.uniq : next
     end.flatten
 
-    pon_codes.include?(tile.code)
+    drew_tile = @hands.last
+    pon_codes.include?(drew_tile.code)
   end
 
   def can_riichi?

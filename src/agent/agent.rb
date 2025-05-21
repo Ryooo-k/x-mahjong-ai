@@ -2,7 +2,7 @@
 
 require 'torch'
 require_relative 'replay_buffer'
-require_relative 'action_manager'
+require_relative '../domain/action_manager'
 require_relative '../model/qnet'
 
 class Agent
@@ -32,8 +32,8 @@ class Agent
   
     tensor_states = Torch.tensor(states, dtype: :float32).unsqueeze(0).to(@device)
     qualities = @q_net.call(tensor_states).detach.squeeze(0)
-    masked_qualities = qualities.to_a.each_with_index.map { |q, i| mask[i] == 1 ? q : -Float::INFINITY },
-    return masked_qualities.argmax(1)[0].item
+    masked_qualities = qualities.to_a.each_with_index.map { |q, i| mask[i] == 1 ? q : -Float::INFINITY }
+    masked_qualities.each_with_index.max_by { |val, _| val }[1]
   end
 
   def update(state, action, reward, next_state, done)

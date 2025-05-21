@@ -20,40 +20,58 @@ module StateBuilder
       all_players = [current_player] + other_players
       table_states = build_table_states(table)
 
-      all_player_states = (0..3).map do |i|
-        rotated_players = all_players.rotate(i)
-        main_player = rotated_players[0]
-        sub_players = rotated_players[1..]
+      main_states_cache = all_players.map { |player| build_main_player_states(player) }
+      sub_states_cache  = all_players.map { |player| build_sub_player_states(player) }
 
-        main_player_states = build_main_player_states(main_player)
-        sub_players_states = build_sub_players_states(sub_players)
-        states = main_player_states + sub_players_states + table_states
+      (0..3).map do |i|
+        rotated_players = all_players.rotate(i)
+        main_player_index = all_players.index(rotated_players[0])
+        sub_player_indices = rotated_players[1..].map { |p| all_players.index(p) }
+
+        main_states = main_states_cache[main_player_index]
+        sub_states  = sub_player_indices.flat_map { |idx| sub_states_cache[idx] }
+        states = main_states + sub_states + table_states
         Torch.tensor(states, dtype: :float32)
       end
     end
 
-    def build_action_mask(player, round_wind, target_tile = false)
+    def build_tsumo_action_mask(player, round_wind)
       mask = Array.new(ActionManager.size, 0)
+      mask[ActionManager::TSUMO_INDEX] = 1 if player.can_tsumo?(round_wind)
+      mask[ActionManager::PASS_INDEX] = 1
+      mask
+    end
 
+    def build_discard_action_mask(player)
+      mask = Array.new(ActionManager.size, 0)
       ActionManager::DISCARD_RANGE.each do |i|
         mask[i] = 1 if player.hands[i]
       end
-
-      if target_tile
-        mask[ActionManager::PON_INDEX] = 1 if player.can_pon?(target_tile)
-        mask[ActionManager::CHI_INDEX] = 1 if player.can_chi?(target_tile)
-        mask[ActionManager::DAIMINKAN_INDEX] = 1 if player.can_daiminkan?(target_tile)
-        mask[ActionManager::RON_INDEX] = 1 if player.can_ron?(target_tile, round_wind)
-      end
-
-      mask[ActionManager::ANKAN_INDEX] = 1 if player.can_ankan?
-      mask[ActionManager::KAKAN_INDEX] = 1 if player.can_kakan?
-      mask[ActionManager::RIICHI_INDEX] = 1 if player.can_riichi?
-      mask[ActionManager::TSUMO_INDEX] = 1 if player.can_tsumo?(round_wind)
-      mask[ActionManager::PASS_INDEX] = 1
-
       mask
     end
+
+    # def build_action_mask(player:, round_wind:, target_tile: false, pass: false)
+    #   mask = Array.new(ActionManager.size, 0)
+
+    #   ActionManager::DISCARD_RANGE.each do |i|
+    #     mask[i] = 1 if player.hands[i]
+    #   end
+
+    #   if target_tile
+    #     mask[ActionManager::PON_INDEX] = 1 if player.can_pon?(target_tile)
+    #     mask[ActionManager::CHI_INDEX] = 1 if player.can_chi?(target_tile)
+    #     mask[ActionManager::DAIMINKAN_INDEX] = 1 if player.can_daiminkan?(target_tile)
+    #     mask[ActionManager::RON_INDEX] = 1 if player.can_ron?(target_tile, round_wind)
+    #   end
+
+    #   mask[ActionManager::ANKAN_INDEX] = 1 if player.can_ankan?
+    #   mask[ActionManager::KAKAN_INDEX] = 1 if player.can_kakan?
+    #   mask[ActionManager::RIICHI_INDEX] = 1 if player.can_riichi?
+    #   mask[ActionManager::TSUMO_INDEX] = 1 if player.can_tsumo?(round_wind)
+    #   mask[ActionManager::PASS_INDEX] = 1 if pass
+
+    #   mask
+    # end
 
     private
 
@@ -79,22 +97,20 @@ module StateBuilder
       ]
     end
 
-    def build_sub_players_states(players)
-      players.flat_map do |player|
-        melds_codes = Encoder.encode_melds_list(player.melds_list)
-        river_codes = Encoder.encode_rivers(player.rivers)
-        riichi = player.riichi? ? 1 : 0
-        menzen = player.menzen? ? 1 : 0
-        score = player.score / NORMALIZATION_BASE_SCORE
+    def build_sub_player_states(player)
+      melds_codes = Encoder.encode_melds_list(player.melds_list)
+      river_codes = Encoder.encode_rivers(player.rivers)
+      riichi = player.riichi? ? 1 : 0
+      menzen = player.menzen? ? 1 : 0
+      score = player.score / NORMALIZATION_BASE_SCORE
 
-        [
-          *melds_codes,
-          *river_codes,
-          riichi,
-          menzen,
-          score
-        ]
-      end
+      [
+        *melds_codes,
+        *river_codes,
+        riichi,
+        menzen,
+        score
+      ]
     end
 
     def build_table_states(table)

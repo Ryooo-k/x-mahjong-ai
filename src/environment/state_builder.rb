@@ -14,7 +14,7 @@ module StateBuilder
   NORMALIZATION_BASE_HONBA = 10.0
 
   class << self
-    def build_discard_states(current_player, other_players, table)
+    def build_states(current_player, other_players, table)
       current_player_states = build_current_player_states(current_player)
       other_players_states = build_other_players_states(other_players)
       table_states = build_table_states(table)
@@ -22,82 +22,23 @@ module StateBuilder
       Torch.tensor(states, dtype: :float32)
     end
 
-    def build_tsumo_states(current_player, other_players, table)
-      round_wind = table.round[:wind]
-      tsumo_action = current_player.can_tsumo?(round_wind) ? 1.0 : 0.0
+    def build_action_mask(player, round_wind, tile)
+      mask = Array.new(ActionManager::ACTIONS.size, 0)
 
-      received_point, *_ = HandEvaluator.calculate_point(current_player, table, true)
-      normalized_point = received_point / NORMALIZATION_BASE_POINT
+      ActionManager::DISCARD_RANGE.each do |i|
+        mask[i] = 1 if player.valid_discard_index?(i)
+      end
+      mask[ActionManager::PON_INDEX] = 1 if player.can_pon?(tile)
+      mask[ActionManager::CHI_INDEX] = 1 if player.can_chi?(tile)
+      mask[ActionManager::ANKAN_INDEX] = 1 if player.can_ankan?
+      mask[ActionManager::DAIMINKAN_INDEX] = 1 if player.can_daiminkan?(tile)
+      mask[ActionManager::KAKAN_INDEX] = 1 if player.can_kakan?
+      mask[ActionManager::RIICHI_INDEX] = 1 if player.can_riichi?
+      mask[ActionManager::RON_INDEX] = 1 if player.can_ron?(tile, round_wind)
+      mask[ActionManager::TSUMO_INDEX] = 1 if player.can_tsumo?(round_wind)
+      mask[ActionManager::PASS_INDEX] = 1
 
-      scores = ([current_player] + other_players).map(&:score)
-      normalized_scores = scores.map { |score| score / NORMALIZATION_BASE_SCORE }
-
-      normalized_round = table.round[:count] / NORMALIZATION_BASE_ROUND
-
-      states = [
-        tsumo_action,
-        normalized_point,
-        *normalized_scores,
-        normalized_round
-      ]
-
-      Torch.tensor(states, dtype: :float32)
-    end
-
-    def build_tsumo_next_states(current_player, other_players, table)
-      tsumo_action = 0.0
-      point = 0.0
-      scores = ([current_player] + other_players).map(&:score)
-      normalized_scores = scores.map { |score| score / NORMALIZATION_BASE_SCORE }
-      normalized_round = (table.round[:count] + 1) / NORMALIZATION_BASE_ROUND
-
-      states = [
-        tsumo_action,
-        point,
-        *normalized_scores,
-        normalized_round
-      ]
-
-      Torch.tensor(states, dtype: :float32)
-    end
-
-    def build_ron_states(is_ron, current_player, other_players, table)
-      ron_action = is_ron ? 1.0 : 0.0
-      received_point, *_ = HandEvaluator.calculate_point(current_player, table, false)
-      normalized_point = received_point / NORMALIZATION_BASE_POINT
-
-      scores = ([current_player] + other_players).map(&:score)
-      normalized_scores = scores.map { |score| score / NORMALIZATION_BASE_SCORE }
-
-      normalized_round = table.round[:count] / NORMALIZATION_BASE_ROUND
-
-      states = [
-        ron_action,
-        normalized_point,
-        *normalized_scores,
-        normalized_round
-      ]
-
-      Torch.tensor(states, dtype: :float32)
-    end
-
-    def build_ron_next_states(current_player, other_players, table)
-      ron_action = 0.0
-      point = 0.0
-
-      scores = ([current_player] + other_players).map(&:score)
-      normalized_scores = scores.map { |score| score / NORMALIZATION_BASE_SCORE }
-
-      normalized_round = table.round[:count] / NORMALIZATION_BASE_ROUND
-
-      states = [
-        ron_action,
-        point,
-        *normalized_scores,
-        normalized_round
-      ]
-
-      Torch.tensor(states, dtype: :float32)
+      mask
     end
 
     private

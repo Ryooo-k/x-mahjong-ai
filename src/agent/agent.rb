@@ -24,40 +24,17 @@ class Agent
     @optimizer = Torch::Optim::Adam.new(@q_net.parameters, lr: @lr)
   end
 
-  def get_action(states)
-    return rand(@action_size) if rand < @epsilon
-
-    tensor_states = Torch.tensor(states, dtype: :float32).unsqueeze(0).to(@device)
-    qualities = @q_net.call(tensor_states).detach
-    qualities.argmax(1)[0].item
-  end
-
-  def get_action(states, mask = nil)
+  def get_action(states, mask)
     if rand < @epsilon
-      if mask
-        # 有効なアクションからランダムに選ぶ
-        valid_indices = mask.each_index.select { |i| mask[i] == 1 }
-        return valid_indices.sample
-      else
-        return rand(@action_size)
-      end
+      valid_indices = mask.each_index.select { |i| mask[i] == 1 }
+      return valid_indices.sample
     end
   
     tensor_states = Torch.tensor(states, dtype: :float32).unsqueeze(0).to(@device)
     qualities = @q_net.call(tensor_states).detach.squeeze(0)
-  
-    if mask
-      # 無効なアクションは -∞ にして選ばれないようにする
-      masked_qualities = Torch.tensor(
-        qualities.to_a.each_with_index.map { |q, i| mask[i] == 1 ? q : -Float::INFINITY },
-        dtype: :float32
-      ).to(@device)
-      return masked_qualities.argmax.item
-    else
-      return qualities.argmax.item
-    end
+    masked_qualities = qualities.to_a.each_with_index.map { |q, i| mask[i] == 1 ? q : -Float::INFINITY },
+    return masked_qualities.argmax(1)[0].item
   end
-  
 
   def update(state, action, reward, next_state, done)
     @replay_buffer.add(state, action, reward, next_state, done)

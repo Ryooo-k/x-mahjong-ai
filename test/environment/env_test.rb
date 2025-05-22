@@ -1,99 +1,82 @@
-# # frozen_string_literal: true
+# frozen_string_literal: true
 
-# require 'test/unit'
-# require_relative '../../src/environment/env'
-# require_relative '../../src/domain/logic/hand_evaluator'
-# require_relative '../util/file_loader'
+require 'test/unit'
+require 'mocha/test_unit'
+require_relative '../../src/environment/env'
+require_relative '../util/file_loader'
 
-# class EnvTest < Test::Unit::TestCase
-#   def setup
-#     @tiles = Array.new(136) { |id| Tile.new(id) }
-#     parameter = FileLoader.load_parameter
-#     @env = Env.new(parameter['table'], parameter['player'])
-#   end
+class EnvTest < Test::Unit::TestCase
+  ACTION_NUMBER = 1
 
-#   def test_player_draw
-#     top_tile = @env.table.top_tile
-#     before_draw_count = @env.table.draw_count
-#     @env.player_draw
-#     assert_equal top_tile, @env.current_player.hands.last
-#     assert_equal before_draw_count + 1, @env.table.draw_count
-#   end
+  def setup
+    @tiles = Array.new(136) { |id| Tile.new(id) }
+    config = FileLoader.load_parameter
+    @env = Env.new(config['table'], config['agent'])
+  end
 
-#   def test_can_not_player_draw_when_game_over
-#     122.times { |_| @env.player_draw }
-#     result = @env.player_draw
-#     assert_equal nil, result
-#   end
+  # env変更予定のため、テストは一時的にコメントアウト
 
-#   def test_rotate_turn
-#     old_current_player = @env.current_player.dup
-#     old_other_players = @env.other_players.dup
-#     @env.rotate_turn
-#     assert_equal @env.current_player.id, old_other_players[0].id
-#     assert_equal @env.other_players[0].id, old_other_players[1].id
-#     assert_equal @env.other_players[1].id, old_other_players[2].id
-#     assert_equal @env.other_players[2].id, old_current_player.id
-#   end
+  # def test_step_when_host_player_mangan_tsumo
+  #   # 123456789萬 789索 東
+  #   # 一気通貫、ツモ、ドラドラ
+  #   # 親の満貫（12_000点）
+  #   hands = [
+  #     @tiles[0], @tiles[4], @tiles[8],
+  #     @tiles[12], @tiles[16], @tiles[20],
+  #     @tiles[24], @tiles[28], @tiles[32],
+  #     @tiles[96], @tiles[100], @tiles[104],
+  #     @tiles[108]
+  #   ]
+  #   live_walls = [@tiles[109]] * 122 # 東を必ずツモるようにする
+  #   open_dora_indicators = [@tiles[120]] # 東がドラとなるようにする
 
-#   def test_update_triggered_by_game_over
-#     70.times do |_|
-#       @env.player_draw
-#       target_tile = @env.current_player.hands.first
-#       @env.current_player.discard(target_tile)
-#     end # ゲーム終了までツモる
+  #   @env.current_player.instance_variable_set(:@hands, hands)
+  #   @env.table.tile_wall.instance_variable_set(:@live_walls, live_walls)
+  #   @env.table.tile_wall.instance_variable_set(:@open_dora_indicators, open_dora_indicators)
+  #   @env.stubs(:get_tsumo_action).returns(ACTION_NUMBER)
+  #   @env.step
 
-#     action = 0
-#     expected_tile = @env.current_player.sorted_hands[action]
-#     _, reward, done, discarded_tile  = @env.step(action)
-#     assert_equal -100, reward
-#     assert_equal true, done
-#     assert_equal expected_tile, discarded_tile
-#   end
+  #   assert_equal 37_000, @env.current_player.score
+  #   assert_equal 1, @env.current_player.rank
+  #   @env.other_players.each_with_index do |player, i|
+  #     rank = i + 2
+  #     assert_equal 21_000, player.score
+  #     assert_equal rank, player.rank
+  #   end
+  #   assert_equal true, @env.round_over?
+  # end
 
-#   def test_update_triggered_by_shanten_decrease
-#     # 123456萬 123筒 78索 東 南
-#     hands = [
-#       @tiles[0], @tiles[4], @tiles[8], @tiles[12], @tiles[16], @tiles[20],
-#       @tiles[36], @tiles[40], @tiles[44],
-#       @tiles[96], @tiles[100],
-#       @tiles[108], @tiles[113]
-#     ]
+  # def test_step_when_other_player_mangan_ron
+  #   # 12345678萬 22筒 789索
+  #   # 平和、一気通貫、ドラドラ
+  #   # 子の満貫（8_000点）
+  #   hands = [
+  #     @tiles[0], @tiles[4], @tiles[8],
+  #     @tiles[12], @tiles[16], @tiles[20],
+  #     @tiles[24], @tiles[28],
+  #     @tiles[40], @tiles[41],
+  #     @tiles[96], @tiles[100], @tiles[104],
+  #   ]
+  #   open_dora_indicators = [@tiles[36]] # 2筒がドラとなるようにする
+  #   ron_player = @env.other_players[0]
+  #   other_players = @env.other_players.reject { |player| player == ron_player }
+  #   ron_player.instance_variable_set(:@hands, hands)
+  #   @env.table.tile_wall.instance_variable_set(:@open_dora_indicators, open_dora_indicators)
+  #   @env.stubs(:handle_discard_action).returns([0, @tiles[32]]) # 9萬を捨てる
+  #   @env.stubs(:get_tsumo_action).returns(false)
+  #   @env.stubs(:get_ron_action).returns([ACTION_NUMBER, ron_player])
+  #   @env.step
 
-#     @env.current_player.instance_variable_set(:@hands, hands)
-#     @env.current_player.record_hand_status
-#     old_shanten = @env.current_player.shanten_histories.last
-#     old_outs = @env.current_player.outs_histories.last
+  #   assert_equal 33_000, ron_player.score
+  #   assert_equal 1, ron_player.rank
+  #   assert_equal 17_000, @env.current_player.score
+  #   assert_equal 4, @env.current_player.rank
 
-#     @env.current_player.draw(@tiles[109]) # 東を引いて聴牌形にする
-#     _, reward, done, discarded_tile = @env.step(13) # 南(index=13)を捨て聴牌にする
-#     new_shanten = @env.current_player.shanten_histories.last
-#     new_outs = @env.current_player.outs_histories.last
-
-#     assert_equal true, new_shanten < old_shanten
-#     assert_equal true, new_outs < old_outs
-#     assert_equal reward, 50 # 向聴数が減った時の報酬と一致する
-#     assert_equal done, false
-#     assert_equal discarded_tile, @tiles[113]
-#   end
-
-#   def test_update_triggered_by_agari
-#     # 123456萬 123筒 789索 東東
-#     agari_hands = [
-#       @tiles[0], @tiles[4], @tiles[8], @tiles[12], @tiles[16], @tiles[20],
-#       @tiles[36], @tiles[40], @tiles[44],
-#       @tiles[96], @tiles[100], @tiles[104],
-#       @tiles[108], @tiles[109]
-#     ]
-
-#     @env.current_player.instance_variable_set(:@hands, agari_hands)
-#     @env.current_player.record_hand_status
-#     _, reward, done, discarded_tile = @env.step(0)
-
-#     assert_equal -1, @env.current_player.shanten_histories.last
-#     assert_equal 0, @env.current_player.outs_histories.last
-#     assert_equal reward, 100 # 和了時の報酬と一致する
-#     assert_equal done, true
-#     assert_equal discarded_tile, nil
-#   end
-# end
+  #   other_players.each_with_index do |player, i|
+  #     rank = i + 2
+  #     assert_equal 25_000, player.score
+  #     assert_equal rank, player.rank
+  #   end
+  #   assert_equal true, @env.round_over?
+  # end
+end

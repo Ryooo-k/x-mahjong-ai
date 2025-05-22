@@ -534,7 +534,7 @@ class HandEvaluatorTest < Test::Unit::TestCase
 
   def test_calculate_point_when_host_mangan_agari
     config = FileLoader.load_parameter
-    table = Table.new(config['table'], config['player'])
+    table = Table.new(config['table'], config['agent'])
 
     # 和了手: 111222萬 345筒 456索 東東
     # ツモ牌：東（hands.last）
@@ -560,7 +560,7 @@ class HandEvaluatorTest < Test::Unit::TestCase
 
   def test_calculate_point_when_child_mangan_agari
     config = FileLoader.load_parameter
-    table = Table.new(config['table'], config['player'])
+    table = Table.new(config['table'], config['agent'])
 
     # 和了手: 111222萬 345筒 456索 東東
     # ツモ牌：東（hands.last）
@@ -586,7 +586,7 @@ class HandEvaluatorTest < Test::Unit::TestCase
 
   def test_calculate_point_when_host_chombo
     config = FileLoader.load_parameter
-    table = Table.new(config['table'], config['player'])
+    table = Table.new(config['table'], config['agent'])
 
     # 和了できない手: 111222萬 345筒 456索 東中
     hands = [
@@ -611,7 +611,7 @@ class HandEvaluatorTest < Test::Unit::TestCase
 
   def test_calculate_point_when_child_chombo
     config = FileLoader.load_parameter
-    table = Table.new(config['table'], config['player'])
+    table = Table.new(config['table'], config['agent'])
 
     # 和了できない手: 111222萬 345筒 456索 東中
     hands = [

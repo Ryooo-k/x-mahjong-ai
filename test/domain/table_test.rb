@@ -52,7 +52,7 @@ class TableTest < Test::Unit::TestCase
 
   def setup
     @config = FileLoader.load_parameter
-    @table = Table.new(@config['table'], @config['player'])
+    @table = Table.new(@config['table'], @config['agent'])
   end
 
   def test_table_initialize_game_mode_with_expected_name_and_end_round
@@ -75,7 +75,7 @@ class TableTest < Test::Unit::TestCase
   end
 
   def test_table_initialize_players_with_expected_class_and_number
-    player_class = Player.new(0, @config['player']['agent']).class
+    player_class = Player.new(0, @config['agent']).class
     @table.players.each { |player| assert_instance_of(player_class, player) }
     assert_equal 4, @table.players.size
   end

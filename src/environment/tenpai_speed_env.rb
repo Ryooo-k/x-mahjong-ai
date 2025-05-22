@@ -27,6 +27,7 @@ class Env
 
     if current_player.tenpai?
       @game_over = true
+      @current_player.tenpai_count += 1
       reward = RewardCalculator.calculate_tenpai_speed_reward(@current_player, @game_over)
       next_states = StateBuilder.build_states(@current_player, @other_players, @table)
       return [states, ACTION_DONE, reward, next_states, @game_over]
@@ -64,7 +65,8 @@ class Env
   end
 
   def update_agent(states, action, reward, next_states, game_over)
-    @current_player.agent.update(states, action, reward, next_states, game_over)
+    loss = @current_player.agent.update(states, action, reward, next_states, game_over)
+    @current_player.loss += loss
   end
 
   def sync_qnet

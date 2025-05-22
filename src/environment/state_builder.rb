@@ -16,6 +16,14 @@ module StateBuilder
   NORMALIZATION_BASE_HONBA = 10.0
 
   class << self
+    def build_states(current_player, other_players, table)
+      current_player_states = build_main_player_states(current_player)
+      other_players_states = other_players.map { |player| build_sub_player_states(player) }.flatten
+      table_states = build_table_states(table)
+      states = current_player_states + other_players_states + table_states
+      Torch.tensor(states, dtype: :float32)
+    end
+
     def build_states_list(current_player, other_players, table)
       all_players = [current_player] + other_players
       table_states = build_table_states(table)
@@ -76,6 +84,7 @@ module StateBuilder
     private
 
     def build_main_player_states(player)
+      tenpai = player.tenpai? ? 1.0 : 0.0
       hand_codes = Encoder.encode_hands(player.hands)
       melds_codes = Encoder.encode_melds_list(player.melds_list)
       river_codes = Encoder.encode_rivers(player.rivers)
@@ -86,18 +95,20 @@ module StateBuilder
       outs = HandEvaluator.count_minimum_outs(player.hand_histories.last) / NORMALIZATION_BASE_HONBA
 
       [
+        tenpai,
         *hand_codes,
-        *melds_codes,
+        # *melds_codes,
         *river_codes,
-        riichi,
-        menzen,
-        score,
+        # riichi,
+        # menzen,
+        # score,
         shanten,
         outs
       ]
     end
 
     def build_sub_player_states(player)
+      tenpai = player.tenpai? ? 1.0 : 0.0
       melds_codes = Encoder.encode_melds_list(player.melds_list)
       river_codes = Encoder.encode_rivers(player.rivers)
       riichi = player.riichi? ? 1 : 0
@@ -105,11 +116,12 @@ module StateBuilder
       score = player.score / NORMALIZATION_BASE_SCORE
 
       [
-        *melds_codes,
-        *river_codes,
-        riichi,
-        menzen,
-        score
+        tenpai,
+        # *melds_codes,
+        *river_codes
+        # riichi,
+        # menzen,
+        # score
       ]
     end
 
@@ -121,11 +133,11 @@ module StateBuilder
       honba_count = table.honba[:count] / NORMALIZATION_BASE_HONBA
 
       [
-        *remaining_tile_count,
-        *open_dora_codes,
-        kong_count,
-        round_count,
-        honba_count
+        *remaining_tile_count
+        # *open_dora_codes,
+        # kong_count,
+        # round_count,
+        # honba_count
       ]
     end
   end

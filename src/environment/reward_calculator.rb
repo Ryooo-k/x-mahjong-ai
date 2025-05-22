@@ -28,6 +28,10 @@ module RewardCalculator
       end
     end
 
+    def calculate_tenpai_speed_reward(player, game_over)
+      game_over ? calculate_tenpai_reward(player) : calculate_round_continue_reward(player)
+    end
+
     private
 
     def calculate_round_over_rewards(players)
@@ -36,6 +40,12 @@ module RewardCalculator
         score_reward = player.score / NORMALIZATION_BASE_POINT
         rank_reward + score_reward
       end
+    end
+
+    def calculate_tenpai_reward(player)
+      tenpai_bonus = 100
+      outs_bonus = player.outs_histories.last * 10
+      tenpai_bonus + outs_bonus
     end
 
     def calculate_round_continue_reward(player)
@@ -47,12 +57,12 @@ module RewardCalculator
       old_outs = player.outs_histories[-2]
       diff_outs = current_outs - old_outs
 
-      return 2 if diff_shanten < 0
-      return 2 if current_shanten == 0 # 聴牌維持の場合、報酬を1
-      return 1 if diff_shanten == 0 && diff_outs > 0
+      return 5 if diff_shanten < 0
+      # return 2 if current_shanten == 0 # 聴牌維持の場合、報酬を1
+      return 3 if diff_shanten == 0 && diff_outs > 0
       return 0 if diff_shanten == 0 && diff_outs == 0
 
-      -1
+      -5
     end
   end
 end

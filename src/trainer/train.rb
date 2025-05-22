@@ -6,7 +6,7 @@ require_relative '../environment/env'
 
 def run_training
   config = Util::FileLoader.load_parameter('experiment_1')
-  env = Env.new(config['table'], config['player'])
+  env = Env.new(config['table'], config['agent'])
   time_taken = Benchmark.realtime { run_training_loop(config['train'], env) }
   puts format_second(time_taken)
 end
@@ -26,6 +26,7 @@ def run_training_loop(train_config, env)
           env.rotate_turn if !round_over
         end
 
+        puts "学習回数：#{count}"
         puts env.log
         env.renchan? ? env.restart : env.proceed_to_next_round
         round_over = env.round_over?
@@ -33,6 +34,7 @@ def run_training_loop(train_config, env)
         game_over = env.game_over?
       end
 
+      env.update_epsilon
       env.sync_qnet if count % train_config['qnet_sync_interval'] == 0
     end
 

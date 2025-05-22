@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 require_relative '../util/encoder'
+require_relative '../domain/action_manager'
 require_relative '../domain/logic/hand_evaluator'
 
 module StateBuilder
+  ActionManager = Domain::ActionManager
   HandEvaluator = Domain::Logic::HandEvaluator
   Encoder = Util::Encoder
   NORMALIZATION_BASE_SCORE = 100_000.0
@@ -14,95 +16,66 @@ module StateBuilder
   NORMALIZATION_BASE_HONBA = 10.0
 
   class << self
-    def build_discard_states(current_player, other_players, table)
-      current_player_states = build_current_player_states(current_player)
-      other_players_states = build_other_players_states(other_players)
+    def build_states_list(current_player, other_players, table)
+      all_players = [current_player] + other_players
       table_states = build_table_states(table)
-      states = current_player_states + other_players_states + table_states
-      Torch.tensor(states, dtype: :float32)
+
+      main_states_cache = all_players.map { |player| build_main_player_states(player) }
+      sub_states_cache  = all_players.map { |player| build_sub_player_states(player) }
+
+      (0..3).map do |i|
+        rotated_players = all_players.rotate(i)
+        main_player_index = all_players.index(rotated_players[0])
+        sub_player_indices = rotated_players[1..].map { |p| all_players.index(p) }
+
+        main_states = main_states_cache[main_player_index]
+        sub_states  = sub_player_indices.flat_map { |idx| sub_states_cache[idx] }
+        states = main_states + sub_states + table_states
+        Torch.tensor(states, dtype: :float32)
+      end
     end
 
-    def build_tsumo_states(current_player, other_players, table)
-      round_wind = table.round[:wind]
-      tsumo_action = current_player.can_tsumo?(round_wind) ? 1.0 : 0.0
-
-      received_point, *_ = HandEvaluator.calculate_tsumo_agari_point(current_player, table)
-      normalized_point = received_point / NORMALIZATION_BASE_POINT
-
-      scores = ([current_player] + other_players).map(&:score)
-      normalized_scores = scores.map { |score| score / NORMALIZATION_BASE_SCORE }
-
-      normalized_round = table.round[:count] / NORMALIZATION_BASE_ROUND
-
-      states = [
-        tsumo_action,
-        normalized_point,
-        *normalized_scores,
-        normalized_round
-      ]
-
-      Torch.tensor(states, dtype: :float32)
+    def build_tsumo_action_mask(player, round_wind)
+      mask = Array.new(ActionManager.size, 0)
+      mask[ActionManager::TSUMO_INDEX] = 1 if player.can_tsumo?(round_wind)
+      mask[ActionManager::PASS_INDEX] = 1
+      mask
     end
 
-    def build_tsumo_next_states(current_player, other_players, table)
-      tsumo_action = 0.0
-      point = 0.0
-      scores = ([current_player] + other_players).map(&:score)
-      normalized_scores = scores.map { |score| score / NORMALIZATION_BASE_SCORE }
-      normalized_round = (table.round[:count] + 1) / NORMALIZATION_BASE_ROUND
-
-      states = [
-        tsumo_action,
-        point,
-        *normalized_scores,
-        normalized_round
-      ]
-
-      Torch.tensor(states, dtype: :float32)
+    def build_discard_action_mask(player)
+      mask = Array.new(ActionManager.size, 0)
+      ActionManager::DISCARD_RANGE.each do |i|
+        mask[i] = 1 if player.hands[i]
+      end
+      mask
     end
 
-    def build_ron_states(is_ron, current_player, other_players, table)
-      ron_action = is_ron ? 1.0 : 0.0
-      received_point, *_ = HandEvaluator.calculate_ron_agari_point(current_player, table)
-      normalized_point = received_point / NORMALIZATION_BASE_POINT
+    # def build_action_mask(player:, round_wind:, target_tile: false, pass: false)
+    #   mask = Array.new(ActionManager.size, 0)
 
-      scores = ([current_player] + other_players).map(&:score)
-      normalized_scores = scores.map { |score| score / NORMALIZATION_BASE_SCORE }
+    #   ActionManager::DISCARD_RANGE.each do |i|
+    #     mask[i] = 1 if player.hands[i]
+    #   end
 
-      normalized_round = table.round[:count] / NORMALIZATION_BASE_ROUND
+    #   if target_tile
+    #     mask[ActionManager::PON_INDEX] = 1 if player.can_pon?(target_tile)
+    #     mask[ActionManager::CHI_INDEX] = 1 if player.can_chi?(target_tile)
+    #     mask[ActionManager::DAIMINKAN_INDEX] = 1 if player.can_daiminkan?(target_tile)
+    #     mask[ActionManager::RON_INDEX] = 1 if player.can_ron?(target_tile, round_wind)
+    #   end
 
-      states = [
-        ron_action,
-        normalized_point,
-        *normalized_scores,
-        normalized_round
-      ]
+    #   mask[ActionManager::ANKAN_INDEX] = 1 if player.can_ankan?
+    #   mask[ActionManager::KAKAN_INDEX] = 1 if player.can_kakan?
+    #   mask[ActionManager::RIICHI_INDEX] = 1 if player.can_riichi?
+    #   mask[ActionManager::TSUMO_INDEX] = 1 if player.can_tsumo?(round_wind)
+    #   mask[ActionManager::PASS_INDEX] = 1 if pass
 
-      Torch.tensor(states, dtype: :float32)
-    end
-
-    def build_ron_next_states(current_player, other_players, table)
-      ron_action = 0.0
-      point = 0.0
-
-      scores = ([current_player] + other_players).map(&:score)
-      normalized_scores = scores.map { |score| score / NORMALIZATION_BASE_SCORE }
-
-      normalized_round = table.round[:count] / NORMALIZATION_BASE_ROUND
-
-      states = [
-        ron_action,
-        point,
-        *normalized_scores,
-        normalized_round
-      ]
-
-      Torch.tensor(states, dtype: :float32)
-    end
+    #   mask
+    # end
 
     private
 
-    def build_current_player_states(player)
+    def build_main_player_states(player)
       hand_codes = Encoder.encode_hands(player.hands)
       melds_codes = Encoder.encode_melds_list(player.melds_list)
       river_codes = Encoder.encode_rivers(player.rivers)
@@ -124,22 +97,20 @@ module StateBuilder
       ]
     end
 
-    def build_other_players_states(players)
-      players.flat_map do |player|
-        melds_codes = Encoder.encode_melds_list(player.melds_list)
-        river_codes = Encoder.encode_rivers(player.rivers)
-        riichi = player.riichi? ? 1 : 0
-        menzen = player.menzen? ? 1 : 0
-        score = player.score / NORMALIZATION_BASE_SCORE
+    def build_sub_player_states(player)
+      melds_codes = Encoder.encode_melds_list(player.melds_list)
+      river_codes = Encoder.encode_rivers(player.rivers)
+      riichi = player.riichi? ? 1 : 0
+      menzen = player.menzen? ? 1 : 0
+      score = player.score / NORMALIZATION_BASE_SCORE
 
-        [
-          *melds_codes,
-          *river_codes,
-          riichi,
-          menzen,
-          score
-        ]
-      end
+      [
+        *melds_codes,
+        *river_codes,
+        riichi,
+        menzen,
+        score
+      ]
     end
 
     def build_table_states(table)

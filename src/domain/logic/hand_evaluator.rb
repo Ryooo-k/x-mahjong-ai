@@ -88,33 +88,14 @@ module Domain
           yaku.empty? ? false : yaku
         end
 
-        def calculate_tsumo_agari_point(player, table)
+        def calculate_point(player, table, is_tsumo)
           input = to_yaku_checker_format(
             hands: player.hands[..-2],
             melds_list: player.melds_list,
             target_tile: player.hands.last,
             round_wind: table.round[:wind],
             player_wind: player.wind,
-            is_tsumo: true,
-            is_riichi: player.riichi?,
-            open_dora_indicators: table.open_dora_indicators,
-            blind_dora_indicators: table.blind_dora_indicators,
-            honba: table.honba[:count]
-            )
-          File.write("tmp/yaku_input.json", JSON.dump(input))
-          result = `node src/domain/logic/yaku_checker.js`
-          yaku = JSON.parse(result)
-          calculate_point_distribution(player, yaku, table)
-        end
-
-        def calculate_ron_agari_point(player, table)
-          input = to_yaku_checker_format(
-            hands: player.hands[..-2],
-            melds_list: player.melds_list,
-            target_tile: player.hands.last,
-            round_wind: table.round[:wind],
-            player_wind: player.wind,
-            is_tsumo: false,
+            is_tsumo:,
             is_riichi: player.riichi?,
             open_dora_indicators: table.open_dora_indicators,
             blind_dora_indicators: table.blind_dora_indicators,

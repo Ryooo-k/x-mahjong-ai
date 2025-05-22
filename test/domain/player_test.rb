@@ -8,8 +8,8 @@ require_relative '../util/file_loader'
 class PlayerTest < Test::Unit::TestCase
   def setup
     @config = FileLoader.load_parameter
-    @player = Player.new(0, @config['player']['agent'])
-    @other_player = Player.new(1, @config['player']['agent'])
+    @player = Player.new(0, @config['agent'])
+    @other_player = Player.new(1, @config['agent'])
     @tiles = Array.new(136) { |id| Tile.new(id) }
     @manzu_1 = @tiles[0]
   end
@@ -43,9 +43,22 @@ class PlayerTest < Test::Unit::TestCase
   end
 
   def test_riichi
+    # 111222萬 333筒 444索 東中
+    hands = [
+      @tiles[0], @tiles[1], @tiles[2],
+      @tiles[4], @tiles[5], @tiles[6],
+      @tiles[44], @tiles[45], @tiles[46],
+      @tiles[84], @tiles[85], @tiles[86],
+      @tiles[108], @tiles[132]
+    ]
+    @player.instance_variable_set(:@hands, hands)
     assert_equal false, @player.riichi?
-    @player.riichi
+
+    east = @tiles[108]
+    @player.riichi(east)
     assert_equal true, @player.riichi?
+    assert_not_include @player.hands, east
+    assert_equal [east], @player.rivers
   end
 
   def test_sorted_hands_return_hands_sorted_by_id
@@ -103,29 +116,43 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal [@manzu_1], @player.rivers
   end
 
+  def test_choose
+    # 東　123456789萬 123筒
+    hands = [
+      @tiles[108],
+      @tiles[1], @tiles[4], @tiles[8], 
+      @tiles[12], @tiles[16], @tiles[20],
+      @tiles[24], @tiles[28], @tiles[32],
+      @tiles[36], @tiles[40], @tiles[44]
+    ]
+    @player.instance_variable_set(:@hands, hands)
+    index = 0
+    target = @player.choose(index)
+    assert_equal @tiles[1], target
+  end
+
   def test_record_hand_status
     # 123456789萬 123筒　東
     # 向聴数：0
     # 有効牌数：3
-    tiles = [
+    hands = [
       @tiles[0], @tiles[4], @tiles[8], 
       @tiles[12], @tiles[16], @tiles[20],
       @tiles[24], @tiles[28], @tiles[32],
       @tiles[36], @tiles[40], @tiles[44],
       @tiles[108]
     ]
-
-    tiles.each { |tile| @player.draw(tile)}
+    @player.instance_variable_set(:@hands, hands)
     @player.record_hand_status
 
-    assert_equal [tiles], @player.hand_histories
+    assert_equal [hands], @player.hand_histories
     assert_equal [0], @player.shanten_histories
     assert_equal [3], @player.outs_histories
   end
 
   def test_agari?
     # 123456789萬 123筒　東東
-    tiles = [
+    hands = [
       @tiles[0], @tiles[4], @tiles[8],
       @tiles[12], @tiles[16], @tiles[20],
       @tiles[24], @tiles[28], @tiles[32],
@@ -134,13 +161,13 @@ class PlayerTest < Test::Unit::TestCase
     ]
 
     assert_equal false, @player.agari?
-    tiles.each { |tile| @player.draw(tile)}
+    @player.instance_variable_set(:@hands, hands)
     assert_equal true, @player.agari?
   end
 
   def test_tenpai?
     # 123456789萬 123筒　東
-    tiles = [
+    hands = [
       @tiles[0], @tiles[4], @tiles[8],
       @tiles[12], @tiles[16], @tiles[20],
       @tiles[24], @tiles[28], @tiles[32],
@@ -149,8 +176,111 @@ class PlayerTest < Test::Unit::TestCase
     ]
 
     assert_equal false, @player.tenpai?
-    tiles.each { |tile| @player.draw(tile)}
+    @player.instance_variable_set(:@hands, hands)
     assert_equal true, @player.tenpai?
+  end
+
+  def test_can_pon
+    # 123456789萬 112筒　東
+    hands = [
+      @tiles[0], @tiles[4], @tiles[8],
+      @tiles[12], @tiles[16], @tiles[20],
+      @tiles[24], @tiles[28], @tiles[32],
+      @tiles[36], @tiles[37], @tiles[40],
+      @tiles[108]
+    ]
+    @player.instance_variable_set(:@hands, hands)
+    pinzu_1 = @tiles[38]
+    result = @player.can_pon?(pinzu_1)
+    assert_equal true, result
+
+    east = @tiles[109]
+    result = @player.can_pon?(east)
+    assert_equal false, result
+  end
+
+  def test_can_chi
+    # 123456789萬 112筒　東
+    hands = [
+      @tiles[0], @tiles[4], @tiles[8],
+      @tiles[12], @tiles[16], @tiles[20],
+      @tiles[24], @tiles[28], @tiles[32],
+      @tiles[36], @tiles[37], @tiles[40],
+      @tiles[108]
+    ]
+    @player.instance_variable_set(:@hands, hands)
+    pinzu_3 = @tiles[44]
+    result = @player.can_chi?(pinzu_3)
+    assert_equal true, result
+
+    pinzu_4 = @tiles[48]
+    result = @player.can_chi?(pinzu_4)
+    assert_equal false, result
+  end
+
+  def test_can_ankan
+    # 123456789萬 1111筒 東
+    hands = [
+      @tiles[0], @tiles[4], @tiles[8],
+      @tiles[12], @tiles[16], @tiles[20],
+      @tiles[24], @tiles[28], @tiles[32],
+      @tiles[36], @tiles[37], @tiles[38], @tiles[39],
+      @tiles[108]
+    ]
+    @player.instance_variable_set(:@hands, hands)
+    result = @player.can_ankan?
+    assert_equal true, result
+
+    @player.discard(@tiles[39])
+    result = @player.can_ankan?
+    assert_equal false, result
+  end
+
+  def test_can_daiminkan
+    # 123456789萬 111筒 東
+    hands = [
+      @tiles[0], @tiles[4], @tiles[8],
+      @tiles[12], @tiles[16], @tiles[20],
+      @tiles[24], @tiles[28], @tiles[32],
+      @tiles[36], @tiles[37], @tiles[38],
+      @tiles[108]
+    ]
+    @player.instance_variable_set(:@hands, hands)
+    pinzu_1 = @tiles[39]
+    result = @player.can_daiminkan?(pinzu_1)
+    assert_equal true, result
+
+    east = @tiles[109]
+    result = @player.can_daiminkan?(east)
+    assert_equal false, result
+  end
+
+  def test_can_kakan
+    # 456789萬 1筒
+    hands = [
+      @tiles[12], @tiles[16], @tiles[20],
+      @tiles[24], @tiles[28], @tiles[32],
+      @tiles[39]
+    ]
+
+    # 123萬 111筒
+    melds_list = [
+      [@tiles[0], @tiles[4], @tiles[8]],
+      [@tiles[36], @tiles[37], @tiles[38]]
+    ]
+    @player.instance_variable_set(:@hands, hands)
+    @player.instance_variable_set(:@melds_list, melds_list)
+    result = @player.can_kakan?
+    assert_equal true, result
+
+    pinzu_1 = @tiles[39]
+    @player.discard(pinzu_1)
+    result = @player.can_kakan?
+    assert_equal false, result
+  end
+
+  def test_can_riichi
+    # melds_listを見直してテストを実装する
   end
 
   def test_can_ron_return_yaku_when_player_can_ron
@@ -231,30 +361,13 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal false, result
   end
 
-  def test_choose
-    # 東　123456789萬 123筒
-    tiles = [
-      @tiles[108],
-      @tiles[0], @tiles[4], @tiles[8], 
-      @tiles[12], @tiles[16], @tiles[20],
-      @tiles[24], @tiles[28], @tiles[32],
-      @tiles[36], @tiles[40], @tiles[44]
-    ]
-
-    tiles.each { |tile| @player.draw(tile)}
-    index = 0
-    target = @player.choose(index)
-    assert_equal @tiles[index], target
-  end
-
-  def test_tile_holder_change_to_called_player
+  def test_tile_holder_change_to_called_player_when_preform_called
     manzu_3_id8 = @tiles[8]
-    manzu_3_id9 = @tiles[9]
-    manzu_3_id10 = @tiles[10]
-
     @other_player.draw(manzu_3_id8)
     assert_equal @other_player, manzu_3_id8.holder
 
+    manzu_3_id9 = @tiles[9]
+    manzu_3_id10 = @tiles[10]
     combinations = [manzu_3_id9, manzu_3_id10]
     @player.draw(manzu_3_id9)
     @player.draw(manzu_3_id10)
@@ -364,21 +477,35 @@ class PlayerTest < Test::Unit::TestCase
   end
 
   def test_melds_list_add_target_tile_when_player_called_kakan
-    manzu_3_id8 = @tiles[8]
-    manzu_3_id9 = @tiles[9]
-    manzu_3_id10 = @tiles[10]
-    manzu_3_id11 = @tiles[11]
+    # 123456789萬 1筒 東
+    hands = [
+      @tiles[0], @tiles[4], @tiles[8],
+      @tiles[12], @tiles[16], @tiles[20],
+      @tiles[24], @tiles[28], @tiles[32],
+      @tiles[36],
+      @tiles[108]
+    ]
 
-    combinations = [manzu_3_id8, manzu_3_id9]
-    @player.draw(manzu_3_id8)
-    @player.draw(manzu_3_id9)
-    @player.pon(combinations, manzu_3_id10)
-    @player.kakan(manzu_3_id11)
+    # 111筒
+    melds_list = [[@tiles[37], @tiles[38], @tiles[39]]]
 
-    assert_equal [[manzu_3_id8, manzu_3_id9, manzu_3_id10, manzu_3_id11]], @player.melds_list
+    @player.instance_variable_set(:@hands, hands)
+    @player.instance_variable_set(:@melds_list, melds_list)
+
+    @player.kakan(@tiles[36])
+    assert_equal [[@tiles[37], @tiles[38], @tiles[39], @tiles[36]]], @player.melds_list
   end
 
   def test_can_not_call_kakan_when_no_existing_pong
+    # 123456789萬 123筒 東中
+    hands = [
+      @tiles[0], @tiles[4], @tiles[8],
+      @tiles[12], @tiles[16], @tiles[20],
+      @tiles[24], @tiles[28], @tiles[32],
+      @tiles[36], @tiles[40], @tiles[44],
+      @tiles[108], @tiles[132]
+    ]
+    @player.instance_variable_set(:@hands, hands)
     error = assert_raise(ArgumentError) { @player.kakan(@manzu_1) }
     assert_equal('有効な牌が無いため加カンできません。', error.message)
   end
@@ -395,8 +522,6 @@ class PlayerTest < Test::Unit::TestCase
     @player.instance_variable_set(:@is_menzen, false)
     @player.instance_variable_set(:@is_riichi, true)
     @player.instance_variable_set(:@wind, '1z')
-    @player.agent.instance_variable_set(:@total_discard_loss, 100)
-    @player.agent.instance_variable_set(:@total_call_loss, 100)
 
     @player.restart
     assert_equal 33_000, @player.score
@@ -410,8 +535,6 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal true, @player.menzen?
     assert_equal false, @player.riichi?
     assert_equal nil, @player.wind
-    assert_equal 100, @player.agent.total_discard_loss
-    assert_equal 100, @player.agent.total_call_loss
   end
 
   def test_reset
@@ -426,8 +549,6 @@ class PlayerTest < Test::Unit::TestCase
     @player.instance_variable_set(:@is_menzen, false)
     @player.instance_variable_set(:@is_riichi, true)
     @player.instance_variable_set(:@wind, '1z')
-    @player.agent.instance_variable_set(:@total_discard_loss, 100)
-    @player.agent.instance_variable_set(:@total_call_loss, 100)
 
     @player.reset
     assert_equal 25_000, @player.score
@@ -441,7 +562,5 @@ class PlayerTest < Test::Unit::TestCase
     assert_equal true, @player.menzen?
     assert_equal false, @player.riichi?
     assert_equal nil, @player.wind
-    assert_equal 0, @player.agent.total_discard_loss
-    assert_equal 0, @player.agent.total_call_loss
   end
 end

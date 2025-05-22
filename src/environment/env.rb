@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
-require 'json'
 require_relative 'state_builder'
-require_relative 'reward_calculator'
 require_relative '../domain/table'
-require_relative '../domain/logic/hand_evaluator'
+require_relative '../domain/action_handler'
+require_relative '../domain/action_manager'
 require_relative '../util/formatter'
 
 class Env
   attr_reader :table, :current_player, :other_players
 
-  HandEvaluator = Domain::Logic::HandEvaluator
+  ActionHandler = Domain::ActionHandler
+  ActionManager = Domain::ActionManager
   STARTING_HAND_COUNT = 13
   ACTION_NUMBER = 1
 
-  def initialize(table_config, player_config)
-    @table = Table.new(table_config, player_config)
+  def initialize(table_config, agent_config)
+    @table = Table.new(table_config, agent_config)
     @game_over = false
     @round_over = false
     @current_player = @table.host
@@ -27,10 +27,27 @@ class Env
 
   def step
     current_player_draw
-    handle_tsumo_action
-    discarded_states, discarded_action, discarded_tile = handle_discard_action unless round_over
-    ron_player = handle_ron_action(discarded_states, discarded_action, discarded_tile)
-    handle_normal_progress(discarded_states, discarded_action) if !ron_player
+    states_list = StateBuilder.build_states_list(@current_player, @other_players, @table)
+    current_player_states = states_list[0]
+
+    tsumo_actions = ActionHandler.handle_tsumo_action(@current_player, @other_players, @table, current_player_states)
+    next_states_list = StateBuilder.build_states_list(@current_player, @other_players, @table)
+    @round_over = true if tsumo_actions[0] == ActionManager::TSUMO_INDEX
+    check_game_over
+    rewards = RewardCalculator.calculate_tsumo_rewards(@current_player, @other_players, @round_over)
+    update_agent(states_list, tsumo_actions, rewards, next_states_list, @game_over)
+    return if tsumo_actions[0] == ActionManager::TSUMO_INDEX
+
+    discard_action, discarded_tile = ActionHandler.handle_discard_action(@current_player, @other_players, @table, current_player_states)
+    # ActionHandler.handle_ron_action(@current_player, @other_players, @table, discarded_tile)
+    @round_over = can_not_draw?
+
+    check_game_over
+    pass = ActionManager::PASS_INDEX
+    discard_actions = [discard_action, pass, pass, pass]
+    next_states_list = StateBuilder.build_states_list(@current_player, @other_players, @table)
+    rewards = RewardCalculator.calculate_discard_rewards(@current_player, @other_players, @round_over)
+    update_agent(states_list, discard_actions, rewards, next_states_list, @game_over)
   end
 
   def rotate_turn
@@ -41,8 +58,12 @@ class Env
     @other_players = rotated_orders[1..]
   end
 
+  def update_epsilon
+    @table.players.each { |player| player.agent.update_epsilon }
+  end
+
   def sync_qnet
-    @table.players.each { |player| player.sync_qnet }
+    @table.players.each { |player| player.agent.sync_qnet }
   end
 
   def log
@@ -128,103 +149,10 @@ class Env
     @table.draw_count + @table.kong_count >= 122
   end
 
-  def build_states(main_player)
+  def update_agent(states_list, actions, rewards, next_states_list, game_over)
     all_players = [@current_player] + @other_players
-    index = all_players.find_index(main_player)
-    sub_players = all_players.rotate(index + 1)[1..]
-    StateBuilder.build_player_states(main_player, sub_players, @table)
-  end
-
-  def handle_tsumo_action
-    states = StateBuilder.build_tsumo_states(@current_player, @other_players, @table)
-    tsumo_action = @current_player.get_tsumo_action(states)
-
-    if tsumo_action == ACTION_NUMBER
-      @round_over = true
-      distribute_tsumo_point
-      set_player_rank
+    all_players.each_with_index do |player, i|
+      player.agent.update(states_list[i], actions[i], rewards[i], next_states_list[i], game_over)
     end
-
-    update_tsumo_agent(states, tsumo_action)
-  end
-
-  def distribute_tsumo_point
-    received_point, paid_by_host, paid_by_child = HandEvaluator.calculate_tsumo_agari_point(@current_player, @table)
-    @current_player.award_point(received_point)
-    @other_players.each { |player| @table.host == player ? player.award_point(-paid_by_host) : player.award_point(-paid_by_child) }
-  end
-
-  def update_tsumo_agent(states, action)
-    next_states = StateBuilder.build_tsumo_next_states(@current_player, @other_players, @table)
-    reward = RewardCalculator.calculate_reward(@current_player, @round_over)
-    @current_player.update_tsumo_agent(states, action, reward, next_states, @game_over)
-  end
-
-  def handle_discard_action
-    states = StateBuilder.build_discard_states(@current_player, @other_players, @table)
-    discard_action = @current_player.get_discard_action(states)
-    target_tile = @current_player.choose(discard_action)
-    @current_player.discard(target_tile)
-    @current_player.record_hand_status
-    [states, discard_action, target_tile]
-  end
-
-  def handle_ron_action(discarded_states, discarded_action, discarded_tile)
-    ron_action, ron_player = get_ron_action(discarded_tile)
-
-    if ron_action == ACTION_NUMBER
-      @round_over = true
-      received_point, *_ = HandEvaluator.calculate_ron_agari_point(ron_player, @table)
-      update_discard_agent(discarded_states, discarded_action)
-      ron_player.draw(winning_tile)
-      ron_player.record_hand_status
-      ron_player_states = build_states(ron_player)
-      distribute_ron_point(ron_player)
-      set_player_rank
-      update_ron_agent(ron_player, ron_player_states, ron_action)
-    end
-    ron_player
-  end
-
-  def get_ron_action(tile)
-    ron_action = nil
-    ron_player = nil
-    round_wind = @table.round[:wind]
-
-    @other_players.each do |player|
-      if player.can_ron?(tile, round_wind)
-        states = build_states(player)
-        ron_action = player.get_ron_action(states)
-        ron_player = player if ron_action == ACTION_NUMBER
-      end
-      break if !ron_player.nil?
-    end
-    [ron_action, ron_player]
-  end
-
-  def update_discard_agent(states, action)
-    next_states = StateBuilder.build_discard_states(@current_player, @other_players, @table)
-    reward = RewardCalculator.calculate_reward(player, @round_over)
-    player.update_discard_agent(states, action, reward, next_states, @game_over)
-  end
-
-  def update_ron_agent(player, states, action)
-    next_states = build_states(player)
-    reward = RewardCalculator.calculate_reward(player, @round_over)
-    player.update_ron_agent(states, action, reward, next_states, @game_over)
-  end
-
-  def distribute_ron_point(ron_player)
-    point = HandEvaluator.calculate_ron_agari_point(ron_player, @table)
-    ron_player.award_point(point)
-    @current_player.award_point(-point)
-    @other_players.each { |player| player.award_point(0) if player != ron_player }
-  end
-
-  def handle_normal_progress(states, action)
-    @round_over = can_not_draw?
-    next_states = StateBuilder.build_discard_states(@current_player, @other_players, @table)
-    reward = RewardCalculator.calculate_reward(@current_player, @round_over)
-    @current_player.update_discard_agent(states, action, reward, next_states, @game_over)
   end
 end

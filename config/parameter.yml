@@ -3,75 +3,19 @@ experiment_1:
     game_mode_id: 1 # 東南戦
     attendance: 4
     red_dora_mode_id: 1 # 5萬、5筒、5策
-
   train:
     count: 100000 # 10万
     qnet_sync_interval: 500
-
-  player:
-    agent:
-      discard:
-        gamma: 0.98
-        learning_rate: 0.0001
-        epsilon: 0.1
-        buffer_size: 1000
-        batch_size: 32
-        min_epsilon: 0.01
-        decay_rate: 0.99999
-        qnet:
-          layer1: 217
-          layer2: 256
-          layer3: 128
-          layer4: 64
-      call:
-        gamma: 0.98
-        learning_rate: 0.0001
-        epsilon: 0.1
-        buffer_size: 1000
-        batch_size: 32
-        min_epsilon: 0.01
-        decay_rate: 0.99999
-        qnet:
-          layer1: 217
-          layer2: 256
-          layer3: 128
-          layer4: 64
-      riichi:
-        gamma: 0.98
-        learning_rate: 0.0001
-        epsilon: 0.1
-        buffer_size: 1000
-        batch_size: 32
-        min_epsilon: 0.01
-        decay_rate: 0.99999
-        qnet:
-          layer1: 217
-          layer2: 256
-          layer3: 128
-          layer4: 64
-      tsumo:
-        gamma: 0.98
-        learning_rate: 0.0001
-        epsilon: 0.1
-        buffer_size: 1000
-        batch_size: 32
-        min_epsilon: 0.01
-        decay_rate: 0.99999
-        qnet:
-          layer1: 7
-          layer2: 256
-          layer3: 128
-          layer4: 64
-      ron:
-        gamma: 0.98
-        learning_rate: 0.0001
-        epsilon: 0.1
-        buffer_size: 1000
-        batch_size: 32
-        min_epsilon: 0.01
-        decay_rate: 0.99999
-        qnet:
-          layer1: 7
-          layer2: 256
-          layer3: 128
-          layer4: 64
+  agent:
+    gamma: 0.98
+    learning_rate: 0.0001
+    epsilon: 0.1
+    buffer_size: 1000
+    batch_size: 32
+    min_epsilon: 0.01
+    decay_rate: 0.9999
+    qnet:
+      layer1: 217
+      layer2: 256
+      layer3: 128
+      layer4: 64

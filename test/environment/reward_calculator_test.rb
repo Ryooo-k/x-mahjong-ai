@@ -8,7 +8,7 @@ require_relative '../../src/domain/player'
 class RewardCalculatorTest < Test::Unit::TestCase
   def setup
     config = FileLoader.load_parameter
-    @player = Player.new(0, config['player']['agent'])
+    @player = Player.new(0, config['agent'])
   end
 
   def test_calculate_normal_reward_return_30_when_round_over_and_player_rank_1

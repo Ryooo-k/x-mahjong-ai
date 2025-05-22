@@ -19,38 +19,29 @@ def run_training_loop(train_config, env)
       time = 0
 
       while not game_over
-        states, action, reward, next_states, game_over = env.step
-        env.update_agent(states, action, reward, next_states, game_over)
-        env.rotate_turn
-
-        states, action, reward, next_states, game_over = env.step
-        env.update_agent(states, action, reward, next_states, game_over)
-        env.rotate_turn
-
-        states, action, reward, next_states, game_over = env.step
-        env.update_agent(states, action, reward, next_states, game_over)
-        env.rotate_turn
-
-        states, action, reward, next_states, game_over = env.step
-        env.update_agent(states, action, reward, next_states, game_over)
-        env.rotate_turn
+        4.times do  |_|
+          states, action, reward, next_states, game_over = env.step
+          env.update_agent(states, action, reward, next_states, game_over)
+          env.rotate_turn
+        end
         game_over = env.game_over?
       end
 
-      puts env.log
+      puts env.log if env.table.draw_count != 122
       env.update_epsilon
       env.sync_qnet if count % train_config['qnet_sync_interval'] == 0
     end
 
     total_time += time_taken
-    output(total_time, count) if count % 100 == 0
+    output(total_time, count, env.log) if count % 100 == 0
     env.reset
   end
 end
 
-def output(time_taken, count)
+def output(time_taken, count, log)
   puts format_second(time_taken)
   puts "学習回数：#{count}"
+  puts log
 end
 
 def format_second(time_taken)

@@ -1,18 +1,15 @@
 # frozen_string_literal: true
 
 require_relative 'state_builder'
+require_relative 'reward_calculator'
 require_relative '../domain/tenpai_speed_table'
-require_relative '../domain/action_handler'
-require_relative '../domain/action_manager'
 require_relative '../util/formatter'
 
 class Env
   attr_reader :table, :current_player, :other_players
 
-  ActionHandler = Domain::ActionHandler
-  ActionManager = Domain::ActionManager
   STARTING_HAND_COUNT = 13
-  ACTION_NUMBER = 1
+  ACTION_DONE = -1
 
   def initialize(table_config, agent_config)
     @table = Table.new(table_config, agent_config)
@@ -26,31 +23,31 @@ class Env
   end
 
   def step
-    @game_over = true if can_not_draw?
-    current_player_draw if !@game_over
     states = StateBuilder.build_states(@current_player, @other_players, @table)
 
     if current_player.tenpai?
-      @current_player.record_hand_status
       @game_over = true
-      reward = 100
+      reward = RewardCalculator.calculate_tenpai_speed_reward(@current_player, @game_over)
       next_states = StateBuilder.build_states(@current_player, @other_players, @table)
-      return [states, -1, reward, next_states, @game_over]
+      return [states, ACTION_DONE, reward, next_states, @game_over]
     end
+
+    @game_over = true if can_not_draw?
 
     if @game_over
       reward = -100
       next_states = StateBuilder.build_states(@current_player, @other_players, @table)
-      return [states, -1, reward, next_states, @game_over]
+      return [states, ACTION_DONE, reward, next_states, @game_over]
     end
 
+    current_player_draw if !@game_over
     action = @current_player.agent.get_action(states)
     target_tile = current_player.choose(action)
     @current_player.discard(target_tile)
     @current_player.record_hand_status
 
     next_states = StateBuilder.build_states(@current_player, @other_players, @table)
-    reward = RewardCalculator.calculate_round_continue_reward(@current_player)
+    reward = RewardCalculator.calculate_tenpai_speed_reward(@current_player, @game_over)
     return [states, action, reward, next_states, @game_over]
   end
 
@@ -75,7 +72,7 @@ class Env
   end
 
   def log
-    Util::Formatter.build_log(@table)
+    Util::Formatter.build_tenpai_speed_log(@table)
   end
 
   def round_over?
@@ -156,11 +153,4 @@ class Env
   def can_not_draw?
     @table.draw_count + @table.kong_count >= 122
   end
-
-  # def update_agent(states_list, actions, rewards, next_states_list, game_over)
-  #   all_players = [@current_player] + @other_players
-  #   all_players.each_with_index do |player, i|
-  #     player.agent.update(states_list[i], actions[i], rewards[i], next_states_list[i], game_over)
-  #   end
-  # end
 end

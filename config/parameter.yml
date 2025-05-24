@@ -21,23 +21,70 @@ experiment_1:
       layer4: 64
 
 tenpai_speed:
+  train:
+    count: 50000 # 5万
+    qnet_sync_interval: 500
   table:
     game_mode_id: 1
     attendance: 4
     red_dora_mode_id: 1
-  train:
-    count: 100000 # 10万
-    qnet_sync_interval: 500
-  agent:
-    gamma: 0.98
-    learning_rate: 0.0001
-    epsilon: 0.1
-    buffer_size: 1000
-    batch_size: 32
-    min_epsilon: 0.01
-    decay_rate: 0.9999
-    qnet:
-      layer1: 137
-      layer2: 256
-      layer3: 128
-      layer4: 64
+    player_0:
+      agent:
+        gamma: 0.95
+        learning_rate: 0.0001
+        epsilon: 0.2
+        buffer_size: 1000
+        batch_size: 32
+        action_size: 14
+        min_epsilon: 0.05
+        decay_rate: 0.9995
+        qnet:
+          layer1: 137
+          layer2: 256
+          layer3: 128
+          layer4: 64
+    player_1:
+      agent:
+        gamma: 0.98
+        learning_rate: 0.00005
+        epsilon: 0.1
+        buffer_size: 2000
+        batch_size: 64
+        action_size: 14
+        min_epsilon: 0.01
+        decay_rate: 0.9999
+        qnet:
+          layer1: 137
+          layer2: 512
+          layer3: 256
+          layer4: 128
+          layer5: 64
+          layer6: 32
+    player_2:
+      agent:
+        gamma: 0.90
+        learning_rate: 0.0002
+        epsilon: 0.3
+        buffer_size: 500
+        batch_size: 16
+        action_size: 14
+        min_epsilon: 0.1
+        decay_rate: 0.999
+        qnet:
+          layer1: 137
+          layer2: 128
+          layer3: 64
+    player_3:
+      agent:
+        gamma: 0.80
+        learning_rate: 0.001
+        epsilon: 0.1
+        buffer_size: 1000
+        batch_size: 32
+        action_size: 14
+        min_epsilon: 0.01
+        decay_rate: 0.9999
+        qnet:
+          layer1: 137
+          layer2: 128
+          layer3: 64

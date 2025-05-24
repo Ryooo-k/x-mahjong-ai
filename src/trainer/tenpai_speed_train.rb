@@ -6,7 +6,7 @@ require_relative '../environment/tenpai_speed_env'
 
 def run_training
   config = Util::FileLoader.load_parameter('tenpai_speed')
-  env = Env.new(config['table'], config['agent'])
+  env = Env.new(config['table'])
   time_taken = Benchmark.realtime { run_training_loop(config['train'], env) }
   puts format_second(time_taken)
 end

@@ -2,7 +2,7 @@
 
 require_relative 'state_builder'
 require_relative 'reward_calculator'
-require_relative '../domain/tenpai_speed_table'
+require_relative '../domain/table'
 require_relative '../util/formatter'
 
 class Env
@@ -11,8 +11,8 @@ class Env
   STARTING_HAND_COUNT = 13
   ACTION_DONE = -1
 
-  def initialize(table_config, agent_config)
-    @table = Table.new(table_config, agent_config)
+  def initialize(table_config)
+    @table = Table.new(table_config)
     @game_over = false
     @round_over = false
     @current_player = @table.host

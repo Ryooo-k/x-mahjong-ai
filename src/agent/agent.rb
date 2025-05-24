@@ -12,7 +12,7 @@ class Agent
     @epsilon = config['epsilon']
     @buffer_size = config['buffer_size']
     @batch_size = config['batch_size']
-    @action_size = 23
+    @action_size = config['action_size']
     @min_epsilon = config['min_epsilon']
     @decay_rate = config['decay_rate']
     @device = Torch::Backends::MPS.available? ? "mps" : "cpu"
@@ -24,16 +24,24 @@ class Agent
     @optimizer = Torch::Optim::Adam.new(@q_net.parameters, lr: @lr)
   end
 
-  def get_action(states, mask)
-    if rand < @epsilon
-      valid_indices = mask.each_index.select { |i| mask[i] == 1 }
-      return valid_indices.sample
+  def get_action(states, mask = nil)
+    if mask
+      if rand < @epsilon
+        valid_indices = mask.each_index.select { |i| mask[i] == 1 }
+        return valid_indices.sample
+      end
+
+      tensor_states = Torch.tensor(states, dtype: :float32).unsqueeze(0).to(@device)
+      qualities = @q_net.call(tensor_states).detach.squeeze(0)
+      masked_qualities = qualities.to_a.each_with_index.map { |q, i| mask[i] == 1 ? q : -Float::INFINITY }
+      masked_qualities.each_with_index.max_by { |val, _| val }[1]
+    else
+      return rand(@action_size) if rand < @epsilon
+
+      tensor_states = Torch.tensor(states, dtype: :float32).unsqueeze(0).to(@device)
+      qualities = @q_net.call(tensor_states).detach
+      qualities.argmax(1)[0].item
     end
-  
-    tensor_states = Torch.tensor(states, dtype: :float32).unsqueeze(0).to(@device)
-    qualities = @q_net.call(tensor_states).detach.squeeze(0)
-    masked_qualities = qualities.to_a.each_with_index.map { |q, i| mask[i] == 1 ? q : -Float::INFINITY }
-    masked_qualities.each_with_index.max_by { |val, _| val }[1]
   end
 
   def update(state, action, reward, next_state, done)

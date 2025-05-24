@@ -5,14 +5,14 @@ require_relative 'logic/hand_evaluator'
 
 class Player
   attr_reader :id, :hands, :score, :point_histories, :hand_histories, :melds_list, :rivers, :agent, :shanten_histories, :outs_histories
-  attr_accessor :wind, :rank
+  attr_accessor :wind, :rank, :loss, :tenpai_count
 
   HandEvaluator = Domain::Logic::HandEvaluator
   MAX_CALL_COUNT = 4
 
-  def initialize(id, agent_config)
+  def initialize(id, player_config)
     @id = id
-    @agent = Agent.new(agent_config)
+    @agent = Agent.new(player_config['agent'])
     @score = 25_000
     @point_histories = []
     @hands = []
@@ -25,6 +25,8 @@ class Player
     @is_riichi = false
     @wind = nil
     @rank = nil
+    @loss = 0
+    @tenpai_count = 0
   end
 
   def menzen?
@@ -163,6 +165,7 @@ class Player
     @is_menzen = true
     @is_riichi = false
     @wind = nil
+    @loss = 0
   end
 
   def reset
